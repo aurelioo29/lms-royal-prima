@@ -13,10 +13,16 @@ return new class extends Migration
     {
         Schema::create('module_progress', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('enrollment_id')->constrained('course_enrollments')->cascadeOnDelete();
-            $table->foreignId('course_module_id')->constrained()->cascadeOnDelete();
-            $table->boolean('is_completed')->default(false);
+            $table->foreignId('course_module_id')->constrained('course_modules')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+
+            $table->enum('status', ['not_started', 'in_progress', 'completed'])->default('not_started');
             $table->timestamp('completed_at')->nullable();
+
+            $table->timestamps();
+
+            $table->unique(['course_module_id', 'user_id']);
+            $table->index(['user_id', 'status']);
         });
     }
 

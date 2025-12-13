@@ -15,10 +15,17 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->integer('total_hours');
-            $table->enum('status', ['draft', 'published'])->default('draft');
-            $table->foreignId('created_by')->constrained('users');
+
+            // total jam diklat dari course (misal 1.50 jam)
+            $table->decimal('training_hours', 5, 2)->default(0);
+
+            $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
+
+            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
+
             $table->timestamps();
+
+            $table->index(['status']);
         });
     }
 
