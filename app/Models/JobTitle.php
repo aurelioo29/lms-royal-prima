@@ -8,15 +8,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class JobTitle extends Model
 {
-    protected $fillable = ['job_category_id', 'name', 'slug'];
+    protected $fillable = ['job_category_id', 'name', 'slug', 'is_active'];
 
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(JobCategory::class, 'job_category_id');
-    }
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 
-    public function users(): HasMany
+    public function jobCategory(): BelongsTo
     {
-        return $this->hasMany(User::class);
+        return $this->belongsTo(JobCategory::class);
     }
 }
