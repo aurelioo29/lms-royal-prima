@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-7xl mx-auto">
+    <div class="max-w-full">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h1 class="text-xl font-semibold text-slate-800">Roles</h1>
