@@ -8,7 +8,6 @@
         {{-- Left: Form --}}
         <div class="w-full lg:w-1/2 h-full flex items-center justify-center px-6 py-8">
             <div class="w-full max-w-md">
-
                 {{-- Logo --}}
                 <div class="flex items-center justify-center mb-6">
                     <img src="{{ asset('images/logo-royal.png') }}" alt="RSU Royal Prima" class="h-24 w-auto"
@@ -89,9 +88,18 @@
                         </x-primary-button>
                     </div>
 
-                    {{-- Register link (optional) --}}
+                    {{-- Divider Or --}}
+                    <div class="text-center text-sm text-gray-500 pt-2">
+                        <div class="flex items-center gap-3 my-2">
+                            <div class="h-px flex-1 bg-gray-200"></div>
+                            <div class="text-xs text-gray-400">Or</div>
+                            <div class="h-px flex-1 bg-gray-200"></div>
+                        </div>
+                    </div>
+
+                    {{-- Register link --}}
                     @if (Route::has('register'))
-                        <div class="text-center text-sm text-gray-500 pt-3">
+                        <div class="text-center text-sm text-gray-500">
                             Belum Punya Akun Narasumber?
                             <a href="{{ route('register') }}" class="text-[#121293] hover:text-indigo-700 font-medium">
                                 Daftar Sekarang
@@ -99,6 +107,7 @@
                         </div>
                     @endif
 
+                    {{-- Version --}}
                     <div class="text-center text-xs text-gray-400 pt-4">
                         Version 1.0.0 - Beta
                     </div>
