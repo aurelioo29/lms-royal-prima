@@ -43,6 +43,11 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
+    public function canManageUsers(): bool
+    {
+        return (bool) ($this->role?->can_manage_users);
+    }
+
     public function jobCategory(): BelongsTo
     {
         return $this->belongsTo(JobCategory::class, 'job_category_id');

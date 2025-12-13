@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Role extends Model
 {
-    protected $fillable = ['name', 'slug', 'level'];
+    protected $fillable = ['name', 'slug', 'level', 'can_manage_users'];
+
+    protected $casts = [
+        'can_manage_users' => 'boolean',
+    ];
 
     public function users(): HasMany
     {

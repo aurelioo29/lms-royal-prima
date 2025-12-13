@@ -1,17 +1,35 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
+    <div class="space-y-6">
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
+        {{-- Welcome --}}
+        <div class="bg-white rounded-xl border border-slate-200 p-6">
+            <h2 class="text-lg font-semibold text-slate-800">
+                Dashboard
+            </h2>
+            <p class="text-sm text-slate-500">
+                Selamat datang, {{ Auth::user()->name }}.
+            </p>
+        </div>
+
+        {{-- Cards --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl border border-slate-200 p-5">
+                <div class="text-sm text-slate-500">Kalender Tahunan</div>
+                <div class="mt-2 text-xl font-semibold">—</div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 p-5">
+                <div class="text-sm text-slate-500">Jam Diklat</div>
+                <div class="mt-2 text-xl font-semibold">—</div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 p-5">
+                <div class="text-sm text-slate-500">Status Akun</div>
+                <div class="mt-2 text-xl font-semibold text-green-600">
+                    Aktif
                 </div>
             </div>
         </div>
+
     </div>
 </x-app-layout>
