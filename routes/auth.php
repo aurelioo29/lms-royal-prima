@@ -9,6 +9,8 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\JobCategoryController;
+use App\Http\Controllers\JobTitleController;
 use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +40,8 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth', 'can_manage_users')->group(function () {
     Route::resource('roles', RoleController::class);
+    Route::resource('job-categories', JobCategoryController::class);
+    Route::resource('job-titles', JobTitleController::class);
 
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
