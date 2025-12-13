@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('job_titles', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('job_category_id')->constrained('job_categories')->cascadeOnDelete();
-            $table->string('name');
-            $table->string('slug')->nullable();
+            $table->foreignId('job_category_id')->constrained('job_categories')->cascadeOnDelete()->restrictOnDelete();
+            $table->string('name', 120);
+            $table->string('slug', 120)->unique()->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->unique(['job_category_id', 'name']);
+            $table->unique(['job_category_id', 'is_active']);
         });
     }
 
