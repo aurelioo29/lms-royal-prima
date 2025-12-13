@@ -7,15 +7,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class JobCategory extends Model
 {
-    protected $fillable = ['name', 'slug'];
+    protected $fillable = ['name', 'slug', 'is_active'];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
 
     public function jobTitles(): HasMany
     {
         return $this->hasMany(JobTitle::class);
-    }
-
-    public function users(): HasMany
-    {
-        return $this->hasMany(User::class);
     }
 }
