@@ -48,7 +48,7 @@
                     Narasumber
                 </a>
 
-                <a href="#"
+                <a href="{{ route('employees.index') }}"
                     class="block px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition">
                     Karyawan
                 </a>
