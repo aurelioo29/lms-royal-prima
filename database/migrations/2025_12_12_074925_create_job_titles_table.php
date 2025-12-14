@@ -19,7 +19,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->unique(['job_category_id', 'is_active']);
+            $table->unique(['job_category_id', 'name', 'is_active']);
         });
     }
 
