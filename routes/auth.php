@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminMotReviewController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\InstructorMotController;
 use App\Http\Controllers\JobCategoryController;
 use App\Http\Controllers\JobTitleController;
 use App\Http\Controllers\RoleController;
@@ -39,11 +41,19 @@ Route::middleware('guest')->group(function () {
     //     ->name('password.store');
 });
 
-Route::middleware('auth', 'can_manage_users')->group(function () {
-    Route::resource('roles', RoleController::class);
-    Route::resource('job-categories', JobCategoryController::class);
-    Route::resource('job-titles', JobTitleController::class);
-    Route::resource('employees', EmployeeController::class)->except(['show']);
+Route::middleware('auth')->group(function () {
+    Route::middleware('can_manage_users')->group(function () {
+        Route::resource('roles', RoleController::class);
+        Route::resource('job-categories', JobCategoryController::class);
+        Route::resource('job-titles', JobTitleController::class);
+        Route::resource('employees', EmployeeController::class)->except(['show']);
+        Route::get('/admin/mot', [AdminMotReviewController::class, 'index'])->name('admin.mot.index');
+        Route::get('/admin/mot/{doc}', [AdminMotReviewController::class, 'show'])->name('admin.mot.show');
+        Route::put('/admin/mot/{doc}', [AdminMotReviewController::class, 'update'])->name('admin.mot.update');
+    });
+
+    Route::get('/instructor/mot', [InstructorMotController::class, 'show'])->name('instructor.mot.show');
+    Route::post('/instructor/mot', [InstructorMotController::class, 'store'])->name('instructor.mot.store');
 
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');

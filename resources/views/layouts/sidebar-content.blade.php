@@ -43,7 +43,7 @@
 
             <!-- Submenu (animated) -->
             <div x-show="open && !collapsed" x-collapse.duration.250ms class="mt-1 space-y-1 pl-11">
-                <a href="#"
+                <a href="{{ route('admin.mot.index') }}"
                     class="block px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition">
                     Narasumber
                 </a>
