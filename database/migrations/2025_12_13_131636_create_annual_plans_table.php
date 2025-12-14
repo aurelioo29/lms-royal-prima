@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('annual_plans', function (Blueprint $table) {
+            $table->id();
             $table->year('year');
 
             // Kabid yang bikin draft

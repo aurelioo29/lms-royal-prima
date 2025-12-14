@@ -36,6 +36,9 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'birth_date' => 'date',
         'is_active' => 'boolean',
+        'last_seen_at' => 'datetime',
+        'last_login_at' => 'datetime',
+        'last_logout_at' => 'datetime',
     ];
 
     public function role(): BelongsTo

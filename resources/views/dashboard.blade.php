@@ -1,35 +1,157 @@
 <x-app-layout>
-    <div class="space-y-6">
-
-        {{-- Welcome --}}
-        <div class="bg-white rounded-xl border border-slate-200 p-6">
-            <h2 class="text-lg font-semibold text-slate-800">
-                Dashboard
-            </h2>
-            <p class="text-sm text-slate-500">
-                Selamat datang, {{ Auth::user()->name }}.
-            </p>
+    <x-slot name="header">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-800">Dashboard</h2>
+                <p class="text-sm text-slate-500">Selamat datang, {{ auth()->user()->name }}.</p>
+            </div>
         </div>
+    </x-slot>
 
-        {{-- Cards --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white rounded-xl border border-slate-200 p-5">
-                <div class="text-sm text-slate-500">Kalender Tahunan</div>
-                <div class="mt-2 text-xl font-semibold">—</div>
-            </div>
+    <div class="py-6">
+        <div class="max-w-full mx-auto sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            <div class="bg-white rounded-xl border border-slate-200 p-5">
-                <div class="text-sm text-slate-500">Jam Diklat</div>
-                <div class="mt-2 text-xl font-semibold">—</div>
-            </div>
+                {{-- LEFT AREA --}}
+                <div class="lg:col-span-8 space-y-6">
 
-            <div class="bg-white rounded-xl border border-slate-200 p-5">
-                <div class="text-sm text-slate-500">Status Akun</div>
-                <div class="mt-2 text-xl font-semibold text-green-600">
-                    Aktif
+                    {{-- Summary Card --}}
+                    <div class="bg-white border border-slate-200 rounded-xl p-6">
+                        <div class="text-slate-800 font-semibold">Ringkasan</div>
+                        <div class="text-sm text-slate-500 mt-1">Nanti isi sesuai role
+                            (Direktur/Kabid/Narasumber/Karyawan/Admin/Developer).</div>
+                    </div>
+
+                    {{-- Stats --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        @foreach ($stats ?? [] as $s)
+                            <div class="bg-white border border-slate-200 rounded-xl p-5">
+                                <div class="text-xs text-slate-500">{{ $s['label'] }}</div>
+                                <div class="mt-1 text-lg font-semibold text-slate-800">
+                                    @if ($s['label'] === 'Status Akun')
+                                        <span
+                                            class="{{ $s['value'] === 'Aktif' ? 'text-green-600' : 'text-amber-600' }}">
+                                            {{ $s['value'] }}
+                                        </span>
+                                    @else
+                                        {{ $s['value'] }}
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    {{-- Placeholder section --}}
+                    <div class="bg-white border border-slate-200 rounded-xl p-6">
+                        <div class="text-slate-800 font-semibold">Aktivitas</div>
+                        <div class="text-sm text-slate-500 mt-1">Slot untuk: kalender, course yang diikuti, progress jam
+                            diklat, approval, dsb.</div>
+                        <div class="mt-4 border border-dashed border-slate-200 rounded-xl p-6 text-sm text-slate-400">
+                            Coming soon. (alias: nanti kamu isi 😄)
+                        </div>
+                    </div>
+
                 </div>
+
+                {{-- RIGHT AREA: Online Users --}}
+                <div class="lg:col-span-3">
+                    <div x-data="onlineUsersWidget()" x-init="init()"
+                        class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+
+                        <div class="p-4 border-b border-slate-200">
+                            <div class="font-semibold text-slate-800">Pengguna Online</div>
+                            <div class="text-sm text-slate-500 mt-1">
+                                <span x-text="count"></span> pengguna daring (5 menit terakhir)
+                            </div>
+                        </div>
+
+                        <div class="p-2">
+                            <template x-if="loading">
+                                <div class="p-4 text-sm text-slate-500">Loading...</div>
+                            </template>
+
+                            <template x-if="!loading && users.length === 0">
+                                <div class="p-4 text-sm text-slate-500">Belum ada yang online.</div>
+                            </template>
+
+                            <div class="max-h-[420px] overflow-y-auto pr-1">
+                                <template x-for="u in users" :key="u.id">
+                                    <div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50">
+                                        <div
+                                            class="h-8 w-8 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center text-sm font-semibold">
+                                            <span x-text="(u.name || '?').trim().charAt(0).toUpperCase()"></span>
+                                        </div>
+
+                                        <div class="min-w-0 flex-1">
+                                            <div class="text-sm text-[#121293] truncate" x-text="u.name"></div>
+                                            <div class="text-xs text-slate-400">
+                                                aktif: <span x-text="formatAgo(u.last_seen_at)"></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="h-2.5 w-2.5 rounded-full bg-green-500"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
         </div>
-
     </div>
+
+    <script>
+        function onlineUsersWidget() {
+            return {
+                loading: true,
+                count: @js($onlineCount ?? 0),
+                users: @js(
+    ($onlineUsers ?? collect())
+        ->map(
+            fn($u) => [
+                'id' => $u->id,
+                'name' => $u->name,
+                'last_seen_at' => optional($u->last_seen_at)->toIso8601String(),
+            ],
+        )
+        ->values(),
+),
+                timer: null,
+
+                init() {
+                    this.loading = false;
+                    this.refresh();
+                    this.timer = setInterval(() => this.refresh(), 10000);
+                },
+
+                async refresh() {
+                    try {
+                        const res = await fetch(@js(route('dashboard.online')), {
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        });
+                        if (!res.ok) return;
+                        const data = await res.json();
+                        this.count = data.count ?? 0;
+                        this.users = data.users ?? [];
+                    } catch (e) {}
+                },
+
+                formatAgo(iso) {
+                    if (!iso) return '-';
+                    const t = new Date(iso).getTime();
+                    const diff = Math.max(0, Date.now() - t);
+                    const sec = Math.floor(diff / 1000);
+                    if (sec < 60) return sec + ' detik';
+                    const min = Math.floor(sec / 60);
+                    if (min < 60) return min + ' menit';
+                    const hr = Math.floor(min / 60);
+                    return hr + ' jam';
+                }
+            }
+        }
+    </script>
 </x-app-layout>
