@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-3xl mx-auto">
+    <div class="max-w-full mx-auto">
         <div class="mb-4">
             <h1 class="text-xl font-semibold text-slate-800">Edit Role</h1>
             <p class="text-sm text-slate-500">Role: {{ $role->name }}</p>
