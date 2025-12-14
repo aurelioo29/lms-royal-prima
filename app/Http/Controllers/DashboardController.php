@@ -19,10 +19,13 @@ class DashboardController extends Controller
             ['label' => 'Status Akun', 'value' => auth()->user()->is_active ? 'Aktif' : 'Nonaktif'],
         ];
 
+        $mot = auth()->user()->motDocument()->first();
+
         return view('dashboard', [
             'onlineCount' => $count,
             'onlineUsers' => $users,
             'stats'       => $stats,
+            'mot' => $mot,
         ]);
     }
 

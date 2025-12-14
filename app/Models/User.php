@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\InstructorDocument;
 
 class User extends Authenticatable
 {
@@ -87,5 +90,28 @@ class User extends Authenticatable
     public function canActAsDirector(): bool
     {
         return $this->isDeveloper() || $this->isDirector();
+    }
+
+    // Manage MOT Narasumber
+    public function instructorDocuments(): HasMany
+    {
+        return $this->hasMany(InstructorDocument::class);
+    }
+
+    public function motDocument(): HasOne
+    {
+        return $this->hasOne(InstructorDocument::class)
+            ->where('type', 'mot')
+            ->latestOfMany();
+    }
+
+    public function isNarasumber(): bool
+    {
+        return $this->role?->slug === 'instructor';
+    }
+
+    public function canApproveMot(): bool
+    {
+        return in_array($this->role?->slug, ['developer', 'admin'], true);
     }
 }
