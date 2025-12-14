@@ -9,20 +9,50 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-full mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-full sm:px-6 lg:px-8 space-y-6">
+
+            {{-- MOT CARD (FULL WIDTH) --}}
+            @if (auth()->user()->isNarasumber())
+                <div class="bg-white border border-slate-200 rounded-xl p-6">
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                        <div>
+                            <div class="text-slate-800 font-semibold">Dokumen MOT</div>
+
+                            @if (!$mot)
+                                <p class="text-sm text-red-600 mt-1">Belum upload MOT.</p>
+                                <p class="text-sm text-slate-500 mt-1">Upload dulu supaya bisa mengajar.</p>
+                            @elseif($mot->status === 'pending')
+                                <p class="text-sm text-amber-600 mt-1">Status: Pending approval Admin.</p>
+                            @elseif($mot->status === 'rejected')
+                                <p class="text-sm text-red-600 mt-1">Status: Ditolak.</p>
+                                @if ($mot->rejected_reason)
+                                    <p class="text-sm text-slate-500 mt-1">Alasan: {{ $mot->rejected_reason }}</p>
+                                @endif
+                            @else
+                                <p class="text-sm text-green-600 mt-1">Status: Approved ✅</p>
+                            @endif
+                        </div>
+
+                        <a href="{{ route('instructor.mot.show') }}"
+                            class="inline-flex justify-center shrink-0 px-4 py-2 rounded-lg bg-[#121293] text-white hover:opacity-90 text-sm">
+                            {{ $mot ? 'Lihat / Upload Ulang' : 'Upload MOT' }}
+                        </a>
+                    </div>
+                </div>
+            @endif
+
+            {{-- MAIN GRID --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                {{-- LEFT AREA --}}
+                {{-- LEFT --}}
                 <div class="lg:col-span-8 space-y-6">
-
-                    {{-- Summary Card --}}
                     <div class="bg-white border border-slate-200 rounded-xl p-6">
                         <div class="text-slate-800 font-semibold">Ringkasan</div>
-                        <div class="text-sm text-slate-500 mt-1">Nanti isi sesuai role
-                            (Direktur/Kabid/Narasumber/Karyawan/Admin/Developer).</div>
+                        <div class="text-sm text-slate-500 mt-1">
+                            Nanti isi sesuai role (Direktur/Kabid/Narasumber/Karyawan/Admin/Developer).
+                        </div>
                     </div>
 
-                    {{-- Stats --}}
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         @foreach ($stats ?? [] as $s)
                             <div class="bg-white border border-slate-200 rounded-xl p-5">
@@ -41,22 +71,21 @@
                         @endforeach
                     </div>
 
-                    {{-- Placeholder section --}}
                     <div class="bg-white border border-slate-200 rounded-xl p-6">
                         <div class="text-slate-800 font-semibold">Aktivitas</div>
-                        <div class="text-sm text-slate-500 mt-1">Slot untuk: kalender, course yang diikuti, progress jam
-                            diklat, approval, dsb.</div>
+                        <div class="text-sm text-slate-500 mt-1">
+                            Slot untuk: kalender, course yang diikuti, progress jam diklat, approval, dsb.
+                        </div>
                         <div class="mt-4 border border-dashed border-slate-200 rounded-xl p-6 text-sm text-slate-400">
                             Coming soon. (alias: nanti kamu isi 😄)
                         </div>
                     </div>
-
                 </div>
 
-                {{-- RIGHT AREA: Online Users --}}
-                <div class="lg:col-span-3">
+                {{-- RIGHT (FIX: 4 COLS, NOT 3) --}}
+                <div class="lg:col-span-4">
                     <div x-data="onlineUsersWidget()" x-init="init()"
-                        class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                        class="bg-white border border-slate-200 rounded-xl overflow-hidden lg:sticky lg:top-6">
 
                         <div class="p-4 border-b border-slate-200">
                             <div class="font-semibold text-slate-800">Pengguna Online</div>
