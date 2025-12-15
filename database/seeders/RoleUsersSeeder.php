@@ -13,7 +13,7 @@ class RoleUsersSeeder extends Seeder
     {
         // ambil role id by slug
         $roleIds = DB::table('roles')
-            ->whereIn('slug', ['developer', 'director', 'head_training', 'admin', 'instructor'])
+            ->whereIn('slug', ['developer', 'director', 'head_training', 'admin', 'instructor', 'karyawan'])
             ->pluck('id', 'slug'); // ['developer' => 1, ...]
 
         $defaults = [
@@ -46,6 +46,12 @@ class RoleUsersSeeder extends Seeder
                 'name' => 'Narasumber',
                 'email' => 'narasumber@rs.local',
                 'nik' => 'NSB-0001',
+            ],
+            [
+                'slug' => 'karyawan',
+                'name' => 'Karyawan',
+                'email' => 'karyawan@rs.local',
+                'nik' => 'KRY-0001',
             ],
         ];
 

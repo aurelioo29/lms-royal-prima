@@ -18,9 +18,15 @@ class StoreRoleRequest extends FormRequest
             'name' => ['required', 'string', 'max:100'],
             'slug' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9_]+$/', Rule::unique('roles', 'slug')],
             'level' => ['required', 'integer', 'min:0', 'max:999'],
+
             'can_manage_users' => ['nullable', 'boolean'],
+            'can_create_plans' => ['nullable', 'boolean'],
+            'can_approve_plans' => ['nullable', 'boolean'],
+            'can_create_courses' => ['nullable', 'boolean'],
+            'can_approve_courses' => ['nullable', 'boolean'],
         ];
     }
+
 
     public function messages(): array
     {

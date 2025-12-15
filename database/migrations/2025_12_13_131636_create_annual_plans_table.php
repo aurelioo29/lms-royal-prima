@@ -13,25 +13,22 @@ return new class extends Migration
     {
         Schema::create('annual_plans', function (Blueprint $table) {
             $table->id();
-            $table->year('year');
 
-            // Kabid yang bikin draft
-            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
-
-            // submit
-            $table->foreignId('submitted_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->unsignedSmallInteger('year')->index();
+            $table->string('title');
+            $table->text('description')->nullable();
+            // draft|pending|approved|rejected
+            $table->string('status', 20)->default('draft')->index();
+            $table->foreignId('created_by')->constrained('users')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('submitted_at')->nullable();
-
-            // approval direktur/developer
-            $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('reviewed_at')->nullable();
-
-            $table->enum('status', ['draft', 'submitted', 'approved', 'rejected'])->default('draft');
-            $table->text('review_notes')->nullable();
+            $table->timestamp('approved_at')->nullable();
+            $table->timestamp('rejected_at')->nullable();
+            $table->text('rejected_reason')->nullable();
 
             $table->timestamps();
 
-            // 1 rencana per tahun (kalau nanti mau versi, kita ubah jadi versioning)
+            // kalau kamu mau 1 plan per tahun (strict), uncomment:
             $table->unique(['year']);
         });
     }

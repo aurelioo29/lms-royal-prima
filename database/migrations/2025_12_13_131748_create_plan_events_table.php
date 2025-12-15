@@ -13,29 +13,20 @@ return new class extends Migration
     {
         Schema::create('plan_events', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('annual_plan_id')->constrained('annual_plans')->cascadeOnDelete();
+            $table->foreignId('annual_plan_id')->constrained('annual_plans')->cascadeOnUpdate()->cascadeOnDelete();
 
             $table->string('title');
-            $table->string('category')->nullable();
+            $table->text('description')->nullable();
 
-            $table->dateTime('starts_at');
-            $table->dateTime('ends_at')->nullable();
-            $table->unsignedInteger('duration_minutes')->default(60);
+            $table->date('date')->index();
+            $table->time('start_time')->nullable();
+            $table->time('end_time')->nullable();
 
             $table->string('location')->nullable();
-
-            // narasumber (user role instructor), opsional
-            $table->foreignId('instructor_id')->nullable()->constrained('users')->nullOnDelete();
-
-            $table->boolean('is_mandatory')->default(false);
-
-            // ini diset true saat annual_plan approved
-            $table->boolean('is_published')->default(false);
+            $table->string('target_audience')->nullable(); // optional
+            $table->string('status', 20)->default('scheduled')->index(); // scheduled|cancelled|done (optional)
 
             $table->timestamps();
-
-            $table->index(['starts_at']);
-            $table->index(['annual_plan_id', 'is_published']);
         });
     }
 
