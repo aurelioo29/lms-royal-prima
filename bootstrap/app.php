@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CanManageUsers;
+use App\Http\Middleware\CheckCapability;
 use App\Http\Middleware\UpdateLastSeen;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', UpdateLastSeen::class);
         $middleware->alias([
             'can_manage_users' => CanManageUsers::class,
+            'cap' => CheckCapability::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
