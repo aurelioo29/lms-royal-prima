@@ -52,17 +52,17 @@
 
             <div x-show="open && !collapsed" x-collapse.duration.250ms class="mt-1 space-y-1 pl-11">
                 {{-- semua yang punya akses menu ini boleh lihat list --}}
-                <a href="{{ route('annual-plans.index') }}"
-                    class="block px-3 py-2 rounded-lg text-sm transition
-                {{ request()->routeIs('annual-plans.index') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                    Daftar Plans
-                </a>
-
                 @if ($canPlanCreate)
+                    <a href="{{ route('annual-plans.index') }}"
+                        class="block px-3 py-2 rounded-lg text-sm transition
+                    {{ request()->routeIs('annual-plans.index') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
+                        Daftar Plans
+                    </a>
+
                     <a href="{{ route('annual-plans.create') }}"
                         class="block px-3 py-2 rounded-lg text-sm transition
                     {{ request()->routeIs('annual-plans.create') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                        Buat Plan
+                        Create New Plan
                     </a>
                 @endif
 
@@ -70,13 +70,13 @@
                     <a href="{{ route('annual-plans.approvals') }}"
                         class="block px-3 py-2 rounded-lg text-sm transition
                     {{ request()->routeIs('annual-plans.approvals') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                        Approvals
+                        Manage Approvals
                     </a>
                 @endif
             </div>
         </div>
     @endif
-    
+
     <!-- MANAGE USERS -->
     @if (auth()->user()->canManageUsers())
         <div x-data="{ open: false }" class="pt-1">
