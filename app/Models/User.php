@@ -54,6 +54,26 @@ class User extends Authenticatable
         return (bool) ($this->role?->can_manage_users);
     }
 
+    public function canCreatePlans(): bool
+    {
+        return (bool) ($this->role?->can_create_plans);
+    }
+
+    public function canApprovePlans(): bool
+    {
+        return (bool) ($this->role?->can_approve_plans);
+    }
+
+    public function canCreateCourses(): bool
+    {
+        return (bool) ($this->role?->can_create_courses);
+    }
+
+    public function canApproveCourses(): bool
+    {
+        return (bool) ($this->role?->can_approve_courses);
+    }
+
     public function jobCategory(): BelongsTo
     {
         return $this->belongsTo(JobCategory::class, 'job_category_id');
