@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminMotReviewController;
+use App\Http\Controllers\AnnualPlanController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\InstructorMotController;
 use App\Http\Controllers\JobCategoryController;
 use App\Http\Controllers\JobTitleController;
+use App\Http\Controllers\PlanEventController;
 use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +53,61 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/mot/{doc}', [AdminMotReviewController::class, 'show'])->name('admin.mot.show');
         Route::put('/admin/mot/{doc}', [AdminMotReviewController::class, 'update'])->name('admin.mot.update');
     });
+
+    Route::get('/annual-plans', [AnnualPlanController::class, 'index'])
+        ->name('annual-plans.index');
+
+    // approvals page (HARUS sebelum /{annualPlan})
+    Route::middleware('cap:can_approve_plans')->group(function () {
+        Route::get('/annual-plans/approvals', [AnnualPlanController::class, 'approvals'])
+            ->name('annual-plans.approvals');
+
+        Route::post('/annual-plans/{annualPlan}/approve', [AnnualPlanController::class, 'approve'])
+            ->name('annual-plans.approve');
+
+        Route::post('/annual-plans/{annualPlan}/reject', [AnnualPlanController::class, 'reject'])
+            ->name('annual-plans.reject');
+    });
+
+    // create/edit (HARUS sebelum /{annualPlan})
+    Route::middleware('cap:can_create_plans')->group(function () {
+        Route::get('/annual-plans/create', [AnnualPlanController::class, 'create'])
+            ->name('annual-plans.create');
+
+        Route::post('/annual-plans', [AnnualPlanController::class, 'store'])
+            ->name('annual-plans.store');
+
+        Route::get('/annual-plans/{annualPlan}/edit', [AnnualPlanController::class, 'edit'])
+            ->name('annual-plans.edit');
+
+        Route::put('/annual-plans/{annualPlan}', [AnnualPlanController::class, 'update'])
+            ->name('annual-plans.update');
+    });
+
+    Route::middleware('cap:can_create_plans')->group(function () {
+        Route::post('/annual-plans/{annualPlan}/submit', [AnnualPlanController::class, 'submit'])
+            ->name('annual-plans.submit');
+    });
+
+    Route::middleware('cap:can_create_plans')->group(function () {
+        Route::get('/annual-plans/{annualPlan}/events/create', [PlanEventController::class, 'create'])
+            ->name('annual-plans.events.create');
+
+        Route::post('/annual-plans/{annualPlan}/events', [PlanEventController::class, 'store'])
+            ->name('annual-plans.events.store');
+
+        Route::get('/annual-plans/{annualPlan}/events/{event}/edit', [PlanEventController::class, 'edit'])
+            ->name('annual-plans.events.edit');
+
+        Route::put('/annual-plans/{annualPlan}/events/{event}', [PlanEventController::class, 'update'])
+            ->name('annual-plans.events.update');
+
+        Route::delete('/annual-plans/{annualPlan}/events/{event}', [PlanEventController::class, 'destroy'])
+            ->name('annual-plans.events.destroy');
+    });
+
+    Route::get('/annual-plans/{annualPlan}', [AnnualPlanController::class, 'show'])
+        ->name('annual-plans.show');
 
     Route::get('/instructor/mot', [InstructorMotController::class, 'show'])->name('instructor.mot.show');
     Route::post('/instructor/mot', [InstructorMotController::class, 'store'])->name('instructor.mot.store');
