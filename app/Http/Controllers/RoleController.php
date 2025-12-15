@@ -40,7 +40,12 @@ class RoleController extends Controller
             'name' => $request->name,
             'slug' => $request->slug,
             'level' => $request->level,
-            'can_manage_users' => (bool) $request->boolean('can_manage_users'),
+
+            'can_manage_users' => $request->boolean('can_manage_users'),
+            'can_create_plans' => $request->boolean('can_create_plans'),
+            'can_approve_plans' => $request->boolean('can_approve_plans'),
+            'can_create_courses' => $request->boolean('can_create_courses'),
+            'can_approve_courses' => $request->boolean('can_approve_courses'),
         ]);
 
         return redirect()->route('roles.index')->with('success', 'Role berhasil dibuat.');
@@ -57,7 +62,12 @@ class RoleController extends Controller
             'name' => $request->name,
             'slug' => $request->slug,
             'level' => $request->level,
-            'can_manage_users' => (bool) $request->boolean('can_manage_users'),
+
+            'can_manage_users' => $request->boolean('can_manage_users'),
+            'can_create_plans' => $request->boolean('can_create_plans'),
+            'can_approve_plans' => $request->boolean('can_approve_plans'),
+            'can_create_courses' => $request->boolean('can_create_courses'),
+            'can_approve_courses' => $request->boolean('can_approve_courses'),
         ]);
 
         return redirect()->route('roles.index')->with('success', 'Role berhasil diupdate.');

@@ -41,7 +41,11 @@
                             <th class="text-left px-4 py-3">Name</th>
                             <th class="text-left px-4 py-3">Slug</th>
                             <th class="text-left px-4 py-3">Level</th>
-                            <th class="text-left px-4 py-3">Can Manage Users</th>
+                            <th class="text-left px-4 py-3">Manage Users</th>
+                            <th class="text-left px-4 py-3">Create Plans</th>
+                            <th class="text-left px-4 py-3">Approve Plans</th>
+                            <th class="text-left px-4 py-3">Create Courses</th>
+                            <th class="text-left px-4 py-3">Approve Courses</th>
                             <th class="text-right px-4 py-3">Aksi</th>
                         </tr>
                     </thead>
@@ -51,15 +55,43 @@
                                 <td class="px-4 py-3 font-medium text-slate-800">{{ $role->name }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $role->slug }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $role->level }}</td>
+                                @php
+                                    $badgeYes =
+                                        'px-2 py-1 rounded-full bg-green-50 text-green-700 text-xs border border-green-100';
+                                    $badgeNo =
+                                        'px-2 py-1 rounded-full bg-slate-50 text-slate-600 text-xs border border-slate-200';
+                                @endphp
+
                                 <td class="px-4 py-3">
-                                    @if ($role->can_manage_users)
-                                        <span
-                                            class="px-2 py-1 rounded-full bg-green-50 text-green-700 text-xs border border-green-100">Yes</span>
-                                    @else
-                                        <span
-                                            class="px-2 py-1 rounded-full bg-slate-50 text-slate-600 text-xs border border-slate-200">No</span>
-                                    @endif
+                                    <span class="{{ $role->can_manage_users ? $badgeYes : $badgeNo }}">
+                                        {{ $role->can_manage_users ? 'Yes' : 'No' }}
+                                    </span>
                                 </td>
+
+                                <td class="px-4 py-3">
+                                    <span class="{{ $role->can_create_plans ? $badgeYes : $badgeNo }}">
+                                        {{ $role->can_create_plans ? 'Yes' : 'No' }}
+                                    </span>
+                                </td>
+
+                                <td class="px-4 py-3">
+                                    <span class="{{ $role->can_approve_plans ? $badgeYes : $badgeNo }}">
+                                        {{ $role->can_approve_plans ? 'Yes' : 'No' }}
+                                    </span>
+                                </td>
+
+                                <td class="px-4 py-3">
+                                    <span class="{{ $role->can_create_courses ? $badgeYes : $badgeNo }}">
+                                        {{ $role->can_create_courses ? 'Yes' : 'No' }}
+                                    </span>
+                                </td>
+
+                                <td class="px-4 py-3">
+                                    <span class="{{ $role->can_approve_courses ? $badgeYes : $badgeNo }}">
+                                        {{ $role->can_approve_courses ? 'Yes' : 'No' }}
+                                    </span>
+                                </td>
+
                                 <td class="px-4 py-3 text-right whitespace-nowrap">
                                     <a href="{{ route('roles.edit', $role) }}"
                                         class="text-[#121293] hover:underline mr-3">Edit</a>
