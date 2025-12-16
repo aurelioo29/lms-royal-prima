@@ -29,9 +29,11 @@ class AnnualPlanController extends Controller
             abort(403);
         }
 
-        // ✅ FIX: orderBy start_date (bukan date)
         $annualPlan->load([
-            'events' => fn($q) => $q->orderBy('start_date')->orderBy('start_time'),
+            'events' => fn($q) =>
+            $q->orderBy('start_date')
+                ->orderBy('start_time')
+                ->with('torSubmission'),
         ]);
 
         return view('annual-plans.show', compact('annualPlan'));
@@ -58,7 +60,15 @@ class AnnualPlanController extends Controller
 
     public function edit(AnnualPlan $annualPlan): View
     {
-        abort_unless(auth()->user()->canCreatePlans(), 403);
+        $user = auth()->user();
+
+        // Director can edit any status
+        if ($user->canApprovePlans()) {
+            return view('annual-plans.edit', compact('annualPlan'));
+        }
+
+        // Kabid only draft/rejected
+        abort_unless($user->canCreatePlans(), 403);
         abort_unless($annualPlan->isDraft() || $annualPlan->isRejected(), 403);
 
         return view('annual-plans.edit', compact('annualPlan'));
@@ -66,7 +76,14 @@ class AnnualPlanController extends Controller
 
     public function update(AnnualPlanUpdateRequest $request, AnnualPlan $annualPlan): RedirectResponse
     {
-        abort_unless(auth()->user()->canCreatePlans(), 403);
+        $user = auth()->user();
+
+        if ($user->canApprovePlans()) {
+            $annualPlan->update($request->validated());
+            return redirect()->route('annual-plans.show', $annualPlan)->with('success', 'Annual Plan diupdate oleh Direktur.');
+        }
+
+        abort_unless($user->canCreatePlans(), 403);
         abort_unless($annualPlan->isDraft() || $annualPlan->isRejected(), 403);
 
         $annualPlan->update($request->validated());
@@ -94,7 +111,9 @@ class AnnualPlanController extends Controller
     public function approve(AnnualPlanDecisionRequest $request, AnnualPlan $annualPlan): RedirectResponse
     {
         abort_unless(auth()->user()->canApprovePlans(), 403);
-        abort_unless($annualPlan->isPending(), 403);
+
+        // allow approve from pending OR rejected
+        abort_unless(in_array($annualPlan->status, ['pending', 'rejected']), 403);
 
         $annualPlan->update([
             'status' => 'approved',
@@ -110,7 +129,9 @@ class AnnualPlanController extends Controller
     public function reject(AnnualPlanDecisionRequest $request, AnnualPlan $annualPlan): RedirectResponse
     {
         abort_unless(auth()->user()->canApprovePlans(), 403);
-        abort_unless($annualPlan->isPending(), 403);
+
+        // allow reject from pending OR approved
+        abort_unless(in_array($annualPlan->status, ['pending', 'approved']), 403);
 
         $annualPlan->update([
             'status' => 'rejected',
@@ -131,5 +152,23 @@ class AnnualPlanController extends Controller
             ->paginate(10);
 
         return view('annual-plans.approvals', compact('plans'));
+    }
+
+    public function reopen(AnnualPlan $annualPlan): RedirectResponse
+    {
+        abort_unless(auth()->user()->canApprovePlans(), 403);
+
+        // up to you: set to draft or pending
+        $annualPlan->update([
+            'status' => 'draft',
+            'approved_by' => null,
+            'approved_at' => null,
+            'rejected_reason' => null,
+            'rejected_at' => null,
+            'submitted_at' => null,
+        ]);
+
+        return redirect()->route('annual-plans.show', $annualPlan)
+            ->with('success', 'Annual Plan dibuka kembali untuk revisi (Draft).');
     }
 }

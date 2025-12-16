@@ -8,7 +8,7 @@ class AnnualPlanDecisionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->canApprovePlans() ?? false;
+        return true;
     }
 
     public function rules(): array
@@ -18,4 +18,3 @@ class AnnualPlanDecisionRequest extends FormRequest
         ];
     }
 }
-    

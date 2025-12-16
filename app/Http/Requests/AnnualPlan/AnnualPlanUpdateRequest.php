@@ -8,7 +8,7 @@ class AnnualPlanUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->canCreatePlans() ?? false;
+        return true;
     }
 
     public function rules(): array

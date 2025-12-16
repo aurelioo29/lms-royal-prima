@@ -118,7 +118,14 @@
 
                         {{-- ACTIONS --}}
                         <div class="flex flex-wrap items-center gap-2 justify-start lg:justify-end">
-                            @if (auth()->user()->canCreatePlans() && ($annualPlan->isDraft() || $annualPlan->isRejected()))
+                            @php
+                                $user = auth()->user();
+                                $canEditAnytime = $user->canApprovePlans(); // Director
+                                $canEditDraft =
+                                    $user->canCreatePlans() && ($annualPlan->isDraft() || $annualPlan->isRejected());
+                            @endphp
+
+                            @if ($canEditAnytime || $canEditDraft)
                                 <a href="{{ route('annual-plans.edit', $annualPlan) }}"
                                     class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -197,11 +204,7 @@
                                 <th class="px-5 py-3 text-left font-semibold whitespace-nowrap">Tanggal</th>
                                 <th class="px-5 py-3 text-left font-semibold">Judul</th>
                                 <th class="px-5 py-3 text-left font-semibold whitespace-nowrap">Waktu</th>
-
-                                {{-- NEW --}}
-                                <th class="px-5 py-3 text-left font-semibold">Course</th>
                                 <th class="px-5 py-3 text-left font-semibold whitespace-nowrap">Mode</th>
-
                                 <th class="px-5 py-3 text-left font-semibold">Lokasi</th>
                                 <th class="px-5 py-3 text-left font-semibold whitespace-nowrap">Status</th>
                                 <th class="px-5 py-3 text-right font-semibold whitespace-nowrap">Aksi</th>
@@ -228,7 +231,16 @@
 
                                 <tr class="hover:bg-slate-50/70">
                                     <td class="px-5 py-4 text-slate-700 align-middle whitespace-nowrap">
-                                        {{ $e->date?->format('d M Y') }}
+                                        @if ($e->start_date && $e->end_date)
+                                            @if ($e->start_date->isSameDay($e->end_date))
+                                                {{ $e->start_date->format('d M Y') }}
+                                            @else
+                                                {{ $e->start_date->format('d M Y') }} —
+                                                {{ $e->end_date->format('d M Y') }}
+                                            @endif
+                                        @else
+                                            -
+                                        @endif
                                     </td>
 
                                     <td class="px-5 py-4 text-slate-900 font-semibold align-middle">
@@ -247,13 +259,6 @@
 
                                     <td class="px-5 py-4 text-slate-500 align-middle whitespace-nowrap">
                                         {{ $time }}
-                                    </td>
-
-                                    {{-- NEW: Course --}}
-                                    <td class="px-5 py-4 text-slate-500 align-middle">
-                                        <div class="max-w-[220px] truncate">
-                                            {{ $courseTitle }}
-                                        </div>
                                     </td>
 
                                     {{-- NEW: Mode --}}
@@ -277,20 +282,21 @@
                                             {{-- DETAIL MODAL BUTTON --}}
                                             <button type="button"
                                                 @click="
-                                                    event = {
-                                                        title: @js($e->title),
-                                                        date: @js(optional($e->date)->format('d M Y')),
-                                                        time: @js($time),
-                                                        location: @js($e->location ?? '-'),
-                                                        audience: @js($e->target_audience ?? '-'),
-                                                        status: @js(strtoupper($e->status)),
-                                                        description: @js($e->description ?? '-'),
+                                                event = {
+                                                    id: @js($e->id),
+                                                    title: @js($e->title),
+                                                    date: @js($e->start_date?->format('d M Y') ?? '-'),
+                                                    time: @js($time),
+                                                    location: @js($e->location ?? '-'),
+                                                    audience: @js($e->target_audience ?? '-'),
+                                                    status: @js(strtoupper($e->status)),
+                                                    description: @js($e->description ?? '-'),
 
-                                                        course_title: @js($e->course?->title ?? null),
-                                                        mode: @js($modeLabel),
-                                                        meeting_link: @js($e->meeting_link ?? null),
-                                                    };
-                                                    modalOpen = true;
+                                                    tor_id: @js($e->torSubmission?->id), // IMPORTANT
+                                                    mode: @js($modeLabel),
+                                                    meeting_link: @js($e->meeting_link ?? null),
+                                                };
+                                                modalOpen = true;
                                                 "
                                                 class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-[#121293] hover:bg-slate-50">
                                                 Detail
@@ -413,6 +419,23 @@
                             </div>
 
                             <div class="mt-6 flex items-center justify-end gap-2">
+                                {{-- TOR ACTIONS --}}
+                                @if (auth()->user()->canCreatePlans() || auth()->user()->canApprovePlans())
+                                    <template x-if="!event?.tor_id">
+                                        <a :href="`{{ url('/plan-events') }}/${event.id}/tor/create`"
+                                            class="rounded-xl bg-[#121293] px-4 py-2 text-sm font-semibold text-white hover:opacity-95">
+                                            Buat TOR
+                                        </a>
+                                    </template>
+
+                                    <template x-if="event?.tor_id">
+                                        <a :href="`{{ url('/tor-submissions') }}/${event.tor_id}/edit`"
+                                            class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                                            Edit TOR
+                                        </a>
+                                    </template>
+                                @endif
+
                                 <button type="button" @click="modalOpen = false"
                                     class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                                     Tutup

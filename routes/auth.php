@@ -158,6 +158,9 @@ Route::middleware('auth')->group(function () {
 
         Route::patch('/tor-submissions/{torSubmission}/reject', [TorSubmissionController::class, 'reject'])
             ->name('tor-submissions.reject');
+
+        Route::post('/annual-plans/{annualPlan}/reopen', [AnnualPlanController::class, 'reopen'])
+            ->name('annual-plans.reopen');
     });
 
     /*

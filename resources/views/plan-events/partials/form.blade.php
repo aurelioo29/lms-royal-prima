@@ -1,18 +1,104 @@
 @php
-    $e = $planEvent;
+    use Illuminate\Support\Carbon;
+
+    $e = $planEvent ?? new \App\Models\PlanEvent();
+
+    $F = [
+        'title' => 'title',
+        'description' => 'description',
+
+        // RANGE DATE
+        'start_date' => 'start_date',
+        'end_date' => 'end_date',
+
+        'start_time' => 'start_time',
+        'end_time' => 'end_time',
+
+        'mode' => 'mode',
+        'meeting_link' => 'meeting_link',
+        'location' => 'location',
+        'target_audience' => 'target_audience',
+
+        // approval flow
+        'status' => 'status',
+    ];
+
+    $modeOptions = [
+        '' => '— pilih —',
+        'offline' => 'Offline',
+        'online' => 'Online',
+        'blended' => 'Blended',
+    ];
+
+    // status sesuai migration kamu
+    $statusOptions = [
+        'draft' => 'Draft',
+        'pending' => 'Pending',
+        'approved' => 'Approved',
+        'rejected' => 'Rejected',
+    ];
+
+    // helper ambil value dari model + old()
+    $val = function (string $key, $default = '') use ($e, $F) {
+        $attr = $F[$key] ?? $key;
+        return old($attr, data_get($e, $attr, $default));
+    };
+
+    // helper format date ke Y-m-d (buat input type=date)
+    $fmtDate = function ($raw) {
+        if (!$raw) {
+            return '';
+        }
+        if ($raw instanceof \Carbon\CarbonInterface) {
+            return $raw->format('Y-m-d');
+        }
+        try {
+            return Carbon::parse($raw)->format('Y-m-d');
+        } catch (\Throwable $th) {
+            return '';
+        }
+    };
+
+    $startDateValue = old($F['start_date'], $fmtDate(data_get($e, $F['start_date'])));
+    $endDateValue = old($F['end_date'], $fmtDate(data_get($e, $F['end_date'])));
+
+    // default mode (kalau kosong -> offline biar UI gak ngambang)
+    $modeValue = old($F['mode'], data_get($e, $F['mode'], 'offline'));
+
+    // status default -> draft
+    $statusValue = old($F['status'], data_get($e, $F['status'], 'draft'));
 @endphp
 
-{{-- GRID MAIN --}}
-<div x-data="{
-    mode: @js(old('mode', $e->mode ?? 'offline')),
-}" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+@if ($errors->any())
+    <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div class="font-semibold mb-2">Form masih ada yang salah:</div>
+        <ul class="list-disc pl-5 space-y-1">
+            @foreach ($errors->all() as $err)
+                <li>{{ $err }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 
+<div x-data="{
+    mode: @js($modeValue),
+
+    startDate: @js($startDateValue),
+    endDate: @js($endDateValue),
+
+    syncEnd() {
+        if (!this.endDate || this.endDate < this.startDate) this.endDate = this.startDate;
+    }
+}" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     {{-- LEFT --}}
     <div class="space-y-6">
 
         {{-- Judul --}}
         <div class="space-y-1">
-            <label class="text-sm font-semibold text-slate-800">Judul <span class="text-red-500">*</span></label>
+            <label class="text-sm font-semibold text-slate-800">
+                Judul <span class="text-red-500">*</span>
+            </label>
+
             <div class="relative">
                 <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -21,18 +107,21 @@
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </span>
-                <input name="title" value="{{ old('title', $e->title ?? '') }}" required
+
+                <input name="{{ $F['title'] }}" value="{{ $val('title') }}" required
                     class="w-full rounded-xl border-slate-200 bg-white pl-10 pr-3 py-2.5 text-slate-900
                            focus:border-[#121293] focus:ring-[#121293] placeholder:text-slate-400"
                     placeholder="Contoh: Pelatihan K3 / Webinar Internal / Workshop SOP">
             </div>
+
             <p class="text-xs text-slate-500">Bikin singkat, jelas, dan tidak puitis.</p>
-            <x-input-error :messages="$errors->get('title')" class="mt-2" />
+            <x-input-error :messages="$errors->get($F['title'])" class="mt-2" />
         </div>
 
         {{-- Deskripsi --}}
         <div class="space-y-1">
             <label class="text-sm font-semibold text-slate-800">Deskripsi</label>
+
             <div class="relative">
                 <span class="pointer-events-none absolute left-3 top-3 text-slate-400">
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -40,45 +129,14 @@
                             stroke-linecap="round" />
                     </svg>
                 </span>
-                <textarea name="description" rows="5"
+
+                <textarea name="{{ $F['description'] }}" rows="6"
                     class="w-full rounded-xl border-slate-200 bg-white pl-10 pr-3 py-2.5 text-slate-900
                            focus:border-[#121293] focus:ring-[#121293] placeholder:text-slate-400"
-                    placeholder="Tujuan event, materi, PIC, catatan penting...">{{ old('description', $e->description ?? '') }}</textarea>
+                    placeholder="Tujuan event, materi, PIC, catatan penting...">{{ $val('description') }}</textarea>
             </div>
-            <x-input-error :messages="$errors->get('description')" class="mt-2" />
-        </div>
 
-        {{-- Course (optional) --}}
-        <div class="space-y-1">
-            <label class="text-sm font-semibold text-slate-800">Course (opsional)</label>
-            <div class="relative">
-                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                    {{-- icon --}}
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M4 19V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M4 19a2 2 0 0 0 2 2h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round" />
-                        <path d="M8 8h8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                    </svg>
-                </span>
-
-                <select name="course_id"
-                    class="w-full rounded-xl border-slate-200 bg-white pl-10 pr-3 py-2.5
-                           focus:border-[#121293] focus:ring-[#121293]">
-                    <option value="">— Tidak terkait course —</option>
-                    @foreach ($courses ?? collect() as $c)
-                        <option value="{{ $c->id }}" @selected(old('course_id', $e->course_id ?? '') == $c->id)>
-                            {{ $c->title }}
-                            @if (!empty($c->status))
-                                ({{ $c->status }})
-                            @endif
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-            <p class="text-xs text-slate-500">Kalau event ini jadwal untuk course tertentu, pilih di sini.</p>
-            <x-input-error :messages="$errors->get('course_id')" class="mt-2" />
+            <x-input-error :messages="$errors->get($F['description'])" class="mt-2" />
         </div>
 
     </div>
@@ -86,10 +144,14 @@
     {{-- RIGHT --}}
     <div class="space-y-6">
 
-        {{-- Tanggal + Jam --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="space-y-1 md:col-span-1">
-                <label class="text-sm font-semibold text-slate-800">Tanggal <span class="text-red-500">*</span></label>
+        {{-- Range Tanggal --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {{-- Start Date --}}
+            <div class="space-y-1">
+                <label class="text-sm font-semibold text-slate-800">
+                    Mulai Tanggal <span class="text-red-500">*</span>
+                </label>
+
                 <div class="relative">
                     <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -99,28 +161,87 @@
                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </span>
-                    <input type="date" name="date" required
-                        value="{{ old('date', optional($e?->date)->format('Y-m-d')) }}"
+
+                    <input type="date" name="{{ $F['start_date'] }}" required x-model="startDate" @change="syncEnd()"
+                        value="{{ $startDateValue }}"
                         class="w-full rounded-xl border-slate-200 bg-white pl-10 pr-3 py-2.5
                                focus:border-[#121293] focus:ring-[#121293]">
                 </div>
-                <x-input-error :messages="$errors->get('date')" class="mt-2" />
+
+                <x-input-error :messages="$errors->get($F['start_date'])" class="mt-2" />
+            </div>
+
+            {{-- End Date --}}
+            <div class="space-y-1">
+                <label class="text-sm font-semibold text-slate-800">
+                    Sampai Tanggal <span class="text-red-500">*</span>
+                </label>
+
+                <div class="relative">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M8 2v3M16 2v3M3 9h18" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                            <path d="M5 5h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </span>
+
+                    <input type="date" name="{{ $F['end_date'] }}" required x-model="endDate" :min="startDate"
+                        value="{{ $endDateValue }}"
+                        class="w-full rounded-xl border-slate-200 bg-white pl-10 pr-3 py-2.5
+                               focus:border-[#121293] focus:ring-[#121293]">
+                </div>
+
+                <p class="text-xs text-slate-500">Kalau cuma 1 hari, isi sama dengan mulai tanggal.</p>
+                <x-input-error :messages="$errors->get($F['end_date'])" class="mt-2" />
+            </div>
+        </div>
+
+        {{-- Jam --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-1">
+                <label class="text-sm font-semibold text-slate-800">Mulai Jam</label>
+
+                <div class="relative">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z" stroke="currentColor"
+                                stroke-width="2" />
+                            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </span>
+
+                    <input type="text" name="{{ $F['start_time'] }}" value="{{ $val('start_time') }}"
+                        data-timepicker placeholder="HH:MM"
+                        class="w-full rounded-xl border-slate-200 bg-white pl-10 pr-3 py-2.5
+             focus:border-[#121293] focus:ring-[#121293]">
+                </div>
+                <p class="text-xs text-slate-500">Format 24 jam (WIB).</p>
+                <x-input-error :messages="$errors->get($F['start_time'])" class="mt-2" />
             </div>
 
             <div class="space-y-1">
-                <label class="text-sm font-semibold text-slate-800">Mulai</label>
-                <input type="time" name="start_time" value="{{ old('start_time', $e->start_time ?? '') }}"
-                    class="w-full rounded-xl border-slate-200 bg-white px-3 py-2.5
-                           focus:border-[#121293] focus:ring-[#121293]">
-                <x-input-error :messages="$errors->get('start_time')" class="mt-2" />
-            </div>
+                <label class="text-sm font-semibold text-slate-800">Selesai Jam</label>
 
-            <div class="space-y-1">
-                <label class="text-sm font-semibold text-slate-800">Selesai</label>
-                <input type="time" name="end_time" value="{{ old('end_time', $e->end_time ?? '') }}"
-                    class="w-full rounded-xl border-slate-200 bg-white px-3 py-2.5
-                           focus:border-[#121293] focus:ring-[#121293]">
-                <x-input-error :messages="$errors->get('end_time')" class="mt-2" />
+                <div class="relative">
+                    <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z" stroke="currentColor"
+                                stroke-width="2" />
+                            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </span>
+
+                    <input type="text" name="{{ $F['end_time'] }}" value="{{ $val('end_time') }}"
+                        data-timepicker placeholder="HH:MM"
+                        class="w-full rounded-xl border-slate-200 bg-white pl-10 pr-3 py-2.5
+             focus:border-[#121293] focus:ring-[#121293]">
+                </div>
+                <p class="text-xs text-slate-500">Format 24 jam (WIB).</p>
+                <x-input-error :messages="$errors->get($F['end_time'])" class="mt-2" />
             </div>
         </div>
 
@@ -128,15 +249,14 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-1">
                 <label class="text-sm font-semibold text-slate-800">Mode (opsional)</label>
-                <select name="mode" x-model="mode"
+                <select name="{{ $F['mode'] }}" x-model="mode"
                     class="w-full rounded-xl border-slate-200 bg-white px-3 py-2.5
                            focus:border-[#121293] focus:ring-[#121293]">
-                    <option value="">— pilih —</option>
-                    <option value="offline">Offline</option>
-                    <option value="online">Online</option>
-                    <option value="blended">Blended</option>
+                    @foreach ($modeOptions as $k => $label)
+                        <option value="{{ $k }}" @selected($val('mode', 'offline') === $k)>{{ $label }}</option>
+                    @endforeach
                 </select>
-                <x-input-error :messages="$errors->get('mode')" class="mt-2" />
+                <x-input-error :messages="$errors->get($F['mode'])" class="mt-2" />
             </div>
 
             <div class="space-y-1">
@@ -144,15 +264,18 @@
                     Meeting Link
                     <span class="text-red-500" x-show="mode === 'online' || mode === 'blended'">*</span>
                 </label>
-                <input name="meeting_link" value="{{ old('meeting_link', $e->meeting_link ?? '') }}"
+
+                <input name="{{ $F['meeting_link'] }}" value="{{ $val('meeting_link') }}"
                     :required="mode === 'online' || mode === 'blended'"
                     class="w-full rounded-xl border-slate-200 bg-white px-3 py-2.5
                            focus:border-[#121293] focus:ring-[#121293] placeholder:text-slate-400"
                     placeholder="https://zoom.us/j/.... / Google Meet link / Teams link">
+
                 <p class="text-xs text-slate-500" x-show="mode === 'online' || mode === 'blended'">
                     Wajib diisi kalau mode online/blended.
                 </p>
-                <x-input-error :messages="$errors->get('meeting_link')" class="mt-2" />
+
+                <x-input-error :messages="$errors->get($F['meeting_link'])" class="mt-2" />
             </div>
         </div>
 
@@ -169,12 +292,13 @@
                                 stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </span>
-                    <input name="location" value="{{ old('location', $e->location ?? '') }}"
+
+                    <input name="{{ $F['location'] }}" value="{{ $val('location') }}"
                         class="w-full rounded-xl border-slate-200 bg-white pl-10 pr-3 py-2.5
                                focus:border-[#121293] focus:ring-[#121293] placeholder:text-slate-400"
                         placeholder="Contoh: Aula Lt.2 / Zoom / Ruang Training">
                 </div>
-                <x-input-error :messages="$errors->get('location')" class="mt-2" />
+                <x-input-error :messages="$errors->get($F['location'])" class="mt-2" />
             </div>
 
             <div class="space-y-1">
@@ -192,30 +316,35 @@
                                 stroke-linecap="round" />
                         </svg>
                     </span>
-                    <input name="target_audience" value="{{ old('target_audience', $e->target_audience ?? '') }}"
+
+                    <input name="{{ $F['target_audience'] }}" value="{{ $val('target_audience') }}"
                         class="w-full rounded-xl border-slate-200 bg-white pl-10 pr-3 py-2.5
                                focus:border-[#121293] focus:ring-[#121293] placeholder:text-slate-400"
                         placeholder="Contoh: Perawat IGD / Semua karyawan / Dokter umum">
                 </div>
-                <x-input-error :messages="$errors->get('target_audience')" class="mt-2" />
+                <x-input-error :messages="$errors->get($F['target_audience'])" class="mt-2" />
             </div>
         </div>
 
         {{-- Status --}}
         <div class="space-y-1">
-            <label class="text-sm font-semibold text-slate-800">Status <span class="text-red-500">*</span></label>
-            @php $status = old('status', $e->status ?? 'scheduled'); @endphp
+            <label class="text-sm font-semibold text-slate-800">
+                Status <span class="text-red-500">*</span>
+            </label>
 
-            <select name="status" required
+            <select name="{{ $F['status'] }}" required
                 class="w-full rounded-xl border-slate-200 bg-white px-3 py-2.5
                        focus:border-[#121293] focus:ring-[#121293]">
-                <option value="scheduled" @selected($status === 'scheduled')>Scheduled</option>
-                <option value="cancelled" @selected($status === 'cancelled')>Cancelled</option>
-                <option value="done" @selected($status === 'done')>Done</option>
+                @foreach ($statusOptions as $k => $label)
+                    <option value="{{ $k }}" @selected($statusValue === $k)>{{ $label }}</option>
+                @endforeach
             </select>
 
-            <p class="text-xs text-slate-500">Scheduled = rencana, Done = selesai, Cancelled = dibatalkan.</p>
-            <x-input-error :messages="$errors->get('status')" class="mt-2" />
+            <p class="text-xs text-slate-500">
+                Draft = belum diajukan, Pending = menunggu approval, Approved = disetujui, Rejected = ditolak.
+            </p>
+
+            <x-input-error :messages="$errors->get($F['status'])" class="mt-2" />
         </div>
 
     </div>

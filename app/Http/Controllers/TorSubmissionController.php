@@ -13,10 +13,10 @@ use Illuminate\View\View;
 
 class TorSubmissionController extends Controller
 {
-    public function create(PlanEvent $plan_event): View
+    public function create(PlanEvent $planEvent): View
     {
         return view('tor-submissions.create', [
-            'event' => $plan_event,
+            'event' => $planEvent,
         ]);
     }
 

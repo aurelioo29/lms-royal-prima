@@ -13,7 +13,14 @@ class PlanEventController extends Controller
 {
     private function assertEditable(AnnualPlan $plan): void
     {
-        abort_unless(auth()->user()->canCreatePlans(), 403);
+        $user = auth()->user();
+
+        if ($user->canApprovePlans()) {
+            return;
+        }
+
+        // Kabid (creator) can edit only when draft/rejected
+        abort_unless($user->canCreatePlans(), 403);
         abort_unless($plan->isDraft() || $plan->isRejected(), 403);
     }
 
@@ -31,7 +38,10 @@ class PlanEventController extends Controller
         $this->assertEditable($annualPlan);
 
         $data = $request->validated();
+
         $data['annual_plan_id'] = $annualPlan->id;
+        $data['created_by'] = auth()->id(); // WAJIB
+        $data['status'] = $data['status'] ?? 'draft';
 
         $annualPlan->events()->create($data);
 

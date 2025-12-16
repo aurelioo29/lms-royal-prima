@@ -104,7 +104,7 @@
         <div x-data="{ open: {{ $openTor ? 'true' : 'false' }} }" class="pt-1">
             <button type="button" @click="open = !open"
                 class="w-full flex items-center justify-between px-3 py-2 rounded-lg transition
-                {{ $torActive ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
+            {{ $torActive ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
 
                 <div class="flex items-center gap-3">
                     <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
@@ -125,30 +125,9 @@
             </button>
 
             <div x-show="open && !collapsed" x-collapse.duration.250ms class="mt-1 space-y-1 pl-11">
-                {{-- Optional: kalau kamu bikin halaman list TOR --}}
-                @if (Route::has('tor-submissions.index'))
-                    <a href="{{ route('tor-submissions.index') }}"
-                        class="block px-3 py-2 rounded-lg text-sm transition
-                        {{ request()->routeIs('tor-submissions.index') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                        Daftar TOR
-                    </a>
-                @endif
-
-                {{-- Optional: kalau kamu bikin halaman approvals TOR --}}
-                @if ($canPlanApprove && Route::has('tor-submissions.approvals'))
-                    <a href="{{ route('tor-submissions.approvals') }}"
-                        class="block px-3 py-2 rounded-lg text-sm transition
-                        {{ request()->routeIs('tor-submissions.approvals') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                        TOR Approvals
-                    </a>
-                @endif
-
-                {{-- kalau belum ada index/approvals, kasih hint kecil --}}
-                @if (!Route::has('tor-submissions.index') && !Route::has('tor-submissions.approvals'))
-                    <div class="px-3 py-2 text-xs text-slate-500">
-                        TOR dibuat dari detail Event.
-                    </div>
-                @endif
+                <div class="px-3 py-2 text-xs text-slate-500">
+                    TOR dibuat dari detail Event (Annual Plan → Event → Buat TOR).
+                </div>
             </div>
         </div>
     @endif
