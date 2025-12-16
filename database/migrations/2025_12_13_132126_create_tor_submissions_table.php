@@ -13,15 +13,22 @@ return new class extends Migration
     {
         Schema::create('tor_submissions', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('plan_event_id')
+                ->constrained('plan_events')
+                ->cascadeOnDelete();
+
             $table->string('title');
             $table->text('content')->nullable();
-
             $table->string('file_path')->nullable();
 
-            $table->enum('status', ['draft', 'submitted', 'reviewed', 'approved', 'rejected'])->default('draft');
+            $table->enum('status', ['draft', 'submitted', 'approved', 'rejected'])
+                ->default('draft')
+                ->index();
 
-            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
 
+            // Direktur ACC / reject
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('submitted_at')->nullable();
             $table->timestamp('reviewed_at')->nullable();
@@ -29,7 +36,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->index(['status']);
+            $table->index(['plan_event_id']);
             $table->index(['created_by']);
         });
     }
