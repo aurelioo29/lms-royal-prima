@@ -15,36 +15,28 @@ class PlanEventUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // relation
-            'course_id' => ['nullable', 'integer', 'exists:courses,id'],
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
 
-            // schedule metadata
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+
+            'start_time' => ['nullable', 'date_format:H:i'],
+            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+
+            'location' => ['nullable', 'string', 'max:255'],
+            'target_audience' => ['nullable', 'string', 'max:255'],
+
             'mode' => ['nullable', Rule::in(['online', 'offline', 'blended'])],
             'meeting_link' => [
                 'nullable',
                 'url',
-                Rule::requiredIf(fn() => in_array($this->input('mode'), ['online', 'blended'], true)),
+                Rule::requiredIf(
+                    fn() =>
+                    in_array($this->input('mode'), ['online', 'blended'], true)
+                ),
                 'max:255',
             ],
-
-            // existing fields
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'date' => ['required', 'date'],
-            'start_time' => ['nullable', 'date_format:H:i'],
-            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
-            'location' => ['nullable', 'string', 'max:255'],
-            'target_audience' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', Rule::in(['scheduled', 'cancelled', 'done'])],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'meeting_link.required' => 'Meeting link wajib diisi untuk mode online/blended.',
-            'meeting_link.url' => 'Meeting link harus berupa URL yang valid.',
-            'end_time.after' => 'Jam selesai harus setelah jam mulai.',
         ];
     }
 }
