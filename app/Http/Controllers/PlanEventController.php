@@ -33,10 +33,6 @@ class PlanEventController extends Controller
         $data = $request->validated();
         $data['annual_plan_id'] = $annualPlan->id;
 
-        // audit
-        $data['created_by'] = auth()->id();
-        $data['status'] = $data['status'] ?? 'draft';
-
         $annualPlan->events()->create($data);
 
         return redirect()
@@ -47,7 +43,6 @@ class PlanEventController extends Controller
     public function edit(AnnualPlan $annualPlan, PlanEvent $planEvent): View
     {
         $this->assertEditable($annualPlan);
-        abort_unless($planEvent->annual_plan_id === $annualPlan->id, 404);
 
         return view('plan-events.edit', compact('annualPlan', 'planEvent'));
     }
@@ -58,10 +53,9 @@ class PlanEventController extends Controller
         PlanEvent $planEvent
     ): RedirectResponse {
         $this->assertEditable($annualPlan);
-        abort_unless($planEvent->annual_plan_id === $annualPlan->id, 404);
 
         $data = $request->validated();
-        unset($data['annual_plan_id'], $data['created_by'], $data['approved_by']); // safety
+        unset($data['annual_plan_id']);
 
         $planEvent->update($data);
 
@@ -73,7 +67,6 @@ class PlanEventController extends Controller
     public function destroy(AnnualPlan $annualPlan, PlanEvent $planEvent): RedirectResponse
     {
         $this->assertEditable($annualPlan);
-        abort_unless($planEvent->annual_plan_id === $annualPlan->id, 404);
 
         $planEvent->delete();
 
