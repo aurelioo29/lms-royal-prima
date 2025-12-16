@@ -48,9 +48,7 @@
                                                 'rejected' => 'bg-red-50 text-red-700 border-red-200',
                                                 default => 'bg-slate-100 text-slate-700 border-slate-200',
                                             };
-                                        @endphp
 
-                                        @php
                                             $dot = match ($annualPlan->status) {
                                                 'draft' => 'bg-slate-400',
                                                 'pending' => 'bg-amber-500',
@@ -60,7 +58,11 @@
                                             };
                                         @endphp
 
-                                        <span class="h-2 w-2 rounded-full {{ $dot }}"></span>
+                                        <span
+                                            class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold {{ $badge }}">
+                                            <span class="h-2 w-2 rounded-full {{ $dot }}"></span>
+                                            {{ $status }}
+                                        </span>
                                     </div>
 
                                     {{-- REJECTED REASON --}}
@@ -192,12 +194,17 @@
                     <table class="min-w-full text-sm">
                         <thead class="bg-slate-50 text-slate-600">
                             <tr class="border-b border-slate-200">
-                                <th class="px-5 py-3 text-left font-semibold">Tanggal</th>
+                                <th class="px-5 py-3 text-left font-semibold whitespace-nowrap">Tanggal</th>
                                 <th class="px-5 py-3 text-left font-semibold">Judul</th>
-                                <th class="px-5 py-3 text-left font-semibold">Waktu</th>
+                                <th class="px-5 py-3 text-left font-semibold whitespace-nowrap">Waktu</th>
+
+                                {{-- NEW --}}
+                                <th class="px-5 py-3 text-left font-semibold">Course</th>
+                                <th class="px-5 py-3 text-left font-semibold whitespace-nowrap">Mode</th>
+
                                 <th class="px-5 py-3 text-left font-semibold">Lokasi</th>
-                                <th class="px-5 py-3 text-left font-semibold">Status</th>
-                                <th class="px-5 py-3 text-right font-semibold">Aksi</th>
+                                <th class="px-5 py-3 text-left font-semibold whitespace-nowrap">Status</th>
+                                <th class="px-5 py-3 text-right font-semibold whitespace-nowrap">Aksi</th>
                             </tr>
                         </thead>
 
@@ -208,6 +215,15 @@
                                         ($e->start_time ? substr($e->start_time, 0, 5) : '-') .
                                         ' — ' .
                                         ($e->end_time ? substr($e->end_time, 0, 5) : '-');
+
+                                    $modeLabel = match ($e->mode) {
+                                        'online' => 'Online',
+                                        'offline' => 'Offline',
+                                        'blended' => 'Blended',
+                                        default => '-',
+                                    };
+
+                                    $courseTitle = $e->course?->title ?? '-';
                                 @endphp
 
                                 <tr class="hover:bg-slate-50/70">
@@ -216,11 +232,33 @@
                                     </td>
 
                                     <td class="px-5 py-4 text-slate-900 font-semibold align-middle">
-                                        {{ $e->title }}
+                                        <div class="min-w-0">
+                                            <div class="truncate">{{ $e->title }}</div>
+                                            @if (!empty($e->meeting_link))
+                                                <div class="mt-1">
+                                                    <a href="{{ $e->meeting_link }}" target="_blank" rel="noopener"
+                                                        class="text-xs font-semibold text-[#121293] hover:underline">
+                                                        Meeting Link
+                                                    </a>
+                                                </div>
+                                            @endif
+                                        </div>
                                     </td>
 
                                     <td class="px-5 py-4 text-slate-500 align-middle whitespace-nowrap">
                                         {{ $time }}
+                                    </td>
+
+                                    {{-- NEW: Course --}}
+                                    <td class="px-5 py-4 text-slate-500 align-middle">
+                                        <div class="max-w-[220px] truncate">
+                                            {{ $courseTitle }}
+                                        </div>
+                                    </td>
+
+                                    {{-- NEW: Mode --}}
+                                    <td class="px-5 py-4 text-slate-500 align-middle whitespace-nowrap">
+                                        {{ $modeLabel }}
                                     </td>
 
                                     <td class="px-5 py-4 text-slate-500 align-middle">
@@ -246,7 +284,11 @@
                                                         location: @js($e->location ?? '-'),
                                                         audience: @js($e->target_audience ?? '-'),
                                                         status: @js(strtoupper($e->status)),
-                                                        description: @js($e->description ?? '-')
+                                                        description: @js($e->description ?? '-'),
+
+                                                        course_title: @js($e->course?->title ?? null),
+                                                        mode: @js($modeLabel),
+                                                        meeting_link: @js($e->meeting_link ?? null),
                                                     };
                                                     modalOpen = true;
                                                 "
@@ -276,7 +318,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="px-5 py-10 text-center text-slate-500">
+                                    <td colspan="8" class="px-5 py-10 text-center text-slate-500">
                                         Belum ada event.
                                     </td>
                                 </tr>
@@ -325,6 +367,29 @@
                             </div>
 
                             <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+
+                                {{-- NEW: Course --}}
+                                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 sm:col-span-2"
+                                    x-show="event?.course_title">
+                                    <div class="text-xs font-semibold text-slate-500">Course</div>
+                                    <div class="mt-1 font-medium text-slate-800" x-text="event?.course_title"></div>
+                                </div>
+
+                                {{-- NEW: Mode --}}
+                                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                    <div class="text-xs font-semibold text-slate-500">Mode</div>
+                                    <div class="mt-1 font-medium text-slate-800" x-text="event?.mode ?? '-'"></div>
+                                </div>
+
+                                {{-- NEW: Meeting Link --}}
+                                <div class="rounded-xl border border-slate-200 bg-slate-50 p-3"
+                                    x-show="event?.meeting_link">
+                                    <div class="text-xs font-semibold text-slate-500">Meeting Link</div>
+                                    <a :href="event?.meeting_link" target="_blank" rel="noopener"
+                                        class="mt-1 inline-flex font-semibold text-[#121293] hover:underline break-all"
+                                        x-text="event?.meeting_link"></a>
+                                </div>
+
                                 <div class="rounded-xl border border-slate-200 bg-slate-50 p-3">
                                     <div class="text-xs font-semibold text-slate-500">Target Audience</div>
                                     <div class="mt-1 font-medium text-slate-800" x-text="event?.audience"></div>

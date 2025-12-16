@@ -9,6 +9,11 @@ class PlanEvent extends Model
 {
     protected $fillable = [
         'annual_plan_id',
+
+        'course_id',      // NEW
+        'mode',           // NEW (online|offline|blended|null)
+        'meeting_link',   // NEW
+
         'title',
         'description',
         'date',
@@ -26,5 +31,16 @@ class PlanEvent extends Model
     public function annualPlan(): BelongsTo
     {
         return $this->belongsTo(AnnualPlan::class);
+    }
+
+    public function course(): BelongsTo
+    {
+        return $this->belongsTo(Course::class);
+    }
+
+    // helpers optional (biar enak dipakai di blade)
+    public function isOnline(): bool
+    {
+        return in_array($this->mode, ['online', 'blended'], true);
     }
 }
