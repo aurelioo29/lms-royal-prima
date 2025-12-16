@@ -13,20 +13,28 @@ return new class extends Migration
     {
         Schema::create('plan_events', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('annual_plan_id')->constrained('annual_plans')->cascadeOnUpdate()->cascadeOnDelete();
 
-            $table->string('title');
-            $table->text('description')->nullable();
+            $table->foreignId('annual_plan_id')
+                ->constrained('annual_plans')
+                ->cascadeOnDelete()
+                ->cascadeOnUpdate();
 
-            $table->date('date')->index();
-            $table->time('start_time')->nullable();
-            $table->time('end_time')->nullable();
+            // event menunjuk ke course (materi)
+            $table->foreignId('course_id')
+                ->constrained('courses')
+                ->restrictOnDelete() // cegah course dihapus kalau sudah dijadwalkan
+                ->cascadeOnUpdate();
 
-            $table->string('location')->nullable();
-            $table->string('target_audience')->nullable(); // optional
-            $table->string('status', 20)->default('scheduled')->index(); // scheduled|cancelled|done (optional)
+            $table->string('mode', 20)->nullable();
+            $table->string('meeting_link')->nullable();
+            $table->string('status', 20)->default('scheduled')->index(); // scheduled|cancelled|done
+            $table->string('target_audience')->nullable();
+            $table->text('notes')->nullable();
 
             $table->timestamps();
+
+            $table->index(['annual_plan_id']);
+            $table->index(['course_id']);
         });
     }
 

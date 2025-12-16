@@ -17,10 +17,21 @@ return new class extends Migration
             $table->unsignedSmallInteger('year')->index();
             $table->string('title');
             $table->text('description')->nullable();
+
             // draft|pending|approved|rejected
             $table->string('status', 20)->default('draft')->index();
-            $table->foreignId('created_by')->constrained('users')->cascadeOnUpdate()->restrictOnDelete();
-            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+
+            $table->foreignId('created_by')
+                ->constrained('users')
+                ->cascadeOnUpdate()
+                ->restrictOnDelete();
+
+            $table->foreignId('approved_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete()
+                ->cascadeOnUpdate();
+
             $table->timestamp('submitted_at')->nullable();
             $table->timestamp('approved_at')->nullable();
             $table->timestamp('rejected_at')->nullable();
@@ -28,7 +39,7 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // kalau kamu mau 1 plan per tahun (strict), uncomment:
+            // kalau mau 1 plan per tahun (strict)
             $table->unique(['year']);
         });
     }

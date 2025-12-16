@@ -13,19 +13,28 @@ return new class extends Migration
     {
         Schema::create('courses', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('course_type_id')
+                ->nullable()
+                ->constrained('course_types')
+                ->nullOnDelete()
+                ->cascadeOnUpdate();
+
             $table->string('title');
             $table->text('description')->nullable();
 
-            // total jam diklat dari course (misal 1.50 jam)
+            // total jam diklat dari course
             $table->decimal('training_hours', 5, 2)->default(0);
 
-            $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
+            $table->enum('status', ['draft', 'published', 'archived'])
+                ->default('draft')
+                ->index();
 
-            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('created_by')
+                ->constrained('users')
+                ->cascadeOnDelete();
 
             $table->timestamps();
-
-            $table->index(['status']);
         });
     }
 
