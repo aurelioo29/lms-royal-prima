@@ -24,14 +24,15 @@ class AnnualPlanController extends Controller
 
     public function show(AnnualPlan $annualPlan): View
     {
-        // semua user boleh lihat plan yang approved
-        // kabid & direktur boleh lihat semua (buat review)
         $user = auth()->user();
         if (!$annualPlan->isApproved() && !($user->canCreatePlans() || $user->canApprovePlans())) {
             abort(403);
         }
 
-        $annualPlan->load(['events' => fn($q) => $q->orderBy('date')->orderBy('start_time')]);
+        // ✅ FIX: orderBy start_date (bukan date)
+        $annualPlan->load([
+            'events' => fn($q) => $q->orderBy('start_date')->orderBy('start_time'),
+        ]);
 
         return view('annual-plans.show', compact('annualPlan'));
     }
@@ -122,9 +123,9 @@ class AnnualPlanController extends Controller
         return redirect()->route('annual-plans.show', $annualPlan)->with('success', 'Annual Plan ditolak.');
     }
 
-    public function approvals(): \Illuminate\View\View
+    public function approvals(): View
     {
-        $plans = \App\Models\AnnualPlan::query()
+        $plans = AnnualPlan::query()
             ->where('status', 'pending')
             ->latest()
             ->paginate(10);
