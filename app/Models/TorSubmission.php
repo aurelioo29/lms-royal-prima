@@ -4,53 +4,58 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class AnnualPlan extends Model
+class TorSubmission extends Model
 {
     protected $fillable = [
-        'year',
+        'plan_event_id',
+
         'title',
-        'description',
-        'status',
+        'content',
+        'file_path',
+
+        'status',       // draft|submitted|approved|rejected
         'created_by',
-        'approved_by',
+
+        'reviewed_by',
         'submitted_at',
-        'approved_at',
-        'rejected_at',
-        'rejected_reason',
+        'reviewed_at',
+        'review_notes',
     ];
 
     protected $casts = [
-        'year' => 'integer',
         'submitted_at' => 'datetime',
-        'approved_at' => 'datetime',
-        'rejected_at' => 'datetime',
+        'reviewed_at' => 'datetime',
     ];
+
+    public function planEvent(): BelongsTo
+    {
+        return $this->belongsTo(PlanEvent::class);
+    }
 
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function approver(): BelongsTo
+    public function reviewer(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 
-    public function events(): HasMany
+    public function course(): HasOne
     {
-        return $this->hasMany(PlanEvent::class);
+        return $this->hasOne(Course::class);
     }
 
-    // helpers
     public function isDraft(): bool
     {
         return $this->status === 'draft';
     }
-    public function isPending(): bool
+    public function isSubmitted(): bool
     {
-        return $this->status === 'pending';
+        return $this->status === 'submitted';
     }
     public function isApproved(): bool
     {

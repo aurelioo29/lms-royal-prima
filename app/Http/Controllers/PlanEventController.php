@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\PlanEvent\PlanEventStoreRequest;
 use App\Http\Requests\PlanEvent\PlanEventUpdateRequest;
 use App\Models\AnnualPlan;
-use App\Models\Course;
 use App\Models\PlanEvent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -18,33 +17,25 @@ class PlanEventController extends Controller
         abort_unless($plan->isDraft() || $plan->isRejected(), 403);
     }
 
-    private function courseOptions()
-    {
-        // kamu bisa ganti status filter sesuai sistemmu:
-        // published / approved / etc.
-        return Course::query()
-            ->where('status', 'published')
-            ->orderBy('title')
-            ->get(['id', 'title']);
-    }
-
     public function create(AnnualPlan $annualPlan): View
     {
         $this->assertEditable($annualPlan);
 
-        $planEvent = new PlanEvent(); // biar form partial bisa pakai $planEvent
-        $courses = $this->courseOptions();
+        $planEvent = new PlanEvent();
 
-        return view('plan-events.create', compact('annualPlan', 'planEvent', 'courses'));
+        return view('plan-events.create', compact('annualPlan', 'planEvent'));
     }
 
     public function store(PlanEventStoreRequest $request, AnnualPlan $annualPlan): RedirectResponse
     {
         $this->assertEditable($annualPlan);
 
-        // Jangan percaya annual_plan_id dari request (kalau ada) → force dari route
         $data = $request->validated();
         $data['annual_plan_id'] = $annualPlan->id;
+
+        // audit
+        $data['created_by'] = auth()->id();
+        $data['status'] = $data['status'] ?? 'draft';
 
         $annualPlan->events()->create($data);
 
@@ -58,9 +49,7 @@ class PlanEventController extends Controller
         $this->assertEditable($annualPlan);
         abort_unless($planEvent->annual_plan_id === $annualPlan->id, 404);
 
-        $courses = $this->courseOptions();
-
-        return view('plan-events.edit', compact('annualPlan', 'planEvent', 'courses'));
+        return view('plan-events.edit', compact('annualPlan', 'planEvent'));
     }
 
     public function update(
@@ -72,7 +61,7 @@ class PlanEventController extends Controller
         abort_unless($planEvent->annual_plan_id === $annualPlan->id, 404);
 
         $data = $request->validated();
-        unset($data['annual_plan_id']); // extra safety
+        unset($data['annual_plan_id'], $data['created_by'], $data['approved_by']); // safety
 
         $planEvent->update($data);
 
