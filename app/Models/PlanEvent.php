@@ -4,28 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PlanEvent extends Model
 {
     protected $fillable = [
         'annual_plan_id',
+        'course_id',
 
-        'course_id',      // NEW
-        'mode',           // NEW (online|offline|blended|null)
-        'meeting_link',   // NEW
+        'mode',         // online|offline|blended|null
+        'meeting_link', // url|null
 
-        'title',
-        'description',
-        'date',
-        'start_time',
-        'end_time',
-        'location',
+        'status',       // scheduled|cancelled|done
         'target_audience',
-        'status',
-    ];
-
-    protected $casts = [
-        'date' => 'date',
+        'notes',
     ];
 
     public function annualPlan(): BelongsTo
@@ -38,7 +30,11 @@ class PlanEvent extends Model
         return $this->belongsTo(Course::class);
     }
 
-    // helpers optional (biar enak dipakai di blade)
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(PlanEventSession::class);
+    }
+
     public function isOnline(): bool
     {
         return in_array($this->mode, ['online', 'blended'], true);

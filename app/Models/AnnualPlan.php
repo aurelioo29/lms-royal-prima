@@ -22,10 +22,10 @@ class AnnualPlan extends Model
     ];
 
     protected $casts = [
+        'year' => 'integer',
         'submitted_at' => 'datetime',
         'approved_at'  => 'datetime',
         'rejected_at'  => 'datetime',
-        'year' => 'integer',
     ];
 
     public function creator(): BelongsTo
