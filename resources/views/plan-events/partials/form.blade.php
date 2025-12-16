@@ -3,7 +3,9 @@
 @endphp
 
 {{-- GRID MAIN --}}
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div x-data="{
+    mode: @js(old('mode', $e->mode ?? 'offline')),
+}" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
     {{-- LEFT --}}
     <div class="space-y-6">
@@ -13,7 +15,6 @@
             <label class="text-sm font-semibold text-slate-800">Judul <span class="text-red-500">*</span></label>
             <div class="relative">
                 <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
-                    {{-- icon --}}
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M12 20h9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                         <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" stroke="currentColor"
@@ -45,6 +46,39 @@
                     placeholder="Tujuan event, materi, PIC, catatan penting...">{{ old('description', $e->description ?? '') }}</textarea>
             </div>
             <x-input-error :messages="$errors->get('description')" class="mt-2" />
+        </div>
+
+        {{-- Course (optional) --}}
+        <div class="space-y-1">
+            <label class="text-sm font-semibold text-slate-800">Course (opsional)</label>
+            <div class="relative">
+                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                    {{-- icon --}}
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M4 19V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M4 19a2 2 0 0 0 2 2h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M8 8h8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </span>
+
+                <select name="course_id"
+                    class="w-full rounded-xl border-slate-200 bg-white pl-10 pr-3 py-2.5
+                           focus:border-[#121293] focus:ring-[#121293]">
+                    <option value="">— Tidak terkait course —</option>
+                    @foreach ($courses ?? collect() as $c)
+                        <option value="{{ $c->id }}" @selected(old('course_id', $e->course_id ?? '') == $c->id)>
+                            {{ $c->title }}
+                            @if (!empty($c->status))
+                                ({{ $c->status }})
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <p class="text-xs text-slate-500">Kalau event ini jadwal untuk course tertentu, pilih di sini.</p>
+            <x-input-error :messages="$errors->get('course_id')" class="mt-2" />
         </div>
 
     </div>
@@ -87,6 +121,38 @@
                     class="w-full rounded-xl border-slate-200 bg-white px-3 py-2.5
                            focus:border-[#121293] focus:ring-[#121293]">
                 <x-input-error :messages="$errors->get('end_time')" class="mt-2" />
+            </div>
+        </div>
+
+        {{-- Mode + Meeting Link --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-1">
+                <label class="text-sm font-semibold text-slate-800">Mode (opsional)</label>
+                <select name="mode" x-model="mode"
+                    class="w-full rounded-xl border-slate-200 bg-white px-3 py-2.5
+                           focus:border-[#121293] focus:ring-[#121293]">
+                    <option value="">— pilih —</option>
+                    <option value="offline">Offline</option>
+                    <option value="online">Online</option>
+                    <option value="blended">Blended</option>
+                </select>
+                <x-input-error :messages="$errors->get('mode')" class="mt-2" />
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-sm font-semibold text-slate-800">
+                    Meeting Link
+                    <span class="text-red-500" x-show="mode === 'online' || mode === 'blended'">*</span>
+                </label>
+                <input name="meeting_link" value="{{ old('meeting_link', $e->meeting_link ?? '') }}"
+                    :required="mode === 'online' || mode === 'blended'"
+                    class="w-full rounded-xl border-slate-200 bg-white px-3 py-2.5
+                           focus:border-[#121293] focus:ring-[#121293] placeholder:text-slate-400"
+                    placeholder="https://zoom.us/j/.... / Google Meet link / Teams link">
+                <p class="text-xs text-slate-500" x-show="mode === 'online' || mode === 'blended'">
+                    Wajib diisi kalau mode online/blended.
+                </p>
+                <x-input-error :messages="$errors->get('meeting_link')" class="mt-2" />
             </div>
         </div>
 
@@ -164,7 +230,6 @@
 
     <button
         class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#121293] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-[#121293] focus:ring-offset-2">
-        {{-- save icon --}}
         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke="currentColor"
                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
