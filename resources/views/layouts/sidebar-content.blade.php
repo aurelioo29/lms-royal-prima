@@ -181,14 +181,14 @@
                 {{-- Courses --}}
                 <a href="{{ route('courses.index') }}"
                     class="block px-3 py-2 rounded-lg text-sm transition
-                {{ request()->routeIs('courses.*') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                    Courses
+                    {{ request()->routeIs('courses.index') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
+                    List Courses
                 </a>
 
                 <a href="{{ route('courses.create') }}"
                     class="block px-3 py-2 rounded-lg text-sm transition
-                {{ request()->routeIs('courses.create') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                    Create Course
+                    {{ request()->routeIs('courses.create') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
+                    Tambah Course
                 </a>
 
                 {{-- Categories / Types --}}
@@ -203,7 +203,7 @@
                 <a href="{{ route('course-types.create') }}"
                     class="block px-3 py-2 rounded-lg text-sm transition
                 {{ request()->routeIs('course-types.create') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                    Create Category
+                    Tambah Category Course
                 </a>
             </div>
         </div>
@@ -240,31 +240,31 @@
                 <a href="{{ route('admin.mot.index') }}"
                     class="block px-3 py-2 rounded-lg text-sm transition
                     {{ request()->routeIs('admin.mot.*') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                    Narasumber
+                    Akun Narasumber
                 </a>
 
                 <a href="{{ route('employees.index') }}"
                     class="block px-3 py-2 rounded-lg text-sm transition
                     {{ request()->routeIs('employees.*') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                    Karyawan
+                    Tambah Akun Karyawan
                 </a>
 
                 <a href="{{ route('job-titles.index') }}"
                     class="block px-3 py-2 rounded-lg text-sm transition
                     {{ request()->routeIs('job-titles.*') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                    Job Title
+                    Tambah Job Title
                 </a>
 
                 <a href="{{ route('job-categories.index') }}"
                     class="block px-3 py-2 rounded-lg text-sm transition
                     {{ request()->routeIs('job-categories.*') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                    Job Categories
+                    Tambah Job Categories
                 </a>
 
                 <a href="{{ route('roles.index') }}"
                     class="block px-3 py-2 rounded-lg text-sm transition
                     {{ request()->routeIs('roles.*') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                    Roles
+                    Tambah Roles
                 </a>
             </div>
         </div>
