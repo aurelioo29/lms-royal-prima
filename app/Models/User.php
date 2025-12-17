@@ -137,13 +137,20 @@ class User extends Authenticatable
 
     public function canCreateTOR(): bool
     {
-        // Kabid yang bikin TOR
-        return (bool) ($this->role?->can_create_plans);
+        return $this->canCreatePlans();
     }
 
     public function canApproveTOR(): bool
     {
-        // Direktur yang approve TOR
-        return (bool) ($this->role?->can_approve_plans);
+        return $this->canApprovePlans();
+    }
+
+    public function canCreateEvents(): bool
+    {
+        if ($this->canApprovePlans()) {
+            return false;
+        }
+
+        return $this->canCreatePlans();
     }
 }
