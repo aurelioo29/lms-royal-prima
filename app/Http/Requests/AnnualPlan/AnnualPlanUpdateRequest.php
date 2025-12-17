@@ -4,7 +4,7 @@ namespace App\Http\Requests\AnnualPlan;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AnnualPlanStoreRequest extends FormRequest
+class AnnualPlanUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {

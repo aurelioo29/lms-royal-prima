@@ -43,6 +43,11 @@ class AnnualPlan extends Model
         return $this->hasMany(PlanEvent::class);
     }
 
+    public function planEvents(): HasMany
+    {
+        return $this->events();
+    }
+
     // helpers
     public function isDraft(): bool
     {

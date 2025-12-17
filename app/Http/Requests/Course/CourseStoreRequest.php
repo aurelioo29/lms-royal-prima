@@ -9,7 +9,7 @@ class CourseStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->canCreateCourses() ?? false;
+        return true;
     }
 
     public function rules(): array

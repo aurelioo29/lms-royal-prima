@@ -69,25 +69,25 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | ANNUAL PLANS (Kabid create, Direktur approve)
+    | ANNUAL PLANS
     |--------------------------------------------------------------------------
     */
     Route::get('/annual-plans', [AnnualPlanController::class, 'index'])
         ->name('annual-plans.index');
 
-    // approvals page HARUS sebelum /{annualPlan}
+    // approvals (harus sebelum /{annualPlan})
     Route::middleware('cap:can_approve_plans')->group(function () {
         Route::get('/annual-plans/approvals', [AnnualPlanController::class, 'approvals'])
             ->name('annual-plans.approvals');
 
-        Route::patch('/annual-plans/{annualPlan}/approve', [AnnualPlanController::class, 'approve'])
+        Route::post('/annual-plans/{annualPlan}/approve', [AnnualPlanController::class, 'approve'])
             ->name('annual-plans.approve');
 
-        Route::patch('/annual-plans/{annualPlan}/reject', [AnnualPlanController::class, 'reject'])
+        Route::post('/annual-plans/{annualPlan}/reject', [AnnualPlanController::class, 'reject'])
             ->name('annual-plans.reject');
     });
 
-    // create/edit/submit
+    // create/edit/update/submit (harus sebelum /{annualPlan})
     Route::middleware('cap:can_create_plans')->group(function () {
         Route::get('/annual-plans/create', [AnnualPlanController::class, 'create'])
             ->name('annual-plans.create');
@@ -101,37 +101,38 @@ Route::middleware('auth')->group(function () {
         Route::put('/annual-plans/{annualPlan}', [AnnualPlanController::class, 'update'])
             ->name('annual-plans.update');
 
-        Route::patch('/annual-plans/{annualPlan}/submit', [AnnualPlanController::class, 'submit'])
+        Route::post('/annual-plans/{annualPlan}/submit', [AnnualPlanController::class, 'submit'])
             ->name('annual-plans.submit');
     });
 
-    // show diletakkan setelah approvals/create agar tidak bentrok
+    Route::middleware('cap:can_create_plans')
+        ->scopeBindings()
+        ->group(function () {
+            Route::patch('/annual-plans/{annualPlan}/events/{planEvent}/submit', [PlanEventController::class, 'submit'])
+                ->name('annual-plans.events.submit');
+
+            Route::get('/annual-plans/{annualPlan}/events/create', [PlanEventController::class, 'create'])
+                ->name('annual-plans.events.create');
+
+            Route::post('/annual-plans/{annualPlan}/events', [PlanEventController::class, 'store'])
+                ->name('annual-plans.events.store');
+
+            Route::get('/annual-plans/{annualPlan}/events/{planEvent}', [PlanEventController::class, 'show'])
+                ->name('annual-plans.events.show');
+
+            Route::get('/annual-plans/{annualPlan}/events/{planEvent}/edit', [PlanEventController::class, 'edit'])
+                ->name('annual-plans.events.edit');
+
+            Route::put('/annual-plans/{annualPlan}/events/{planEvent}', [PlanEventController::class, 'update'])
+                ->name('annual-plans.events.update');
+
+            Route::delete('/annual-plans/{annualPlan}/events/{planEvent}', [PlanEventController::class, 'destroy'])
+                ->name('annual-plans.events.destroy');
+        });
+
+    // ✅ TARUH PALING BAWAH
     Route::get('/annual-plans/{annualPlan}', [AnnualPlanController::class, 'show'])
         ->name('annual-plans.show');
-
-    /*
-    |--------------------------------------------------------------------------
-    | PLAN EVENTS (nested di AnnualPlan) - Kabid
-    |--------------------------------------------------------------------------
-    | NOTE: param {planEvent} (bukan {event}) biar auto-binding ke PlanEvent $planEvent
-    */
-    Route::middleware('cap:can_create_plans')->group(function () {
-        Route::get('/annual-plans/{annualPlan}/events/create', [PlanEventController::class, 'create'])
-            ->name('annual-plans.events.create');
-
-        Route::post('/annual-plans/{annualPlan}/events', [PlanEventController::class, 'store'])
-            ->name('annual-plans.events.store');
-
-        Route::get('/annual-plans/{annualPlan}/events/{planEvent}/edit', [PlanEventController::class, 'edit'])
-            ->name('annual-plans.events.edit');
-
-        Route::put('/annual-plans/{annualPlan}/events/{planEvent}', [PlanEventController::class, 'update'])
-            ->name('annual-plans.events.update');
-
-        Route::delete('/annual-plans/{annualPlan}/events/{planEvent}', [PlanEventController::class, 'destroy'])
-            ->name('annual-plans.events.destroy');
-    });
-
     /*
     |--------------------------------------------------------------------------
     | TOR SUBMISSIONS
@@ -162,6 +163,18 @@ Route::middleware('auth')->group(function () {
 
         Route::patch('/tor-submissions/{torSubmission}/reject', [TorSubmissionController::class, 'reject'])
             ->name('tor-submissions.reject');
+
+        Route::post('/annual-plans/{annualPlan}/reopen', [AnnualPlanController::class, 'reopen'])
+            ->name('annual-plans.reopen');
+
+        Route::patch('/annual-plans/{annualPlan}/events/{planEvent}/approve', [PlanEventController::class, 'approve'])
+            ->name('annual-plans.events.approve');
+
+        Route::patch('/annual-plans/{annualPlan}/events/{planEvent}/reject', [PlanEventController::class, 'reject'])
+            ->name('annual-plans.events.reject');
+
+        Route::post('/annual-plans/{annualPlan}/events/{planEvent}/reopen', [PlanEventController::class, 'reopen'])
+            ->name('annual-plans.events.reopen');
     });
 
     /*

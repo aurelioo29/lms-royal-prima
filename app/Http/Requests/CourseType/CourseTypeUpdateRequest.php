@@ -10,7 +10,7 @@ class CourseTypeUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->canManageCourseTypes() ?? false;
+        return true;
     }
 
     protected function prepareForValidation(): void

@@ -9,7 +9,7 @@ class CourseTypeStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return auth()->user()?->canManageCourseTypes() ?? false; // sesuaikan role admin
+        return true;
     }
 
     protected function prepareForValidation(): void

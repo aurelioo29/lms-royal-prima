@@ -15,8 +15,6 @@ class PlanEventStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'annual_plan_id' => ['required', 'integer', 'exists:annual_plans,id'],
-
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
 
@@ -33,12 +31,11 @@ class PlanEventStoreRequest extends FormRequest
             'meeting_link' => [
                 'nullable',
                 'url',
-                Rule::requiredIf(
-                    fn() =>
-                    in_array($this->input('mode'), ['online', 'blended'], true)
-                ),
+                Rule::requiredIf(fn() => in_array($this->input('mode'), ['online', 'blended'], true)),
                 'max:255',
             ],
+
+            'status' => ['required', Rule::in(['draft', 'pending', 'approved', 'rejected'])],
         ];
     }
 

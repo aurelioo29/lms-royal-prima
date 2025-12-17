@@ -1,3 +1,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .flatpickr-calendar {
+        border-radius: 16px;
+        border: 1px solid rgb(226 232 240);
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+        overflow: hidden;
+        font-family: inherit;
+    }
+
+    .flatpickr-time {
+        border-top: 1px solid rgb(226 232 240);
+    }
+
+    .flatpickr-time input {
+        font-size: 14px;
+    }
+}

@@ -37,6 +37,7 @@ class PlanEventUpdateRequest extends FormRequest
                 ),
                 'max:255',
             ],
+            'status' => ['required', Rule::in(['draft', 'pending', 'approved', 'rejected'])],
         ];
     }
 }
