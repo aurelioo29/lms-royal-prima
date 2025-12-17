@@ -6,20 +6,30 @@
     $canPlanApprove = (bool) $user->role?->can_approve_plans;
 
     $canCourseCreate = (bool) $user->role?->can_create_courses;
-    $canCourseApprove = (bool) $user->role?->can_approve_courses; // kalau masih dipakai
+    $canCourseApprove = (bool) $user->role?->can_approve_courses; // optional
 
     $canManageUsers = (bool) $user->role?->can_manage_users;
 
     // menu visibility
     $showPlansMenu = $canPlanCreate || $canPlanApprove;
     $showTorMenu = $canPlanCreate || $canPlanApprove; // TOR: Kabid buat, Direktur acc
-    $showCourseMenu = $canCourseCreate; // course & course-type: admin course
+
+    // ✅ admin course only (Courses + Course Types)
+    $showCoursesMenu = $canCourseCreate;
+    $showCourseTypesMenu = $canCourseCreate;
+
     $showUsersMenu = $canManageUsers;
 
     // active flags
     $plansActive = request()->routeIs('annual-plans.*');
+
+    // TOR: route kamu pakai tor-submissions.*
     $torActive = request()->routeIs('tor-submissions.*');
+
+    // Courses
     $coursesActive = request()->routeIs('courses.*');
+
+    // ✅ Course Types
     $courseTypesActive = request()->routeIs('course-types.*');
 
     $manageUsersActive =
@@ -32,7 +42,11 @@
     // dropdown open state
     $openPlans = $plansActive;
     $openTor = $torActive;
-    $openCourses = $coursesActive || $courseTypesActive;
+
+    // ✅ pisah open state biar masing-masing section waras
+    $openCourses = $coursesActive;
+    $openCourseTypes = $courseTypesActive;
+
     $openUsers = $manageUsersActive;
 @endphp
 
@@ -132,12 +146,12 @@
         </div>
     @endif
 
-    {{-- ================= COURSES ================= --}}
-    @if ($showCourseMenu)
+    {{-- ================= COURSES (Admin) ================= --}}
+    @if ($showCoursesMenu)
         <div x-data="{ open: {{ $openCourses ? 'true' : 'false' }} }" class="pt-1">
             <button type="button" @click="open = !open"
                 class="w-full flex items-center justify-between px-3 py-2 rounded-lg transition
-                {{ $coursesActive || $courseTypesActive ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
+                {{ $coursesActive ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
 
                 <div class="flex items-center gap-3">
                     <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
@@ -169,13 +183,45 @@
                     {{ request()->routeIs('courses.create') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
                     Create Course
                 </a>
+            </div>
+        </div>
+    @endif
 
-                <div class="h-px bg-slate-200/70 my-1"></div>
+    {{-- ================= COURSE TYPES (Admin) ================= --}}
+    @if ($showCourseTypesMenu)
+        <div x-data="{ open: {{ $openCourseTypes ? 'true' : 'false' }} }" class="pt-1">
+            <button type="button" @click="open = !open"
+                class="w-full flex items-center justify-between px-3 py-2 rounded-lg transition
+                {{ $courseTypesActive ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
 
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="currentColor" d="M4 4h16v4H4V4Zm0 6h16v4H4v-4Zm0 6h16v4H4v-4Z" />
+                    </svg>
+
+                    <span x-show="!collapsed" x-transition.opacity class="text-sm font-medium">
+                        Course Types
+                    </span>
+                </div>
+
+                <svg x-show="!collapsed" x-transition.opacity class="w-4 h-4 transition-transform duration-300"
+                    :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="currentColor"
+                        d="m12 15l-4.243-4.242l1.415-1.414L12 12.172l2.828-2.828l1.415 1.414L12 15.001Z" />
+                </svg>
+            </button>
+
+            <div x-show="open && !collapsed" x-collapse.duration.250ms class="mt-1 space-y-1 pl-11">
                 <a href="{{ route('course-types.index') }}"
                     class="block px-3 py-2 rounded-lg text-sm transition
-                    {{ request()->routeIs('course-types.*') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                    Course Types
+                    {{ request()->routeIs('course-types.index') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
+                    Daftar Types
+                </a>
+
+                <a href="{{ route('course-types.create') }}"
+                    class="block px-3 py-2 rounded-lg text-sm transition
+                    {{ request()->routeIs('course-types.create') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
+                    Create Type
                 </a>
             </div>
         </div>

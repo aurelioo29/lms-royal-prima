@@ -7,11 +7,38 @@ use App\Http\Requests\PlanEvent\PlanEventUpdateRequest;
 use App\Models\AnnualPlan;
 use App\Models\PlanEvent;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PlanEventController extends Controller
 {
-    private function assertEditable(AnnualPlan $plan): void
+    /**
+     * Kabid boleh manage event selama Annual Plan bukan "pending".
+     * Sesuai flow:
+     * - Event boleh dibuat saat plan draft/rejected (sebelum plan ACC)
+     * - Setelah plan approved, event masih boleh ditambah/diubah (selama event masih draft/rejected)
+     */
+    private function assertCanManageEvents(AnnualPlan $plan): void
+    {
+        $user = auth()->user();
+
+        // Direktur bebas
+        if ($user->canApprovePlans()) {
+            return;
+        }
+
+        // Kabid
+        abort_unless($user->canCreatePlans(), 403);
+
+        // Plan pending = lagi diajukan, jangan diutak-atik dulu
+        abort_unless(in_array($plan->status, ['draft', 'rejected', 'approved'], true), 403);
+    }
+
+    /**
+     * Kabid hanya boleh edit/hapus event kalau event masih draft/rejected.
+     * Direktur bebas.
+     */
+    private function assertEventEditableByKabid(PlanEvent $event): void
     {
         $user = auth()->user();
 
@@ -19,28 +46,45 @@ class PlanEventController extends Controller
             return;
         }
 
-        // Kabid (creator) can edit only when draft/rejected
         abort_unless($user->canCreatePlans(), 403);
-        abort_unless($plan->isDraft() || $plan->isRejected(), 403);
+        abort_unless(in_array($event->status, ['draft', 'rejected'], true), 403);
+    }
+
+    public function show(AnnualPlan $annualPlan, PlanEvent $planEvent): View
+    {
+        // kalau plan belum approved, yang boleh lihat cuma Kabid/Direktur
+        $user = auth()->user();
+        if (!$annualPlan->isApproved() && !($user->canCreatePlans() || $user->canApprovePlans())) {
+            abort(403);
+        }
+
+        $planEvent->load([
+            'annualPlan',
+            'torSubmission.course',
+            'creator',
+            'approver',
+        ]);
+
+        return view('annual-plans.events.show', compact('annualPlan', 'planEvent'));
     }
 
     public function create(AnnualPlan $annualPlan): View
     {
-        $this->assertEditable($annualPlan);
+        $this->assertCanManageEvents($annualPlan);
 
         $planEvent = new PlanEvent();
 
-        return view('plan-events.create', compact('annualPlan', 'planEvent'));
+        return view('annual-plans.events.create', compact('annualPlan', 'planEvent'));
     }
 
     public function store(PlanEventStoreRequest $request, AnnualPlan $annualPlan): RedirectResponse
     {
-        $this->assertEditable($annualPlan);
+        $this->assertCanManageEvents($annualPlan);
 
         $data = $request->validated();
 
         $data['annual_plan_id'] = $annualPlan->id;
-        $data['created_by'] = auth()->id(); // WAJIB
+        $data['created_by'] = auth()->id();
         $data['status'] = $data['status'] ?? 'draft';
 
         $annualPlan->events()->create($data);
@@ -52,9 +96,10 @@ class PlanEventController extends Controller
 
     public function edit(AnnualPlan $annualPlan, PlanEvent $planEvent): View
     {
-        $this->assertEditable($annualPlan);
+        $this->assertCanManageEvents($annualPlan);
+        $this->assertEventEditableByKabid($planEvent);
 
-        return view('plan-events.edit', compact('annualPlan', 'planEvent'));
+        return view('annual-plans.events.edit', compact('annualPlan', 'planEvent'));
     }
 
     public function update(
@@ -62,7 +107,8 @@ class PlanEventController extends Controller
         AnnualPlan $annualPlan,
         PlanEvent $planEvent
     ): RedirectResponse {
-        $this->assertEditable($annualPlan);
+        $this->assertCanManageEvents($annualPlan);
+        $this->assertEventEditableByKabid($planEvent);
 
         $data = $request->validated();
         unset($data['annual_plan_id']);
@@ -76,12 +122,94 @@ class PlanEventController extends Controller
 
     public function destroy(AnnualPlan $annualPlan, PlanEvent $planEvent): RedirectResponse
     {
-        $this->assertEditable($annualPlan);
+        $this->assertCanManageEvents($annualPlan);
+        $this->assertEventEditableByKabid($planEvent);
 
         $planEvent->delete();
 
         return redirect()
             ->route('annual-plans.show', $annualPlan)
             ->with('success', 'Event dihapus.');
+    }
+
+    /**
+     * Kabid ajukan event hanya kalau Annual Plan sudah approved.
+     */
+    public function submit(AnnualPlan $annualPlan, PlanEvent $planEvent): RedirectResponse
+    {
+        abort_unless(auth()->user()->canCreatePlans(), 403);
+
+        // event diajukan hanya kalau annual plan approved
+        abort_unless($annualPlan->isApproved(), 403);
+
+        abort_unless(in_array($planEvent->status, ['draft', 'rejected'], true), 403);
+
+        $planEvent->update([
+            'status' => 'pending',
+            'submitted_at' => now(),
+            'rejected_reason' => null,
+            'rejected_at' => null,
+            'approved_by' => null,
+            'approved_at' => null,
+        ]);
+
+        return back()->with('success', 'Plan Event diajukan untuk approval.');
+    }
+
+    public function approve(AnnualPlan $annualPlan, PlanEvent $planEvent): RedirectResponse
+    {
+        abort_unless(auth()->user()->canApprovePlans(), 403);
+
+        // biar konsisten: event di-approve hanya kalau annual plan approved
+        abort_unless($annualPlan->isApproved(), 403);
+
+        abort_unless(in_array($planEvent->status, ['pending', 'rejected'], true), 403);
+
+        $planEvent->update([
+            'status' => 'approved',
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+            'rejected_reason' => null,
+            'rejected_at' => null,
+        ]);
+
+        return back()->with('success', 'Plan Event disetujui.');
+    }
+
+    public function reject(Request $request, AnnualPlan $annualPlan, PlanEvent $planEvent): RedirectResponse
+    {
+        abort_unless(auth()->user()->canApprovePlans(), 403);
+
+        abort_unless(in_array($planEvent->status, ['pending', 'approved'], true), 403);
+
+        $data = $request->validate([
+            'rejected_reason' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $planEvent->update([
+            'status' => 'rejected',
+            'approved_by' => null,
+            'approved_at' => null,
+            'rejected_at' => now(),
+            'rejected_reason' => $data['rejected_reason'] ?: 'Perlu revisi.',
+        ]);
+
+        return back()->with('success', 'Plan Event ditolak.');
+    }
+
+    public function reopen(AnnualPlan $annualPlan, PlanEvent $planEvent): RedirectResponse
+    {
+        abort_unless(auth()->user()->canApprovePlans(), 403);
+
+        $planEvent->update([
+            'status' => 'draft',
+            'approved_by' => null,
+            'approved_at' => null,
+            'rejected_reason' => null,
+            'rejected_at' => null,
+            'submitted_at' => null,
+        ]);
+
+        return back()->with('success', 'Plan Event dibuka kembali (Draft).');
     }
 }

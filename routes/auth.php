@@ -108,12 +108,17 @@ Route::middleware('auth')->group(function () {
     Route::middleware('cap:can_create_plans')
         ->scopeBindings()
         ->group(function () {
+            Route::patch('/annual-plans/{annualPlan}/events/{planEvent}/submit', [PlanEventController::class, 'submit'])
+                ->name('annual-plans.events.submit');
 
             Route::get('/annual-plans/{annualPlan}/events/create', [PlanEventController::class, 'create'])
                 ->name('annual-plans.events.create');
 
             Route::post('/annual-plans/{annualPlan}/events', [PlanEventController::class, 'store'])
                 ->name('annual-plans.events.store');
+
+            Route::get('/annual-plans/{annualPlan}/events/{planEvent}', [PlanEventController::class, 'show'])
+                ->name('annual-plans.events.show');
 
             Route::get('/annual-plans/{annualPlan}/events/{planEvent}/edit', [PlanEventController::class, 'edit'])
                 ->name('annual-plans.events.edit');
@@ -161,6 +166,15 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/annual-plans/{annualPlan}/reopen', [AnnualPlanController::class, 'reopen'])
             ->name('annual-plans.reopen');
+
+        Route::patch('/annual-plans/{annualPlan}/events/{planEvent}/approve', [PlanEventController::class, 'approve'])
+            ->name('annual-plans.events.approve');
+
+        Route::patch('/annual-plans/{annualPlan}/events/{planEvent}/reject', [PlanEventController::class, 'reject'])
+            ->name('annual-plans.events.reject');
+
+        Route::post('/annual-plans/{annualPlan}/events/{planEvent}/reopen', [PlanEventController::class, 'reopen'])
+            ->name('annual-plans.events.reopen');
     });
 
     /*

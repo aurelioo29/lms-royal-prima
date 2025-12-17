@@ -134,4 +134,16 @@ class User extends Authenticatable
     {
         return in_array($this->role?->slug, ['developer', 'admin'], true);
     }
+
+    public function canCreateTOR(): bool
+    {
+        // Kabid yang bikin TOR
+        return (bool) ($this->role?->can_create_plans);
+    }
+
+    public function canApproveTOR(): bool
+    {
+        // Direktur yang approve TOR
+        return (bool) ($this->role?->can_approve_plans);
+    }
 }
