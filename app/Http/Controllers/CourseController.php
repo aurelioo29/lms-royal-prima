@@ -7,24 +7,40 @@ use App\Http\Requests\Course\CourseUpdateRequest;
 use App\Models\Course;
 use App\Models\CourseType;
 use App\Models\TorSubmission;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class CourseController extends Controller
 {
     public function index(Request $request): View
     {
+        abort_unless(auth()->user()->canCreateCourses(), 403);
+
         $q = $request->string('q')->toString();
-        $status = $request->string('status')->toString();
+        $status = $request->string('status')->toString(); // draft|published|archived|''
 
         $courses = Course::query()
-            ->with(['type'])
+            ->with([
+                'type',
+                'creator',
+                'torSubmission.planEvent.annualPlan',
+            ])
             ->when($q, function ($query) use ($q) {
-                $query->where('title', 'like', "%{$q}%");
+                $query->where(function ($qq) use ($q) {
+                    $qq->where('enrollment_key', 'like', "%{$q}%")
+                        ->orWhereHas('torSubmission.planEvent', function ($qe) use ($q) {
+                            $qe->where('title', 'like', "%{$q}%")
+                                ->orWhere('description', 'like', "%{$q}%");
+                        })
+                        ->orWhereHas('torSubmission.planEvent.annualPlan', function ($qa) use ($q) {
+                            $qa->where('title', 'like', "%{$q}%")
+                                ->orWhere('year', 'like', "%{$q}%");
+                        });
+                });
             })
             ->when($status, fn($query) => $query->where('status', $status))
-            ->orderByDesc('id')
+            ->latest()
             ->paginate(10)
             ->withQueryString();
 
@@ -33,81 +49,99 @@ class CourseController extends Controller
 
     public function create(Request $request): View
     {
-        $torId = $request->input('tor_submission_id');
+        abort_unless(auth()->user()->canCreateCourses(), 403);
 
-        $tor = null;
-        if ($torId) {
-            $tor = TorSubmission::query()->with('planEvent')->findOrFail($torId);
-        }
+        $prefillTorId = $request->integer('tor_submission_id');
 
-        $types = CourseType::query()
+        // hanya TOR approved, dan event approved
+        $torOptions = TorSubmission::query()
+            ->with(['planEvent.annualPlan'])
+            ->where('status', 'approved')
+            ->whereHas('planEvent', fn($q) => $q->where('status', 'approved'))
+            // kalau kamu pakai rule 1 TOR = 1 Course
+            ->whereDoesntHave('course')
+            ->latest()
+            ->get();
+
+        $courseTypes = CourseType::query()
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
 
-        return view('courses.create', compact('tor', 'types'));
+        return view('courses.create', compact('torOptions', 'courseTypes', 'prefillTorId'));
     }
 
     public function store(CourseStoreRequest $request): RedirectResponse
     {
-        $tor = TorSubmission::findOrFail($request->input('tor_submission_id'));
+        abort_unless(auth()->user()->canCreateCourses(), 403);
 
-        if ($tor->status !== 'approved') {
-            return back()->with('error', 'TOR belum approved. Course tidak bisa dibuat.');
-        }
+        $tor = TorSubmission::with(['planEvent'])
+            ->where('id', $request->integer('tor_submission_id'))
+            ->firstOrFail();
 
-        // kalau kamu mau 1 TOR = 1 Course, cegah dobel:
-        if ($tor->course()->exists()) {
-            return back()->with('error', 'Course untuk TOR ini sudah ada.');
+        abort_unless($tor->status === 'approved', 403);
+        abort_unless($tor->planEvent && $tor->planEvent->status === 'approved', 403);
+
+        // kalau 1 TOR = 1 Course (recommended)
+        if ($tor->course) {
+            return back()->with('error', 'TOR ini sudah punya course.');
         }
 
         $course = Course::create([
             'tor_submission_id' => $tor->id,
             'course_type_id' => $request->input('course_type_id'),
-
-            'title' => $request->input('title'),
-            'description' => $request->input('description'),
-            'training_hours' => $request->input('training_hours'),
-
+            'tujuan' => $request->input('tujuan'),
+            'training_hours' => $request->input('training_hours', 0),
             'status' => $request->input('status', 'draft'),
             'created_by' => auth()->id(),
+            // enrollment_key auto-generated di model Course::booted()
         ]);
 
         return redirect()
             ->route('courses.edit', $course)
-            ->with('success', 'Course berhasil dibuat.');
+            ->with('success', 'Course dibuat. Enrollment Key: ' . $course->enrollment_key);
     }
 
     public function edit(Course $course): View
     {
-        $course->load(['type', 'torSubmission.planEvent', 'modules']);
+        abort_unless(auth()->user()->canCreateCourses(), 403);
 
-        $types = CourseType::query()
+        $course->load([
+            'type',
+            'creator',
+            'torSubmission.planEvent.annualPlan',
+        ]);
+
+        $courseTypes = CourseType::query()
             ->where('is_active', true)
             ->orderBy('name')
             ->get();
 
-        return view('courses.edit', compact('course', 'types'));
+        return view('courses.edit', compact('course', 'courseTypes'));
     }
 
     public function update(CourseUpdateRequest $request, Course $course): RedirectResponse
     {
+        abort_unless(auth()->user()->canCreateCourses(), 403);
+
         $course->update([
             'course_type_id' => $request->input('course_type_id'),
-
-            'title' => $request->input('title'),
-            'description' => $request->input('description'),
-            'training_hours' => $request->input('training_hours'),
-
-            'status' => $request->input('status'),
+            'tujuan' => $request->input('tujuan'),
+            'training_hours' => $request->input('training_hours', 0),
+            'status' => $request->input('status', 'draft'),
         ]);
 
-        return back()->with('success', 'Course berhasil diupdate.');
+        return back()->with('success', 'Course diupdate.');
     }
 
     public function destroy(Course $course): RedirectResponse
     {
+        abort_unless(auth()->user()->canCreateCourses(), 403);
+
         $course->delete();
-        return redirect()->route('courses.index')->with('success', 'Course berhasil dihapus.');
+
+        return redirect()
+            ->route('courses.index')
+            ->with('success', 'Course dihapus.');
     }
 }

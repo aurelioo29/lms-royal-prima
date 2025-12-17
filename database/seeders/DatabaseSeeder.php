@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
             RolesSeeder::class,
             JobCatalogSeeder::class,
             RoleUsersSeeder::class,
-            RemainingDummyDataSeeder::class,
+            // RemainingDummyDataSeeder::class,
         ]);
     }
 }

@@ -14,19 +14,35 @@ return new class extends Migration
         Schema::create('courses', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('tor_submission_id')->nullable()->constrained('tor_submissions')->nullOnDelete();
-            $table->foreignId('course_type_id')->nullable()->constrained('course_types')->nullOnDelete();
+            // Course must be based on TOR
+            $table->foreignId('tor_submission_id')
+                ->constrained('tor_submissions')
+                ->cascadeOnDelete();
 
-            $table->string('title');
-            $table->text('description')->nullable();
+            $table->foreignId('course_type_id')
+                ->nullable()
+                ->constrained('course_types')
+                ->nullOnDelete();
+
+            // NEW fields
+            $table->text('tujuan')->nullable();
             $table->decimal('training_hours', 5, 2)->default(0);
 
-            $table->enum('status', ['draft', 'published', 'archived'])->default('draft')->index();
+            // Enrollment key (unique)
+            $table->string('enrollment_key', 32)->unique();
 
-            // admin pembuat course
-            $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
+            $table->enum('status', ['draft', 'published', 'archived'])
+                ->default('draft')
+                ->index();
+
+            $table->foreignId('created_by')
+                ->constrained('users')
+                ->restrictOnDelete();
 
             $table->timestamps();
+
+            // 1 TOR = 1 Course (recommended)
+            $table->unique('tor_submission_id');
         });
     }
 

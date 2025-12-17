@@ -10,6 +10,7 @@ class AnnualPlan extends Model
 {
     protected $fillable = [
         'annual_plan_id',
+        'year',
         'title',
         'description',
         'start_date',

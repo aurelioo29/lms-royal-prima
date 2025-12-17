@@ -42,8 +42,6 @@ class CourseTypeController extends Controller
     {
         CourseType::create([
             'name' => $request->input('name'),
-            'slug' => $request->input('slug'),
-            'description' => $request->input('description'),
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -63,8 +61,6 @@ class CourseTypeController extends Controller
     {
         $course_type->update([
             'name' => $request->input('name'),
-            'slug' => $request->input('slug'),
-            'description' => $request->input('description'),
             'is_active' => $request->boolean('is_active', $course_type->is_active),
         ]);
 
