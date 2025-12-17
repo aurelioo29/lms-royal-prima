@@ -29,9 +29,9 @@ class TorSubmission extends Model
         'reviewed_at' => 'datetime',
     ];
 
-    public function planEvent(): BelongsTo
+    public function planEvent()
     {
-        return $this->belongsTo(PlanEvent::class);
+        return $this->belongsTo(PlanEvent::class, 'plan_event_id');
     }
 
     public function creator(): BelongsTo
@@ -44,9 +44,9 @@ class TorSubmission extends Model
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
-    public function course(): HasOne
+    public function course()
     {
-        return $this->hasOne(Course::class);
+        return $this->hasOne(Course::class, 'tor_submission_id');
     }
 
     public function isDraft(): bool

@@ -44,9 +44,9 @@ class PlanEvent extends Model
         'rejected_at' => 'datetime',
     ];
 
-    public function annualPlan(): BelongsTo
+    public function annualPlan()
     {
-        return $this->belongsTo(AnnualPlan::class);
+        return $this->belongsTo(AnnualPlan::class, 'annual_plan_id');
     }
 
     public function creator(): BelongsTo
