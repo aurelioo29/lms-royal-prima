@@ -14,7 +14,7 @@ class AnnualPlanStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'year' => ['required', 'integer', 'min:2020', 'max:2100'],
+            'year' => ['required', 'integer', 'min:2000', 'max:2100'],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
         ];
