@@ -26,8 +26,6 @@ class CourseTypeStoreRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:100', 'unique:course_types,name'],
-            'slug' => ['required', 'string', 'max:120', 'unique:course_types,slug'],
-            'description' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }
@@ -36,7 +34,6 @@ class CourseTypeStoreRequest extends FormRequest
     {
         return [
             'name.unique' => 'Nama type course sudah ada.',
-            'slug.unique' => 'Slug type course sudah ada.',
         ];
     }
 }

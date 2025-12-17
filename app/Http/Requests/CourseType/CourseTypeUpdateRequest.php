@@ -30,8 +30,6 @@ class CourseTypeUpdateRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:100', Rule::unique('course_types', 'name')->ignore($id)],
-            'slug' => ['required', 'string', 'max:120', Rule::unique('course_types', 'slug')->ignore($id)],
-            'description' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }
@@ -40,7 +38,6 @@ class CourseTypeUpdateRequest extends FormRequest
     {
         return [
             'name.unique' => 'Nama type course sudah ada.',
-            'slug.unique' => 'Slug type course sudah ada.',
         ];
     }
 }
