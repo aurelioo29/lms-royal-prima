@@ -141,6 +141,9 @@ Route::middleware('auth')->group(function () {
     | Direktur approve/reject
     */
     Route::middleware('cap:can_create_plans')->group(function () {
+        Route::get('/tor-submissions', [TorSubmissionController::class, 'index'])
+            ->name('tor-submissions.index');
+
         Route::get('/plan-events/{planEvent}/tor/create', [TorSubmissionController::class, 'create'])
             ->name('tor-submissions.create');
 
@@ -160,6 +163,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware('cap:can_approve_plans')->group(function () {
         Route::patch('/tor-submissions/{torSubmission}/approve', [TorSubmissionController::class, 'approve'])
             ->name('tor-submissions.approve');
+
+        Route::get('/tor-submissions/approvals', [TorSubmissionController::class, 'approvals'])
+            ->name('tor-submissions.approvals');
 
         Route::patch('/tor-submissions/{torSubmission}/reject', [TorSubmissionController::class, 'reject'])
             ->name('tor-submissions.reject');

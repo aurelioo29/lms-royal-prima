@@ -2,148 +2,136 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Tor\TorSubmissionDecisionRequest;
-use App\Http\Requests\Tor\TorSubmissionStoreRequest;
 use App\Models\PlanEvent;
 use App\Models\TorSubmission;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class TorSubmissionController extends Controller
 {
-    private function ensureTorIsAllowed(PlanEvent $planEvent): void
+    public function index(): View
     {
-        // 1) Annual Plan harus approved
-        if (!$planEvent->annualPlan?->isApproved()) {
-            abort(403, 'Annual Plan belum di-ACC Direktur. TOR belum bisa dibuat.');
-        }
+        abort_unless(auth()->user()->canCreateTOR(), 403);
 
-        // 2) Plan Event harus approved
-        if (!$planEvent->isApproved()) {
-            abort(403, 'Plan Event belum di-ACC Direktur. TOR belum bisa dibuat.');
-        }
+        $tors = TorSubmission::query()
+            ->with(['planEvent.annualPlan'])
+            ->latest()
+            ->paginate(10);
+
+        return view('tor-submissions.index', compact('tors'));
     }
 
     public function create(PlanEvent $planEvent): View
     {
-        $this->ensureTorIsAllowed($planEvent);
+        abort_unless(auth()->user()->canCreateTOR(), 403);
 
-        return view('tor-submissions.create', [
-            'event' => $planEvent,
-        ]);
-    }
+        // TOR hanya boleh dibuat kalau event sudah APPROVED (sesuai UI kamu)
+        abort_unless($planEvent->status === 'approved', 403);
 
-    public function store(TorSubmissionStoreRequest $request): RedirectResponse
-    {
-        $planEvent = PlanEvent::with('annualPlan')->findOrFail((int) $request->input('plan_event_id'));
-        $this->ensureTorIsAllowed($planEvent);
-
-        // Kalau kamu mau 1 event = 1 TOR, ini wajib biar ga dobel
-        if ($planEvent->torSubmission()->exists()) {
-            return back()->with('error', 'TOR untuk Plan Event ini sudah ada.');
+        // kalau sudah ada TOR, lempar ke edit
+        if ($planEvent->torSubmission) {
+            return redirect()->route('tor-submissions.edit', $planEvent->torSubmission);
         }
 
-        $filePath = null;
-        if ($request->hasFile('file')) {
-            $filePath = $request->file('file')->store('tor', 'public');
-        }
-
-        $tor = TorSubmission::create([
-            'plan_event_id' => $planEvent->id,
-            'title' => $request->input('title'),
-            'content' => $request->input('content'),
-            'file_path' => $filePath,
-            'status' => 'draft',
-            'created_by' => auth()->id(),
-        ]);
-
-        return redirect()
-            ->route('annual-plans.show', $planEvent->annual_plan_id)
-            ->with('success', 'TOR berhasil dibuat (Draft).');
+        return view('tor-submissions.create', compact('planEvent'));
     }
 
-    public function edit(\App\Models\TorSubmission $torSubmission)
+    public function store(Request $request)
     {
-        return view('tor-submissions.edit', [
-            'tor' => $torSubmission->load(['planEvent.annualPlan']),
-        ]);
-    }
-
-    public function update(Request $request, TorSubmission $tor_submission): RedirectResponse
-    {
-        $tor_submission->load('planEvent.annualPlan');
-
-        // Draft/rejected boleh edit oleh creator, aturan detailnya kamu bisa ketatkan pakai policy
         $data = $request->validate([
+            'plan_event_id' => ['required', 'exists:plan_events,id'],
             'title' => ['required', 'string', 'max:255'],
             'content' => ['nullable', 'string'],
             'file' => ['nullable', 'file', 'mimes:pdf,doc,docx', 'max:10240'],
         ]);
 
+        $tor = new TorSubmission();
+        $tor->plan_event_id = $request->plan_event_id;
+        $tor->title = $request->title;
+        $tor->content = $request->content;
+
+        // WAJIB, biar error created_by hilang juga:
+        $tor->created_by = auth()->id();
+
+        // AUTO SUBMIT (biar bukan draft)
+        $tor->status = 'submitted';
+        $tor->submitted_at = now();
+
         if ($request->hasFile('file')) {
-            if ($tor_submission->file_path) {
-                Storage::disk('public')->delete($tor_submission->file_path);
-            }
-            $data['file_path'] = $request->file('file')->store('tor', 'public');
+            $tor->file_path = $request->file('file')->store('tors', 'public');
         }
 
-        $tor_submission->update($data);
+        $tor->save();
 
-        return back()->with('success', 'TOR berhasil diupdate.');
+        return redirect()
+            ->route('tor-submissions.edit', $tor)
+            ->with('success', 'TOR dibuat (Draft).');
     }
 
-    public function submit(TorSubmission $tor_submission): RedirectResponse
+    public function edit(TorSubmission $torSubmission): View
     {
-        $tor_submission->load('planEvent.annualPlan');
+        abort_unless(auth()->user()->canCreateTOR() || auth()->user()->canApproveTOR(), 403);
 
-        // Gate lagi biar nggak bisa “submit” kalau plan/event turun status
-        $this->ensureTorIsAllowed($tor_submission->planEvent);
+        $torSubmission->load(['planEvent.annualPlan']);
 
-        if (!in_array($tor_submission->status, ['draft', 'rejected'], true)) {
-            return back()->with('error', 'TOR hanya bisa diajukan dari status draft/rejected.');
-        }
+        return view('tor-submissions.edit', [
+            'tor' => $torSubmission, // ✅ biar blade kamu tetap pakai $tor
+        ]);
+    }
 
-        $tor_submission->update([
-            'status' => 'submitted',
-            'submitted_at' => now(),
-            'reviewed_at' => null,
-            'review_notes' => null,
+    public function update(Request $request, TorSubmission $torSubmission): RedirectResponse
+    {
+        abort_unless(auth()->user()->canCreateTOR(), 403);
+
+        // kalau sudah approved, Kabid jangan edit lagi (opsional tapi biasanya begitu)
+        abort_unless(in_array($torSubmission->status, ['draft', 'rejected', 'submitted'], true), 403);
+
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'content' => ['nullable', 'string'],
+            'file' => ['nullable', 'file', 'max:5120'],
         ]);
 
-        return back()->with('success', 'TOR berhasil diajukan untuk ACC.');
-    }
+        $torSubmission->title = $data['title'];
+        $torSubmission->content = $data['content'] ?? null;
 
-    public function approve(TorSubmissionDecisionRequest $request, TorSubmission $tor_submission): RedirectResponse
-    {
-        if ($tor_submission->status !== 'submitted') {
-            return back()->with('error', 'TOR harus submitted untuk bisa di-approve.');
+        if ($request->hasFile('file')) {
+            $torSubmission->file_path = $request->file('file')->store('tors', 'public');
         }
 
-        $tor_submission->update([
+        $torSubmission->save();
+
+        return back()->with('success', 'TOR diupdate.');
+    }
+
+    public function approvals()
+    {
+        abort_unless(auth()->user()->canApprovePlans(), 403);
+
+        $tors = \App\Models\TorSubmission::with(['planEvent.annualPlan', 'creator'])
+            ->whereIn('status', ['submitted']) // kalau flow kamu memang submit dulu baru approve
+            // ->whereIn('status', ['draft','submitted']) // kalau direktur mau lihat draft juga
+            ->latest()
+            ->paginate(15);
+
+        return view('tor-submissions.approvals', compact('tors'));
+    }
+
+    public function approve(TorSubmission $torSubmission): RedirectResponse
+    {
+        abort_unless(auth()->user()->canApprovePlans(), 403);
+
+        // optional safety: hanya boleh approve kalau status submitted/rejected
+        abort_unless(in_array($torSubmission->status, ['submitted', 'rejected'], true), 403);
+
+        $torSubmission->update([
             'status' => 'approved',
             'reviewed_by' => auth()->id(),
             'reviewed_at' => now(),
-            'review_notes' => $request->input('review_notes'),
+            'review_notes' => null,
         ]);
 
-        return back()->with('success', 'TOR di-approve.');
-    }
-
-    public function reject(TorSubmissionDecisionRequest $request, TorSubmission $tor_submission): RedirectResponse
-    {
-        if ($tor_submission->status !== 'submitted') {
-            return back()->with('error', 'TOR harus submitted untuk bisa di-reject.');
-        }
-
-        $tor_submission->update([
-            'status' => 'rejected',
-            'reviewed_by' => auth()->id(),
-            'reviewed_at' => now(),
-            'review_notes' => $request->input('review_notes'),
-        ]);
-
-        return back()->with('success', 'TOR di-reject.');
+        return back()->with('success', 'TOR disetujui.');
     }
 }

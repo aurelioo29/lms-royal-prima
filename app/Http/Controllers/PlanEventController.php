@@ -31,7 +31,7 @@ class PlanEventController extends Controller
         abort_unless($user->canCreatePlans(), 403);
 
         // Plan pending = lagi diajukan, jangan diutak-atik dulu
-        abort_unless(in_array($plan->status, ['draft', 'rejected', 'approved'], true), 403);
+        abort_unless(in_array($plan->status, ['draft', 'rejected', 'pending', 'approved'], true), 403);
     }
 
     /**

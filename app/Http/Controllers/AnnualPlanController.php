@@ -11,16 +11,31 @@ use Illuminate\View\View;
 
 class AnnualPlanController extends Controller
 {
-    public function index(): View
+    public function index()
     {
-        $plans = AnnualPlan::query()
-            ->with('creator', 'approver')
-            ->orderByDesc('year')
-            ->orderByDesc('id')
-            ->paginate(10);
+        $q      = request('q');
+        $status = request('status');
+        $sort   = request('sort', 'newest');
 
-        return view('annual-plans.index', compact('plans'));
+        $plans = \App\Models\AnnualPlan::query()
+            ->with(['creator', 'approver'])
+            ->when($q, function ($query) use ($q) {
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('title', 'like', "%{$q}%")
+                        ->orWhere('year', 'like', "%{$q}%")
+                        ->orWhereHas('creator', fn($u) => $u->where('name', 'like', "%{$q}%"));
+                });
+            })
+            ->when($status, fn($query) => $query->where('status', $status))
+            ->when($sort === 'newest', fn($query) => $query->orderByDesc('created_at'))
+            ->when($sort === 'oldest', fn($query) => $query->orderBy('created_at'))
+            ->when($sort === 'year',   fn($query) => $query->orderByDesc('year')->orderByDesc('created_at'))
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('annual-plans.index', compact('plans', 'q', 'status', 'sort'));
     }
+
 
     public function show(AnnualPlan $annualPlan): View
     {
