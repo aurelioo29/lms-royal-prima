@@ -9,16 +9,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class AnnualPlan extends Model
 {
     protected $fillable = [
-        'year',
+        'annual_plan_id',
         'title',
         'description',
+        'start_date',
+        'end_date',
+        'start_time',
+        'end_time',
+        'location',
+        'target_audience',
+        'mode',
+        'meeting_link',
         'status',
         'created_by',
-        'approved_by',
-        'submitted_at',
-        'approved_at',
-        'rejected_at',
-        'rejected_reason',
     ];
 
     protected $casts = [
@@ -38,9 +41,9 @@ class AnnualPlan extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    public function events(): HasMany
+    public function events()
     {
-        return $this->hasMany(PlanEvent::class);
+        return $this->hasMany(\App\Models\PlanEvent::class, 'annual_plan_id');
     }
 
     public function planEvents(): HasMany
