@@ -22,20 +22,15 @@ class PlanEventStoreRequest extends FormRequest
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
 
             'start_time' => ['nullable', 'date_format:H:i'],
-            'end_time' => ['nullable', 'date_format:H:i', 'after:start_time'],
+            'end_time' => ['nullable', 'date_format:H:i'],
 
             'location' => ['nullable', 'string', 'max:255'],
             'target_audience' => ['nullable', 'string', 'max:255'],
 
-            'mode' => ['nullable', Rule::in(['online', 'offline', 'blended'])],
-            'meeting_link' => [
-                'nullable',
-                'url',
-                Rule::requiredIf(fn() => in_array($this->input('mode'), ['online', 'blended'], true)),
-                'max:255',
-            ],
+            'mode' => ['nullable', 'in:online,offline,blended'],
+            'meeting_link' => ['nullable', 'url', 'max:2048'],
 
-            'status' => ['required', Rule::in(['draft', 'pending', 'approved', 'rejected'])],
+            'status' => ['nullable', 'in:draft,pending,approved,rejected'],
         ];
     }
 
