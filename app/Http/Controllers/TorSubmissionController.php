@@ -64,12 +64,11 @@ class TorSubmissionController extends Controller
             ->with('success', 'TOR berhasil dibuat (Draft).');
     }
 
-    public function edit(TorSubmission $tor_submission): View
+    public function edit(\App\Models\TorSubmission $torSubmission)
     {
-        $tor_submission->load(['planEvent.annualPlan', 'reviewer', 'creator']);
-
-        // Biar aman: kalau plan/event turun statusnya, TOR tetap bisa dibuka untuk lihat
-        return view('tor-submissions.edit', ['tor' => $tor_submission]);
+        return view('tor-submissions.edit', [
+            'tor' => $torSubmission->load(['planEvent.annualPlan']),
+        ]);
     }
 
     public function update(Request $request, TorSubmission $tor_submission): RedirectResponse
