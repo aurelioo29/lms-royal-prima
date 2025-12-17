@@ -1,60 +1,49 @@
 <x-app-layout>
     <div class="py-6">
-        <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-full px-4 sm:px-6 lg:px-8 space-y-5">
 
             {{-- Alerts --}}
             @if (session('success'))
-                <div class="rounded-xl border border-green-200 bg-green-50 p-4 text-green-800">
-                    <div class="flex items-start gap-3">
-                        <svg class="h-5 w-5 mt-0.5" viewBox="0 0 24 24" aria-hidden="true">
-                            <path fill="currentColor"
-                                d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20Zm-1 14l-4-4l1.4-1.4L11 13.2l5.6-5.6L18 9l-7 7Z" />
-                        </svg>
-                        <div class="text-sm font-semibold leading-relaxed">{{ session('success') }}</div>
-                    </div>
+                <div
+                    class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-green-800 text-sm font-semibold">
+                    {{ session('success') }}
                 </div>
             @endif
 
             @if (session('error'))
-                <div class="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
-                    <div class="flex items-start gap-3">
-                        <svg class="h-5 w-5 mt-0.5" viewBox="0 0 24 24" aria-hidden="true">
-                            <path fill="currentColor"
-                                d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20Zm1 13h-2v-2h2v2Zm0-4h-2V7h2v4Z" />
-                        </svg>
-                        <div class="text-sm font-semibold leading-relaxed">{{ session('error') }}</div>
-                    </div>
+                <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800 text-sm font-semibold">
+                    {{ session('error') }}
                 </div>
             @endif
 
-            {{-- Header --}}
-            <div class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div class="h-1 w-full bg-[#121293]"></div>
+            <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 
-                <div class="p-5 sm:p-6 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                    <div class="min-w-0">
-                        <h1 class="text-xl font-semibold text-slate-900">TOR Submissions</h1>
-                        <div class="mt-1 text-sm text-slate-600">
-                            Total: <span class="font-semibold text-slate-900">{{ $tors->total() }}</span>
+                {{-- Header --}}
+                <div class="px-5 py-4 sm:px-6 border-b border-slate-200">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <h1 class="text-lg font-semibold text-slate-900">TOR Submissions</h1>
+                            <div class="mt-1 text-sm text-slate-600">
+                                Total: <span class="font-semibold text-slate-900">{{ $tors->total() }}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            @if (auth()->user()->canApprovePlans())
+                                <a href="{{ route('tor-submissions.approvals') }}"
+                                    class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                                    Approvals
+                                </a>
+                            @endif
                         </div>
                     </div>
-
-                    <div class="flex items-center gap-2">
-                        @if (auth()->user()->canApprovePlans())
-                            <a href="{{ route('tor-submissions.approvals') }}"
-                                class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                                Approvals
-                            </a>
-                        @endif
-                    </div>
                 </div>
-            </div>
 
-            {{-- Table --}}
-            <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                {{-- Table --}}
                 <div class="overflow-x-auto">
+                    {{-- FIX: jangan pakai sticky + z tinggi, itu biang kerok nabrak modal --}}
                     <table class="min-w-full text-sm">
-                        <thead class="bg-slate-50 text-slate-600 sticky top-0 z-10">
+                        <thead class="bg-slate-50 text-slate-600">
                             <tr>
                                 <th class="text-left px-5 py-3 font-semibold">TOR</th>
                                 <th class="text-left px-5 py-3 font-semibold">Plan</th>
@@ -83,21 +72,21 @@
                                 @endphp
 
                                 <tr class="hover:bg-slate-50/70">
-                                    <td class="px-5 py-4">
+                                    <td class="px-5 py-4 align-top">
                                         <div class="font-semibold text-slate-900 line-clamp-1">
                                             {{ $tor->title }}
                                         </div>
 
                                         @if ($status === 'rejected' && $tor->review_notes)
                                             <div
-                                                class="mt-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
+                                                class="mt-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
                                                 <div class="font-semibold">Catatan</div>
                                                 <div class="mt-1 line-clamp-3">{{ $tor->review_notes }}</div>
                                             </div>
                                         @endif
                                     </td>
 
-                                    <td class="px-5 py-4 text-slate-700">
+                                    <td class="px-5 py-4 align-top text-slate-700">
                                         @if ($plan)
                                             <div class="font-medium text-slate-900 line-clamp-1">
                                                 {{ $plan->year }} — {{ $plan->title }}
@@ -107,19 +96,19 @@
                                         @endif
                                     </td>
 
-                                    <td class="px-5 py-4 text-slate-700">
+                                    <td class="px-5 py-4 align-top text-slate-700">
                                         <div class="font-medium text-slate-900 line-clamp-1">
                                             {{ $event?->title ?? '—' }}
                                         </div>
                                     </td>
 
-                                    <td class="px-5 py-4 text-slate-700">
+                                    <td class="px-5 py-4 align-top text-slate-700">
                                         <div class="font-medium">{{ $tor->created_at?->format('d M Y') ?? '—' }}</div>
                                         <div class="text-xs text-slate-500">
                                             {{ $tor->created_at?->format('H:i') ?? '' }}</div>
                                     </td>
 
-                                    <td class="px-5 py-4">
+                                    <td class="px-5 py-4 align-top">
                                         @if ($tor->file_path)
                                             <a class="inline-flex items-center gap-2 text-[#121293] font-semibold hover:underline"
                                                 href="{{ asset('storage/' . $tor->file_path) }}" target="_blank"
@@ -135,18 +124,18 @@
                                         @endif
                                     </td>
 
-                                    <td class="px-5 py-4">
+                                    <td class="px-5 py-4 align-top">
                                         <span
                                             class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ $chip }}">
                                             {{ strtoupper($status) }}
                                         </span>
                                     </td>
 
-                                    <td class="px-5 py-4">
+                                    <td class="px-5 py-4 align-top">
                                         <div class="flex items-center justify-end gap-2">
                                             @if (auth()->user()->canCreateTOR())
                                                 <a href="{{ route('tor-submissions.edit', $tor) }}"
-                                                    class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                                                    class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                                                     Kelola
                                                 </a>
                                             @endif
@@ -157,7 +146,7 @@
                                                     @csrf
                                                     @method('PATCH')
                                                     <button
-                                                        class="inline-flex items-center rounded-xl bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:opacity-90">
+                                                        class="inline-flex items-center justify-center rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:opacity-90">
                                                         Approve
                                                     </button>
                                                 </form>
@@ -167,10 +156,8 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-14">
-                                        <div class="text-center text-slate-600">
-                                            Belum ada TOR.
-                                        </div>
+                                    <td colspan="7" class="px-6 py-14 text-center text-slate-600">
+                                        Tidak ada data.
                                     </td>
                                 </tr>
                             @endforelse
@@ -178,11 +165,12 @@
                     </table>
                 </div>
 
-                <div class="border-t border-slate-200 p-4">
+                {{-- Footer --}}
+                <div class="px-5 py-4 sm:px-6 border-t border-slate-200">
                     {{ $tors->links() }}
                 </div>
-            </div>
 
+            </div>
         </div>
     </div>
 </x-app-layout>

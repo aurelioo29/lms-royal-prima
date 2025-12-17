@@ -4,7 +4,6 @@
 
             {{-- Header --}}
             <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-                <div class="h-1 w-full bg-[#121293]"></div>
 
                 <div class="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                     <div class="min-w-0">
