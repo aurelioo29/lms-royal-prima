@@ -21,9 +21,9 @@ class RolesSeeder extends Seeder
                 'can_create_courses' => true,
                 'can_approve_courses' => true,
             ],
-            ['name' => 'Direktur',     'slug' => 'director',      'level' => 90],
-            ['name' => 'Kabid Diklat', 'slug' => 'head_training', 'level' => 70],
-            ['name' => 'Admin',        'slug' => 'admin',         'level' => 60],
+            ['name' => 'Direktur',     'slug' => 'director',      'level' => 90, 'can_approve_plans' => true],
+            ['name' => 'Kabid Diklat', 'slug' => 'head_training', 'level' => 70, 'can_create_plans' => true],
+            ['name' => 'Admin',        'slug' => 'admin',         'level' => 60, 'can_create_courses' => true],
             ['name' => 'Karyawan',      'slug' => 'karyawan',     'level' => 50],
             ['name' => 'Narasumber',   'slug' => 'instructor',    'level' => 40],
         ];
