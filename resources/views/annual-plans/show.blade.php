@@ -245,15 +245,22 @@
                                             </a>
 
                                             @if (in_array($eventStatus, ['draft', 'rejected'], true))
-                                                <form method="POST"
-                                                    action="{{ route('annual-plans.events.submit', [$annualPlan, $event]) }}">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button
-                                                        class="inline-flex items-center rounded-lg bg-[#121293] px-3 py-2 text-sm font-semibold text-white hover:opacity-90">
-                                                        Ajukan Event
-                                                    </button>
-                                                </form>
+                                                @if ($annualPlan->isApproved())
+                                                    <form method="POST"
+                                                        action="{{ route('annual-plans.events.submit', [$annualPlan, $event]) }}">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <button
+                                                            class="inline-flex items-center rounded-lg bg-[#121293] px-3 py-2 text-sm font-semibold text-white hover:opacity-90">
+                                                            Ajukan Event
+                                                        </button>
+                                                    </form>
+                                                @else
+                                                    <span
+                                                        class="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-500">
+                                                        Ajukan Event (Terkunci)
+                                                    </span>
+                                                @endif
                                             @endif
                                         @endif
 
