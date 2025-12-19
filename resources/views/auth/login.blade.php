@@ -109,7 +109,7 @@
 
                     {{-- Version --}}
                     <div class="text-center text-xs text-gray-400 pt-4">
-                        Version 1.0.0 - Beta
+                        Version {{ config('app.version') }}
                     </div>
                 </form>
             </div>
