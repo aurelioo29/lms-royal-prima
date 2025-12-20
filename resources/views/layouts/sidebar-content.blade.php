@@ -1,6 +1,8 @@
 @php
     $user = auth()->user();
 
+    $calendarActive = request()->routeIs('calendar.*');
+
     // permissions dari role (konsisten)
     $canPlanCreate = (bool) $user->role?->can_create_plans;
     $canPlanApprove = (bool) $user->role?->can_approve_plans;
@@ -52,6 +54,19 @@
                 d="M4 3h6c.55 0 1 .45 1 1v6c0 .55-.45 1-1 1H4c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1zm10 0h6c.55 0 1 .45 1 1v6c0 .55-.45 1-1 1h-6c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1zM4 13h6c.55 0 1 .45 1 1v6c0 .55-.45 1-1 1H4c-.55 0-1-.45-1-1v-6c0-.55.45-1 1-1zm13 0c-.55 0-1 .45-1 1v2h-2c-.55 0-1 .45-1 1s.45 1 1 1h2v2c0 .55.45 1 1 1s1-.45 1-1v-2h2c.55 0 1-.45 1-1s-.45-1-1-1h-2v-2c0-.55-.45-1-1-1z" />
         </svg>
         <span x-show="!collapsed" x-transition.opacity class="text-sm font-medium">Dashboard</span>
+    </a>
+
+    <!-- Calendar -->
+    <a href="{{ route('calendar.index') }}"
+        class="flex items-center gap-3 px-3 py-2 rounded-lg transition
+   {{ $calendarActive ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
+        <svg class="w-5 h-5 shrink-0" viewBox="0 0 16 16" aria-hidden="true">
+            <path fill="currentColor"
+                d="M14 1v3h-3V1H5v3H2V1H0v15h16V1h-2zM3 15H1v-2h2v2zm0-3H1v-2h2v2zm0-3H1V7h2v2zm3 6H4v-2h2v2zm0-3H4v-2h2v2zm0-3H4V7h2v2zm3 6H7v-2h2v2zm0-3H7v-2h2v2zm0-3H7V7h2v2zm3 6h-2v-2h2v2zm0-3h-2v-2h2v2zm0-3h-2V7h2v2zm3 6h-2v-2h2v2zm0-3h-2v-2h2v2zm0-3h-2V7h2v2z" />
+            <path fill="currentColor" d="M3 0h1v3H3V0zm9 0h1v3h-1V0z" />
+        </svg>
+
+        <span x-show="!collapsed" x-transition.opacity class="text-sm font-medium">Calendar</span>
     </a>
 
     {{-- ================= ANNUAL PLANS ================= --}}
