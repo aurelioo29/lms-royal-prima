@@ -1,26 +1,27 @@
 <?php
 
-use App\Http\Controllers\AdminMotReviewController;
-use App\Http\Controllers\AnnualPlanController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\ConfirmablePasswordController;
-use App\Http\Controllers\Auth\EmailVerificationNotificationController;
-use App\Http\Controllers\Auth\EmailVerificationPromptController;
-use App\Http\Controllers\Auth\NewPasswordController;
-use App\Http\Controllers\Auth\PasswordController;
-use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\Auth\VerifyEmailController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CourseController;
-use App\Http\Controllers\CourseTypeController;
 use App\Http\Controllers\EmployeeController;
-use App\Http\Controllers\InstructorMotController;
-use App\Http\Controllers\JobCategoryController;
 use App\Http\Controllers\JobTitleController;
 use App\Http\Controllers\PlanEventController;
-use App\Http\Controllers\RoleController;
+use App\Http\Controllers\AnnualPlanController;
+use App\Http\Controllers\CourseTypeController;
+use App\Http\Controllers\JobCategoryController;
+use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\InstructorMotController;
 use App\Http\Controllers\TorSubmissionController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminMotReviewController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\CourseEnrollmentController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\ConfirmablePasswordController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -236,6 +237,18 @@ Route::middleware('auth')->group(function () {
 
     Route::put('password', [PasswordController::class, 'update'])
         ->name('password.update');
+
+    /*
+    |--------------------------------------------------------------------------
+    | COURSE ENROLLMENT
+    |--------------------------------------------------------------------------
+    | Employee / Peserta
+    */
+    Route::prefix('employee/courses')->name('employee.courses.')->group(function () {
+        Route::get('/', [CourseEnrollmentController::class, 'index'])->name('index');
+        Route::get('/{course}', [CourseEnrollmentController::class, 'show'])->name('show');
+        Route::post('/enroll', [CourseEnrollmentController::class, 'store'])->name('enroll');
+    });
 
     /*
     |--------------------------------------------------------------------------

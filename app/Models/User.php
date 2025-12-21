@@ -153,4 +153,17 @@ class User extends Authenticatable
 
         return $this->canCreatePlans();
     }
+
+    // Course enrollments
+    public function enrolledCourses()
+    {
+        return $this->belongsToMany(Course::class, 'course_enrollments')
+            ->withPivot(['status', 'enrolled_at', 'completed_at'])
+            ->withTimestamps();
+    }
+
+    public function courseEnrollments()
+    {
+        return $this->hasMany(CourseEnrollment::class);
+    }
 }
