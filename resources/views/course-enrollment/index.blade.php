@@ -20,7 +20,7 @@
                 <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
                         <h1 class="text-3xl font-bold text-white tracking-tight">E-Learning Course</h1>
-                        <p class="mt-2 text-blue-100 max-w-xl">
+                        <p class="mt-2 text-blue-100 max-w-full">
                             Tingkatkan kompetensi Anda dengan akses pelatihan internal yang dikurasi khusus untuk
                             pengembangan karir Anda.
                         </p>
