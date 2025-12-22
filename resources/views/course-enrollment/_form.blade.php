@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="py-10 bg-slate-50 min-h-screen">
-        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-full px-4 sm:px-6 lg:px-8">
 
             {{-- ================= CARD ================= --}}
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
