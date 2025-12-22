@@ -48,6 +48,11 @@ class Course extends Model
         return $this->belongsTo(CourseType::class, 'course_type_id');
     }
 
+    public function modules(): HasMany
+    {
+        return $this->hasMany(CourseModule::class)->orderBy('sort_order');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -67,5 +72,10 @@ class Course extends Model
     public function getEventDescriptionAttribute(): ?string
     {
         return $this->torSubmission?->planEvent?->description;
+    }
+
+    public function isPublished(): bool
+    {
+        return $this->status === 'published';
     }
 }

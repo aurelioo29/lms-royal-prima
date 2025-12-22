@@ -12,6 +12,9 @@
 
     $canManageUsers = (bool) $user->role?->can_manage_users;
 
+    // role check
+    $isEmployee = $user->role?->name === 'Karyawan';
+
     // menu visibility
     $showPlansMenu = $canPlanCreate || $canPlanApprove;
     $showTorMenu = $canPlanCreate || $canPlanApprove; // TOR: Kabid buat, Direktur acc
@@ -27,6 +30,8 @@
     $torActive = request()->routeIs('tor-submissions.*');
 
     $courseMgmtActive = request()->routeIs('courses.*') || request()->routeIs('course-types.*');
+
+    $employeeCourseActive = $isEmployee && request()->routeIs('courses.*');
 
     $manageUsersActive =
         request()->routeIs('roles.*') ||
@@ -284,6 +289,28 @@
             </div>
         </div>
     @endif
+
+    {{-- ================= EMPLOYEE COURSE ================= --}}
+    @if ($isEmployee)
+        <div class="pt-1">
+            <a href="{{ route('employee.courses.index') }}"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg transition
+            {{ request()->routeIs('courses.enroll.*') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
+
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="currentColor"
+                            d="M12 3L1 9l11 6l9-4.91V17h2V9L12 3Zm0 13L4.24 9.69L12 5l7.76 4.69L12 16Z" />
+                    </svg>
+
+                    <span x-show="!collapsed" x-transition.opacity class="text-sm font-medium">
+                        Enroll Course
+                    </span>
+                </div>
+            </a>
+        </div>
+    @endif
+
 
 </nav>
 
