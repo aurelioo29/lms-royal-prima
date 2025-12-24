@@ -2,27 +2,29 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\AdminMotReviewController;
-use App\Http\Controllers\AnnualPlanController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\ConfirmablePasswordController;
-use App\Http\Controllers\Auth\EmailVerificationNotificationController;
-use App\Http\Controllers\Auth\EmailVerificationPromptController;
-use App\Http\Controllers\Auth\NewPasswordController;
-use App\Http\Controllers\Auth\PasswordController;
-use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\Auth\VerifyEmailController;
-use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\JobTitleController;
 use App\Http\Controllers\PlanEventController;
+use App\Http\Controllers\AnnualPlanController;
 use App\Http\Controllers\CourseTypeController;
 use App\Http\Controllers\JobCategoryController;
+use App\Http\Controllers\CourseModuleController;
+use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\InstructorMotController;
 use App\Http\Controllers\TorSubmissionController;
+use App\Http\Controllers\AdminMotReviewController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\CourseEnrollmentController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\EmployeeCourseModuleController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\ConfirmablePasswordController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -197,6 +199,38 @@ Route::middleware('auth')->group(function () {
 
         Route::patch('course-types/{courseType}/toggle', [CourseTypeController::class, 'toggle'])
             ->name('course-types.toggle');
+
+        Route::prefix('courses/{course}')
+            ->name('courses.')
+            ->group(function () {
+
+                Route::get('/modules', [CourseModuleController::class, 'index'])
+                    ->name('modules.index');
+
+                Route::get('/modules/create', [CourseModuleController::class, 'create'])
+                    ->name('modules.create');
+
+                Route::post('/modules', [CourseModuleController::class, 'store'])
+                    ->name('modules.store');
+
+                Route::get('/modules/{module}/show', [CourseModuleController::class, 'show'])
+                    ->name('modules.show');
+
+                Route::get('/modules/{module}/edit', [CourseModuleController::class, 'edit'])
+                    ->name('modules.edit');
+
+                Route::put('/modules/{module}', [CourseModuleController::class, 'update'])
+                    ->name('modules.update');
+
+                Route::delete('/modules/{module}', [CourseModuleController::class, 'destroy'])
+                    ->name('modules.destroy');
+
+                Route::patch('/modules/{module}/toggle', [CourseModuleController::class, 'toggle'])
+                    ->name('modules.toggle');
+
+                Route::patch('/modules/{module}/reorder', [CourseModuleController::class, 'reorder'])
+                    ->name('modules.reorder');
+            });
     });
 
     /*
@@ -243,14 +277,25 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | COURSE ENROLLMENT
-    |--------------------------------------------------------------------------
     | Employee / Peserta
+    |--------------------------------------------------------------------------
     */
     Route::prefix('employee/courses')->name('employee.courses.')->group(function () {
+
+        // COURSE ENROLLMENT
         Route::get('/', [CourseEnrollmentController::class, 'index'])->name('index');
         Route::get('/{course}', [CourseEnrollmentController::class, 'show'])->name('show');
         Route::post('/enroll', [CourseEnrollmentController::class, 'store'])->name('enroll');
+
+        // COURSE MODULES - EMPLOYEE
+        Route::get('/{course}/modules', [EmployeeCourseModuleController::class, 'index'])
+            ->name('modules.index');
+
+        Route::get('/{course}/modules/{module}', [EmployeeCourseModuleController::class, 'show'])
+            ->name('modules.show');
+
+        Route::post('/{course}/modules/{module}/complete', [EmployeeCourseModuleController::class, 'complete'])
+            ->name('modules.complete');
     });
 
     /*

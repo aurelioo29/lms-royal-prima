@@ -9,11 +9,18 @@ class CourseModule extends Model
     protected $fillable = [
         'course_id',
         'title',
+        'description',
         'type',
         'content',
         'file_path',
         'sort_order',
+        'is_active',
         'is_required',
+    ];
+
+    protected $casts = [
+        'is_required' => 'boolean',
+        'is_active'   => 'boolean',
     ];
 
     public function course()
