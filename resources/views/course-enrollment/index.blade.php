@@ -79,7 +79,7 @@
                                     {{ ucfirst($course->status) }}
                                 </span>
                             </div>
-
+                            {{-- course tyepe --}}
                             <h3
                                 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-[#121293] transition-colors line-clamp-2">
                                 {{ $course->title }}

@@ -11,6 +11,22 @@
             display: none !important;
         }
     </style>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <style>
+        .ql-container.ql-snow {
+            border-bottom-left-radius: 0.75rem;
+            border-bottom-right-radius: 0.75rem;
+            border-color: #e2e8f0;
+        }
+
+        .ql-toolbar.ql-snow {
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+            border-color: #e2e8f0;
+            background: #f8fafc;
+        }
+    </style>
+
 </head>
 
 <body class="bg-slate-100 text-slate-800">
@@ -103,6 +119,23 @@
                 </div>
             @endif
 
+            <!-- Toast Notifications Area -->
+            @if (session('success'))
+                <x-alert-popup type="success" :message="session('success')" />
+            @endif
+
+            @if (session('error'))
+                <x-alert-popup type="error" :message="session('error')" />
+            @endif
+
+            @if (session('warning'))
+                <x-alert-popup type="warning" :message="session('warning')" />
+            @endif
+
+            @if (session('info'))
+                <x-alert-popup type="info" :message="session('info')" />
+            @endif
+
             <!-- CONTENT -->
             <main class="p-6">
                 {{ $slot }}
@@ -110,6 +143,8 @@
         </div>
 
     </div>
+
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 </body>
 
 </html>
