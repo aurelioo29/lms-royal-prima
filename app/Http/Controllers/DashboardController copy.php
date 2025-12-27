@@ -3,37 +3,32 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\View\View;
-use App\Support\RoleMapper;
 use Illuminate\Http\JsonResponse;
-use App\Services\Dashboard\DashboardService;
+use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
     public function index(): View
     {
         [$count, $users] = $this->onlineUsers();
-        $user = auth()->user();
 
-        $roleKey = RoleMapper::map($user->role->slug);
-
-        $service = DashboardService::resolve($user);
-
-        $dashboardData = [
-            'stats'      => $service->getStats($user),
-            'summary'    => $service->getSummary($user),
-            'activities' => $service->getActivities($user),
-            'view'       => 'dashboard.' . $roleKey,
+        // template cards placeholders (so your grid has structure)
+        $stats = [
+            ['label' => 'Kalender Tahunan', 'value' => '—'],
+            ['label' => 'Jam Diklat', 'value' => '—'],
+            ['label' => 'Status Akun', 'value' => auth()->user()->is_active ? 'Aktif' : 'Nonaktif'],
         ];
 
-        return view($dashboardData['view'], array_merge($dashboardData,  [
+        $mot = auth()->user()->motDocument()->first();
+
+        return view('dashboard', [
             'onlineCount' => $count,
             'onlineUsers' => $users,
-        ]));
+            'stats'       => $stats,
+            'mot' => $mot,
+        ]);
     }
 
-
-    // ONLINE USERS
     public function online(): JsonResponse
     {
         [$count, $users] = $this->onlineUsers();

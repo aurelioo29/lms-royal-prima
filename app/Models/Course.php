@@ -63,6 +63,11 @@ class Course extends Model
         return $this->hasMany(CourseEnrollment::class);
     }
 
+    public function completions()
+    {
+        return $this->hasMany(CourseCompletion::class);
+    }
+
     // Convenience “live” getters (no DB columns)
     public function getEventTitleAttribute(): string
     {

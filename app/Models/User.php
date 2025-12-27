@@ -166,4 +166,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(CourseEnrollment::class);
     }
+
+
+    // Teaching events (as instructor)
+    public function teachingEvents()
+    {
+        return $this->hasMany(PlanEventInstructor::class);
+    }
 }
