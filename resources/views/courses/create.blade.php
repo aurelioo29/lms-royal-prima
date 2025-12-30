@@ -235,6 +235,13 @@
                         @enderror
                     </div>
 
+                    {{-- Narasumber --}}
+                    @include('components.field-select-narasumber', [
+                        'eligibleInstructors' => $eligibleInstructors,
+                        'selectedInstructors' => [],
+                    ])
+
+
                     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
                         <div class="w-full md:w-72">
                             <label class="text-sm font-semibold text-slate-700">Status</label>

@@ -15,6 +15,9 @@
     // role check
     $isEmployee = $user->role?->name === 'Karyawan';
 
+    // instructor check
+    $isInstructor = $user->instructedCourses()->wherePivot('status', 'active')->exists();
+
     // menu visibility
     $showPlansMenu = $canPlanCreate || $canPlanApprove;
     $showTorMenu = $canPlanCreate || $canPlanApprove; // TOR: Kabid buat, Direktur acc
@@ -25,6 +28,7 @@
 
     // active flags
     $plansActive = request()->routeIs('annual-plans.*');
+    $myCoursesActive = request()->routeIs('courses_instructor.*') || request()->routeIs('instructor.courses.*');
 
     // TOR: route kamu pakai tor-submissions.*
     $torActive = request()->routeIs('tor-submissions.*');
@@ -289,6 +293,25 @@
             </div>
         </div>
     @endif
+
+    {{-- ================= INSTRUCTOR / MY COURSES ================= --}}
+    @if ($isInstructor)
+        <div class="pt-1">
+            <a href="{{ route('instructor.courses.index') }}"
+                class="flex items-center gap-3 px-3 py-2 rounded-lg transition
+            {{ $myCoursesActive ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
+
+                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="currentColor" d="M20 6H4V4h16v2Zm-2 3H6v2h12V9Zm0 4H6v2h12v-2Zm-3 4H9v2h6v-2Z" />
+                </svg>
+
+                <span x-show="!collapsed" x-transition.opacity class="text-sm font-medium">
+                    My Courses
+                </span>
+            </a>
+        </div>
+    @endif
+
 
     {{-- ================= EMPLOYEE COURSE ================= --}}
     @if ($isEmployee)

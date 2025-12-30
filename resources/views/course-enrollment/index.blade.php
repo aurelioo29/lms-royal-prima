@@ -85,6 +85,25 @@
                                 {{ $course->title }}
                             </h3>
 
+                            {{-- Narasumber --}}
+                            <div class="flex items-start text-sm text-slate-600 mb-3">
+                                <svg class="w-4 h-4 mr-1.5 mt-0.5 text-slate-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+
+                                <span class="truncate">
+                                    <strong>Narasumber:</strong>
+                                    @if ($course->instructors->count())
+                                        {{ $course->instructors->pluck('name')->join(', ') }}
+                                    @else
+                                        <em>Belum ditentukan</em>
+                                    @endif
+                                </span>
+                            </div>
+
+
                             <div class="flex items-center text-sm text-slate-500 mb-4">
                                 <svg class="w-4 h-4 mr-1.5 text-slate-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -165,6 +184,15 @@
                                             <div>
                                                 <h1 class="text-3xl font-extrabold text-[#121293] leading-tight mb-2">
                                                     {{ $course->title }}</h1>
+                                                <div class="text-sm text-slate-600 mt-2">
+                                                    <strong>Narasumber:</strong>
+                                                    @if ($course->instructors->count())
+                                                        {{ $course->instructors->pluck('name')->join(', ') }}
+                                                    @else
+                                                        <em>Belum ditentukan</em>
+                                                    @endif
+                                                </div>
+
                                                 <div class="flex flex-wrap gap-2 mt-4">
                                                     <span
                                                         class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider">

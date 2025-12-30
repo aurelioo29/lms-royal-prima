@@ -9,7 +9,7 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div class="flex items-center gap-4">
                             {{-- Back Button --}}
-                            <a href="{{ route('courses.modules.index', $course->id) }}"
+                            <a href="{{ route($routePrefix . '.modules.index', $course->id) }}"
                                 class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
                                 title="Kembali ke Daftar Modul">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,7 +32,7 @@
             </div>
 
             {{-- FORM SECTION --}}
-            <form action="{{ route('courses.modules.store', $course->id) }}" method="POST"
+            <form action="{{ route($routePrefix . '.modules.store', $course->id) }}" method="POST"
                 enctype="multipart/form-data" x-data="{
                     type: '{{ old('type', 'pdf') }}',
                     initQuill() {
@@ -218,7 +218,7 @@
                                     </svg>
                                     Simpan Modul
                                 </button>
-                                <a href="{{ route('courses.modules.index', $course->id) }}"
+                                <a href="{{ route($routePrefix . '.modules.index', $course->id) }}"
                                     class="w-full flex items-center justify-center px-6 py-3 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold transition-all">
                                     Batalkan
                                 </a>

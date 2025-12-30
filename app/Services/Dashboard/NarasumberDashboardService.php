@@ -6,47 +6,29 @@ use App\Models\User;
 use App\Models\PlanEvent;
 use App\Models\CourseCompletion;
 use App\Models\InstructorDocument;
-use App\Models\PlanEventInstructor;
+use App\Models\CourseInstructor;
 use App\Services\Dashboard\Contracts\DashboardRoleService;
 
 class NarasumberDashboardService implements DashboardRoleService
 {
     public function getStats(User $user): array
     {
-        // Query dasar (JANGAN di-execute dulu)
-        $instructorSessions = PlanEventInstructor::where('user_id', $user->id)
-            ->where('status', 'completed');
+        $courses = CourseInstructor::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->with('course.enrollments')
+            ->get();
 
-        // Total sesi mengajar
-        // $totalSessions = $instructorSessions->count();
+        // Total course yang diajar
+        $totalCourse = $courses->count();
 
-        // Total event unik (course diajar)
-        $totalCourse = (clone $instructorSessions)
-            ->distinct('plan_event_id')
-            ->count('plan_event_id');
-
-        // Total jam mengajar
-        $totalHours = (clone $instructorSessions)
-            ->sum('teaching_hours');
-
-        // Total peserta (VALID via relasi TOR → Course → Enrollment)
-        $activeStudents = PlanEventInstructor::where('user_id', $user->id)
-            ->where('status', 'completed')
-            ->whereHas('planEvent.torSubmission.course.enrollments')
-            ->with('planEvent.torSubmission.course.enrollments')
-            ->get()
-            ->sum(
-                fn($i) =>
-                $i->planEvent
-                    ->torSubmission
-                    ?->course
-                    ?->enrollments
-                    ?->count() ?? 0
-            );
+        // Total peserta aktif
+        $activeStudents = $courses->sum(
+            fn($ci) => $ci->course?->enrollments?->count() ?? 0
+        );
 
         return [
             'total_course'    => $totalCourse,
-            'total_hours'     => $totalHours,
+            'total_hours'     => null, // (akan kita isi nanti jika ada tracking jam)
             'active_students' => $activeStudents,
             'account_status'  => $user->is_active ? 'Aktif' : 'Nonaktif',
         ];
@@ -60,26 +42,19 @@ class NarasumberDashboardService implements DashboardRoleService
         return [
 
             'mot' => $mot,
-            'upcoming_schedule' => PlanEventInstructor::with('planEvent')
+            'assigned_courses' => CourseInstructor::with('course')
                 ->where('user_id', $user->id)
-                ->whereIn('status', ['assigned', 'confirmed'])
-                ->whereHas(
-                    'planEvent',
-                    fn($q) =>
-                    $q->whereDate('start_date', '>=', now())
-                )
-                ->orderBy(
-                    PlanEvent::select('start_date')
-                        ->whereColumn('plan_events.id', 'plan_event_instructors.plan_event_id')
-                )
-                ->first(),
+                ->whereIn('status', ['assigned', 'active'])
+                ->latest()
+                ->limit(5)
+                ->get(),
         ];
     }
 
     public function getActivities(User $user): array
     {
         return [
-            'teaching_progress' => PlanEventInstructor::with('planEvent')
+            'teaching_progress' => CourseInstructor::with('course')
                 ->where('user_id', $user->id)
                 ->orderByDesc('updated_at')
                 ->limit(5)

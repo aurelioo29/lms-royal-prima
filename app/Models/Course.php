@@ -83,4 +83,12 @@ class Course extends Model
     {
         return $this->status === 'published';
     }
+
+    public function instructors()
+    {
+        return $this->belongsToMany(User::class, 'course_instructors')
+            ->using(CourseInstructor::class)
+            ->withPivot(['role', 'status', 'can_manage_modules'])
+            ->withTimestamps();
+    }
 }

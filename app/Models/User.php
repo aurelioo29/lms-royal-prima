@@ -168,9 +168,10 @@ class User extends Authenticatable
     }
 
 
-    // Teaching events (as instructor)
-    public function teachingEvents()
+    public function instructedCourses()
     {
-        return $this->hasMany(PlanEventInstructor::class);
+        return $this->belongsToMany(Course::class, 'course_instructors')
+            ->withPivot(['role', 'status', 'can_manage_modules'])
+            ->withTimestamps();
     }
 }

@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use Illuminate\Http\Request;
-use App\Services\CourseEnrollmentService;
-use App\Services\CourseProgressService;
+use App\Models\CourseCompletion;
+use App\Models\CourseEnrollment;
+use App\Services\Course\CourseProgressService;
+use App\Services\Course\CourseEnrollmentService;
 use App\Http\Requests\CourseEnroll\EnrollCourseRequest;
 
 class CourseEnrollmentController extends Controller
@@ -25,6 +27,13 @@ class CourseEnrollmentController extends Controller
                 });
             })
 
+            ->with([
+                'type',
+                'instructors' => function ($q) {
+                    $q->wherePivot('status', 'active');
+                },
+            ])
+
             ->with(['torSubmission.planEvent', 'type'])
             ->latest()
             ->paginate(9)
@@ -42,6 +51,12 @@ class CourseEnrollmentController extends Controller
     public function show(Course $course)
     {
         abort_unless(auth()->user()->can('access', $course), 403);
+
+        $course->load([
+            'instructors' => function ($q) {
+                $q->wherePivot('status', 'active');
+            }
+        ]);
 
         $modules = $course->modules()
             ->where('is_active', true)
@@ -65,10 +80,8 @@ class CourseEnrollmentController extends Controller
     }
 
     // Enroll course
-    public function store(
-        EnrollCourseRequest $request,
-        CourseEnrollmentService $service
-    ) {
+    public function store(EnrollCourseRequest $request, CourseEnrollmentService $service)
+    {
         $course = $service->enroll(
             $request->enrollment_key,
             auth()->user()
@@ -77,5 +90,35 @@ class CourseEnrollmentController extends Controller
         return redirect()
             ->route('employee.courses.show', $course)
             ->with('success', 'Berhasil mendaftar ke course.');
+    }
+
+
+    public function complete(Course $course)
+    {
+        $user = auth()->user();
+
+        $enrollment = CourseEnrollment::where('course_id', $course->id)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        // Update enrollment
+        $enrollment->update([
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        // Insert ke course_completions
+        CourseCompletion::firstOrCreate(
+            [
+                'course_id' => $course->id,
+                'user_id'   => $user->id,
+            ],
+            [
+                'earned_hours' => $course->training_hours,
+                'completed_at' => now(),
+            ]
+        );
+
+        return back()->with('success', 'Course berhasil diselesaikan.');
     }
 }

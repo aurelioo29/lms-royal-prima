@@ -6,19 +6,38 @@ use App\Models\Course;
 use App\Models\CourseModule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Services\Course\CourseInstructorService;
 use App\Http\Requests\CourseModule\StoreCourseModuleRequest;
 use App\Http\Requests\CourseModule\UpdateCourseModuleRequest;
 
 class CourseModuleController extends Controller
 {
-    // List all modules for a course
-    public function index(Course $course)
+    private function moduleRoutePrefix(): string
     {
+        return request()->routeIs('instructor.*')
+            ? 'instructor.courses'
+            : 'courses';
+    }
+
+
+    // List all modules for a course
+    public function index(Course $course, CourseInstructorService $service)
+    {
+
+        $service->authorizeModuleManagement($course, auth()->id());
+
         $modules = $course->modules()
             ->orderBy('sort_order')
             ->get();
 
-        return view('courses.modules.index', compact('course', 'modules'));
+        $mentors = $service->getActiveInstructors($course);
+
+        // menentukan route prefix sesuai dengan route yang diakses
+        $routePrefix = request()->routeIs('instructor.*')
+            ? 'instructor.courses'
+            : 'courses';
+
+        return view('courses.modules.index', compact('course', 'modules', 'mentors', 'routePrefix'));
     }
 
     public function show(Course $course, CourseModule $module)
@@ -31,26 +50,51 @@ class CourseModuleController extends Controller
             abort(403, 'Modul tidak aktif');
         }
 
+        // hanya user yang enroll / instructor / admin
+        if (
+            !auth()->user()->canCreateCourses() &&
+            !$course->enrollments()->where('user_id', auth()->id())->exists() &&
+            !$course->instructors()->where('user_id', auth()->id())->exists()
+        ) {
+            abort(403);
+        }
+
         $allModules = $course->modules()
             ->orderBy('sort_order', 'asc')
             ->get();
 
+        // menentukan route prefix sesuai dengan route yang diakses
+        $routePrefix = request()->routeIs('instructor.*')
+            ? 'instructor.courses'
+            : 'courses';
+
         return view('courses.modules.preview', [
             'course' => $course,
             'module' => $module,
-            'allModules' => $allModules
+            'allModules' => $allModules,
+            'routePrefix' => $routePrefix,
+
         ]);
     }
 
     // Show form to create a new module
-    public function create(Course $course)
+    public function create(Course $course, CourseInstructorService $service)
     {
-        return view('courses.modules.create', compact('course'));
+        $service->authorizeModuleManagement($course, auth()->id());
+
+        // menentukan route prefix sesuai dengan route yang diakses
+        $routePrefix = request()->routeIs('instructor.*')
+            ? 'instructor.courses'
+            : 'courses';
+
+        return view('courses.modules.create', compact('course', 'routePrefix'));
     }
 
     // Store a new module
-    public function store(StoreCourseModuleRequest $request, Course $course)
+    public function store(StoreCourseModuleRequest $request, Course $course, CourseInstructorService $service)
     {
+        $service->authorizeModuleManagement($course, auth()->id());
+
         $data = $request->validated();
         $data['course_id'] = $course->id;
 
@@ -69,21 +113,29 @@ class CourseModuleController extends Controller
         CourseModule::create($data);
 
         return redirect()
-            ->route('courses.modules.index', $data['course_id'])
+            ->route($this->moduleRoutePrefix() . '.modules.index', $data['course_id'])
             ->with('success', 'Modul berhasil ditambahkan');
     }
 
     // Show form to edit a module
-    public function edit(Course $course, CourseModule $module)
+    public function edit(Course $course, CourseModule $module, CourseInstructorService $service)
     {
         abort_if($module->course_id !== $course->id, 404);
-        return view('courses.modules.edit', compact('course', 'module'));
+        $service->authorizeModuleManagement($course, auth()->id());
+
+        // menentukan route prefix sesuai dengan route yang diakses
+        $routePrefix = request()->routeIs('instructor.*')
+            ? 'instructor.courses'
+            : 'courses';
+
+        return view('courses.modules.edit', compact('course', 'module', 'routePrefix'));
     }
 
     // Update a module
-    public function update(UpdateCourseModuleRequest $request, Course $course, CourseModule $module)
+    public function update(UpdateCourseModuleRequest $request, Course $course, CourseModule $module, CourseInstructorService $service)
     {
         abort_if($module->course_id !== $course->id, 404);
+        $service->authorizeModuleManagement($course, auth()->id());
         $data = $request->validated();
 
         // handle upload baru
@@ -99,14 +151,15 @@ class CourseModuleController extends Controller
         $module->update($data);
 
         return redirect()
-            ->route('courses.modules.index', $module->course_id)
+            ->route($this->moduleRoutePrefix() . '.modules.index', $module->course_id)
             ->with('success', 'Modul berhasil diperbarui');
     }
 
     // Delete a module
-    public function destroy(Course $course, CourseModule $module)
+    public function destroy(Course $course, CourseModule $module, CourseInstructorService $service)
     {
         abort_if($module->course_id !== $course->id, 404);
+        $service->authorizeModuleManagement($course, auth()->id());
 
         if ($module->file_path) {
             Storage::disk('public')->delete($module->file_path);
@@ -118,9 +171,10 @@ class CourseModuleController extends Controller
     }
 
     // Toggle active / inactive
-    public function toggle(Course $course, CourseModule $module)
+    public function toggle(Course $course, CourseModule $module, CourseInstructorService $service)
     {
         abort_if($module->course_id !== $course->id, 404);
+        $service->authorizeModuleManagement($course, auth()->id());
         $module->update([
             'is_active' => ! $module->is_active
         ]);
@@ -130,9 +184,10 @@ class CourseModuleController extends Controller
 
 
     // Reorder module
-    public function reorder(Request $request, Course $course, CourseModule $module)
+    public function reorder(Request $request, Course $course, CourseModule $module, CourseInstructorService $service)
     {
         abort_if($module->course_id !== $course->id, 404);
+        $service->authorizeModuleManagement($course, auth()->id());
         $request->validate([
             'sort_order' => ['required', 'integer', 'min:1']
         ]);

@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\Course;
+use Illuminate\View\View;
+use App\Models\CourseType;
+use Illuminate\Http\Request;
+use App\Models\TorSubmission;
+use App\Models\CourseInstructor;
+use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\Course\CourseStoreRequest;
 use App\Http\Requests\Course\CourseUpdateRequest;
-use App\Models\Course;
-use App\Models\CourseType;
-use App\Models\TorSubmission;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
 
 class CourseController extends Controller
 {
@@ -68,7 +70,17 @@ class CourseController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('courses.create', compact('torOptions', 'courseTypes', 'prefillTorId'));
+        // 🔹 TAMBAHAN: narasumber eligible
+        $eligibleInstructors = User::query()
+            ->where('is_active', true)
+            ->whereHas('instructorDocuments', function ($q) {
+                $q->where('type', 'mot')
+                    ->where('status', 'approved');
+            })
+            ->orderBy('name')
+            ->get();
+
+        return view('courses.create', compact('torOptions', 'courseTypes', 'prefillTorId', 'eligibleInstructors'))->with(['selectedInstructors' => []]);
     }
 
     public function store(CourseStoreRequest $request): RedirectResponse
@@ -97,6 +109,19 @@ class CourseController extends Controller
             // enrollment_key auto-generated di model Course::booted()
         ]);
 
+        // 🔹 TAMBAHAN: simpan narasumber
+        if ($request->filled('instructors')) {
+            foreach ($request->instructors as $userId) {
+                CourseInstructor::create([
+                    'course_id' => $course->id,
+                    'user_id' => $userId,
+                    'role' => 'mentor',
+                    'status' => 'active',
+                    'can_manage_modules' => true,
+                ]);
+            }
+        }
+
         return redirect()
             ->route('courses.edit', $course)
             ->with('success', 'Course dibuat. Enrollment Key: ' . $course->enrollment_key);
@@ -110,6 +135,7 @@ class CourseController extends Controller
             'type',
             'creator',
             'torSubmission.planEvent.annualPlan',
+            'instructors',
         ]);
 
         $courseTypes = CourseType::query()
@@ -117,7 +143,22 @@ class CourseController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('courses.edit', compact('course', 'courseTypes'));
+        $eligibleInstructors = User::query()
+            ->where('is_active', true)
+            ->whereHas('instructorDocuments', function ($q) {
+                $q->where('type', 'mot')
+                    ->where('status', 'approved');
+            })
+            ->orderBy('name')
+            ->get();
+
+        // 🔹 Ambil instructor yg sudah terpasang
+        $selectedInstructors = $course->instructors()
+            ->pluck('users.id')
+            ->toArray();
+
+
+        return view('courses.edit', compact('course', 'courseTypes', 'eligibleInstructors', 'selectedInstructors'));
     }
 
     public function update(CourseUpdateRequest $request, Course $course): RedirectResponse
@@ -130,6 +171,27 @@ class CourseController extends Controller
             'training_hours' => $request->input('training_hours', 0),
             'status' => $request->input('status', 'draft'),
         ]);
+
+        // 🔹 SYNC narasumber
+        $instructors = $request->input('instructors', []);
+
+        CourseInstructor::where('course_id', $course->id)
+            ->whereNotIn('user_id', $instructors)
+            ->delete();
+
+        foreach ($instructors as $userId) {
+            CourseInstructor::updateOrCreate(
+                [
+                    'course_id' => $course->id,
+                    'user_id' => $userId,
+                ],
+                [
+                    'role' => 'mentor',
+                    'status' => 'active',
+                    'can_manage_modules' => true,
+                ]
+            );
+        }
 
         return back()->with('success', 'Course diupdate.');
     }

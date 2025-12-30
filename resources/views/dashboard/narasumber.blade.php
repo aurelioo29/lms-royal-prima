@@ -220,7 +220,7 @@
                                                 </div>
                                                 <div class="min-w-0">
                                                     <div class="font-bold text-slate-800">
-                                                        {{ $schedule->planEvent->title }}
+                                                        {{-- {{ $schedule->planEvent->title }} --}}
                                                     </div>
                                                     <div class="text-sm text-slate-500">
                                                         {{ $schedule->planEvent->start_date->format('H:i') }}
@@ -255,7 +255,7 @@
                                         <div>
                                             <div class="flex justify-between items-end mb-2">
                                                 <span class="text-sm font-bold text-slate-700">
-                                                    {{ $progress->planEvent->title }}
+                                                    {{-- {{ $progress->planEvent->title }} --}}
                                                 </span>
                                                 <span class="text-xs font-semibold text-slate-500">
                                                     {{ ucfirst($progress->status) }}
