@@ -115,7 +115,7 @@
                 <div class="lg:col-span-8 space-y-6">
 
                     {{-- Stats --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {{-- <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         @foreach ($stats ?? [] as $s)
                             <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
                                 <div class="text-xs text-slate-500">{{ $s['label'] }}</div>
@@ -142,7 +142,7 @@
                                 </div>
                             </div>
                         @endforeach
-                    </div>
+                    </div> --}}
 
                     {{-- Ringkasan --}}
                     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">

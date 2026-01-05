@@ -142,7 +142,7 @@
 
                                 {{-- Sertifikat section --}}
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    @foreach ($summary['certificates'] ?? [] as $c)
+                                    @foreach ($summary['certificates'] as $c)
                                         <div
                                             class="flex items-center gap-3 p-3 rounded-xl border border-green-100 bg-green-50/50">
                                             <div

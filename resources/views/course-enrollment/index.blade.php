@@ -146,7 +146,7 @@
                                     Lihat Course
                                 </a>
                             @else
-                                <a href="{{ route('employee.courses.show', $course) }}"
+                                <a href="{{ route('employee.courses.enroll.form', $course) }}"
                                     class="flex-1 inline-flex justify-center items-center px-4 py-2.5 text-sm font-semibold text-white bg-[#121293] rounded-xl hover:bg-opacity-90 shadow-lg shadow-blue-900/20 transition-all">
                                     Enroll Now
                                 </a>
@@ -295,7 +295,7 @@
                                                 Lanjutkan Belajar
                                             </a>
                                         @else
-                                            <a href="{{ route('employee.courses.show', $course) }}"
+                                            <a href="{{ route('employee.courses.enroll.form', $course) }}"
                                                 class="inline-flex justify-center items-center px-8 py-2.5 text-sm font-bold text-white bg-[#121293] rounded-xl hover:opacity-90 transition-all shadow-lg shadow-blue-900/20">
                                                 Mulai Enrollment
                                             </a>

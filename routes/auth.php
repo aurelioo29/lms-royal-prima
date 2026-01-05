@@ -336,6 +336,7 @@ Route::middleware('auth')->group(function () {
         // COURSE ENROLLMENT
         Route::get('/', [CourseEnrollmentController::class, 'index'])->name('index');
         Route::get('/{course}', [CourseEnrollmentController::class, 'show'])->name('show');
+        Route::get('/{course}/enroll', [CourseEnrollmentController::class, 'create'])->name('enroll.form');
         Route::post('/enroll', [CourseEnrollmentController::class, 'store'])->name('enroll');
         Route::post('/{course}/complete', [CourseEnrollmentController::class, 'complete'])->name('complete');
 

@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\CourseModule;
-use App\Services\CourseProgressService;
+use App\Services\Course\CourseProgressService;
+use App\Services\Course\ModuleProgressService;
 
 class EmployeeCourseModuleController extends Controller
 {
@@ -57,15 +58,18 @@ class EmployeeCourseModuleController extends Controller
     }
 
     // Tandai modul selesai
-    public function complete(Course $course, CourseModule $module)
-    {
+    public function complete(
+        Course $course,
+        CourseModule $module,
+        ModuleProgressService $service
+    ) {
         abort_unless(auth()->user()->can('access', $course), 403);
+
         abort_if($module->course_id !== $course->id, 404);
 
-        CourseProgressService::markCompleted(
-            $module,
-            auth()->id()
-        );
+
+
+        $service->complete($module, auth()->id());
 
         return redirect()
             ->route('employee.courses.show', $course)

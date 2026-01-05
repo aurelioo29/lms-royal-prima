@@ -212,20 +212,20 @@
                                                 <div
                                                     class="flex flex-col items-center justify-center h-12 w-12 rounded-lg bg-white border border-slate-200 text-[#121293]">
                                                     <span class="text-lg font-bold text-slate-800">
-                                                        {{ $schedule->planEvent->start_date->format('d') }}
+                                                        {{ $schedule->start_date->format('d') }}
                                                     </span>
                                                     <span class="text-xs font-semibold uppercase text-slate-500">
-                                                        {{ $schedule->planEvent->start_date->format('M') }}
+                                                        {{ $schedule->start_date->format('M') }}
                                                     </span>
                                                 </div>
                                                 <div class="min-w-0">
                                                     <div class="font-bold text-slate-800">
-                                                        {{-- {{ $schedule->planEvent->title }} --}}
+                                                        {{ $schedule->title }}
                                                     </div>
                                                     <div class="text-sm text-slate-500">
-                                                        {{ $schedule->planEvent->start_date->format('H:i') }}
+                                                        {{ $schedule->start_date->format('H:i') }}
                                                         –
-                                                        {{ $schedule->planEvent->end_date->format('H:i') }}
+                                                        {{ $schedule->end_date->format('H:i') }}
                                                     </div>
                                                 </div>
                                             </div>
@@ -241,7 +241,7 @@
                         </div>
 
                         {{-- Aktivitas & Progress --}}
-                        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                        {{-- <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                             <div class="p-5 sm:p-6">
                                 <div class="flex items-center justify-between mb-6">
                                     <h3 class="text-slate-900 font-bold">Progress Mengajar</h3>
@@ -249,21 +249,21 @@
                                         class="px-2 py-1 rounded bg-slate-100 text-[10px] font-bold text-slate-500">REALTIME</span>
                                 </div>
 
+                                
                                 <div class="space-y-6">
-                                    {{-- Progress Item --}}
                                     @forelse ($activities['teaching_progress'] as $progress)
                                         <div>
                                             <div class="flex justify-between items-end mb-2">
                                                 <span class="text-sm font-bold text-slate-700">
-                                                    {{-- {{ $progress->planEvent->title }} --}}
+                                                    {{ $progress['title'] }}
                                                 </span>
                                                 <span class="text-xs font-semibold text-slate-500">
-                                                    {{ ucfirst($progress->status) }}
+                                                    {{ ucfirst($progress['status']) }}
                                                 </span>
                                             </div>
                                             <div class="w-full bg-slate-100 rounded-full h-2">
                                                 <div class="bg-indigo-600 h-2 rounded-full"
-                                                    style="width: {{ $progress->progress_percent }}%">
+                                                    style="width: {{ $progress['progress_percent'] }}%">
                                                 </div>
                                             </div>
                                         </div>
@@ -275,7 +275,7 @@
                                     @endforelse
                                 </div>
                             </div>
-                        </div>
+                        </div> --}}
                     </div>
 
                     {{-- RIGHT (WIDGET ONLINE TETAP ASLI) --}}

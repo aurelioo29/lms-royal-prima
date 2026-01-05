@@ -79,6 +79,15 @@ class CourseEnrollmentController extends Controller
         );
     }
 
+    // Form enroll course
+    public function create(Course $course)
+    {
+        abort_unless(auth()->user()->can('enroll', $course), 403);
+
+        return view('course-enrollment._form', compact('course'));
+    }
+
+
     // Enroll course
     public function store(EnrollCourseRequest $request, CourseEnrollmentService $service)
     {
@@ -90,35 +99,5 @@ class CourseEnrollmentController extends Controller
         return redirect()
             ->route('employee.courses.show', $course)
             ->with('success', 'Berhasil mendaftar ke course.');
-    }
-
-
-    public function complete(Course $course)
-    {
-        $user = auth()->user();
-
-        $enrollment = CourseEnrollment::where('course_id', $course->id)
-            ->where('user_id', $user->id)
-            ->firstOrFail();
-
-        // Update enrollment
-        $enrollment->update([
-            'status' => 'completed',
-            'completed_at' => now(),
-        ]);
-
-        // Insert ke course_completions
-        CourseCompletion::firstOrCreate(
-            [
-                'course_id' => $course->id,
-                'user_id'   => $user->id,
-            ],
-            [
-                'earned_hours' => $course->training_hours,
-                'completed_at' => now(),
-            ]
-        );
-
-        return back()->with('success', 'Course berhasil diselesaikan.');
     }
 }
