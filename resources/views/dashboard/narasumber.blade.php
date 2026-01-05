@@ -191,7 +191,7 @@
                                         </svg>
                                         Ringkasan Mengajar
                                     </h3>
-                                    <a href="#"
+                                    <a href="{{ route('instructor.courses.index') }}"
                                         class="text-xs font-semibold text-[#121293] hover:underline">Lihat
                                         Semua</a>
                                 </div>
