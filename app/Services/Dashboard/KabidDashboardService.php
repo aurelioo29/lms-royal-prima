@@ -74,7 +74,7 @@ class KabidDashboardService implements DashboardRoleService
         $employeeCount = $employeeIds->count();
 
         /** 2. JPL per karyawan */
-        $jplPerEmployee = User::whereIn('user_id', $employeeIds)
+        $jplPerEmployee = User::whereIn('users.id', $employeeIds)
             ->leftJoin('course_completions', function ($join) use ($year) {
                 $join->on('users.id', '=', 'course_completions.user_id')
                     ->whereYear('course_completions.completed_at', $year);
