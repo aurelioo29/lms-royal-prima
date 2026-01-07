@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Course;
 
 use App\Models\Course;
 use App\Models\CourseModule;
@@ -25,6 +25,7 @@ class CourseProgressService
                 'completed' => 0,
                 'percent' => 0,
                 'next_module' => null,
+                'is_completed' => false,
             ];
         }
 
@@ -35,16 +36,19 @@ class CourseProgressService
 
         $completed = $completedModuleIds->count();
 
+        $isCompleted = $completed === $total;
+
         // 🎯 NEXT MODULE = modul pertama yang BELUM completed
         $nextModule = $modules->firstWhere(
             fn($module) => ! $completedModuleIds->contains($module->id)
         );
 
         return [
-            'total'     => $total,
-            'completed' => $completed,
-            'percent'   => round(($completed / $total) * 100),
-            'next_module' => $nextModule,
+            'total'        => $total,
+            'completed'    => $completed,
+            'percent'      => round(($completed / $total) * 100),
+            'next_module'  => $isCompleted ? null : $nextModule,
+            'is_completed' => $isCompleted,
         ];
     }
 
@@ -92,23 +96,6 @@ class CourseProgressService
             ],
             [
                 'status' => 'in_progress',
-            ]
-        );
-    }
-
-    // Set modul menjadi COMPLETED
-    public static function markCompleted(
-        CourseModule $module,
-        int $userId
-    ): ModuleProgress {
-        return ModuleProgress::updateOrCreate(
-            [
-                'course_module_id' => $module->id,
-                'user_id' => $userId,
-            ],
-            [
-                'status' => 'completed',
-                'completed_at' => Carbon::now(),
             ]
         );
     }

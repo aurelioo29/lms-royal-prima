@@ -101,4 +101,10 @@ class PlanEvent extends Model
         $d = \Illuminate\Support\Carbon::parse($date)->startOfDay();
         return $d->between($this->start_date, $this->end_date);
     }
+
+    // relasi ke instruktur melalui tabel pivot plan_event_instructors
+    public function instructors()
+    {
+        return $this->hasMany(PlanEventInstructor::class);
+    }
 }

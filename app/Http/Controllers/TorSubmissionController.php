@@ -22,7 +22,7 @@ class TorSubmissionController extends Controller
         return view('tor-submissions.index', compact('tors'));
     }
 
-    public function create(PlanEvent $planEvent): View
+    public function create(PlanEvent $planEvent): View|RedirectResponse
     {
         abort_unless(auth()->user()->canCreateTOR(), 403);
 

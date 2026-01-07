@@ -63,6 +63,11 @@ class Course extends Model
         return $this->hasMany(CourseEnrollment::class);
     }
 
+    public function completions()
+    {
+        return $this->hasMany(CourseCompletion::class);
+    }
+
     // Convenience “live” getters (no DB columns)
     public function getEventTitleAttribute(): string
     {
@@ -77,5 +82,13 @@ class Course extends Model
     public function isPublished(): bool
     {
         return $this->status === 'published';
+    }
+
+    public function instructors()
+    {
+        return $this->belongsToMany(User::class, 'course_instructors')
+            ->using(CourseInstructor::class)
+            ->withPivot(['role', 'status', 'can_manage_modules'])
+            ->withTimestamps();
     }
 }

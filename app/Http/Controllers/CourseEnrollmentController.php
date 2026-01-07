@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use Illuminate\Http\Request;
-use App\Services\CourseEnrollmentService;
-use App\Services\CourseProgressService;
+use App\Models\CourseCompletion;
+use App\Models\CourseEnrollment;
+use App\Services\Course\CourseProgressService;
+use App\Services\Course\CourseEnrollmentService;
 use App\Http\Requests\CourseEnroll\EnrollCourseRequest;
 
 class CourseEnrollmentController extends Controller
@@ -25,6 +27,13 @@ class CourseEnrollmentController extends Controller
                 });
             })
 
+            ->with([
+                'type',
+                'instructors' => function ($q) {
+                    $q->wherePivot('status', 'active');
+                },
+            ])
+
             ->with(['torSubmission.planEvent', 'type'])
             ->latest()
             ->paginate(9)
@@ -42,6 +51,12 @@ class CourseEnrollmentController extends Controller
     public function show(Course $course)
     {
         abort_unless(auth()->user()->can('access', $course), 403);
+
+        $course->load([
+            'instructors' => function ($q) {
+                $q->wherePivot('status', 'active');
+            }
+        ]);
 
         $modules = $course->modules()
             ->where('is_active', true)
@@ -64,11 +79,18 @@ class CourseEnrollmentController extends Controller
         );
     }
 
+    // Form enroll course
+    public function create(Course $course)
+    {
+        abort_unless(auth()->user()->can('enroll', $course), 403);
+
+        return view('course-enrollment._form', compact('course'));
+    }
+
+
     // Enroll course
-    public function store(
-        EnrollCourseRequest $request,
-        CourseEnrollmentService $service
-    ) {
+    public function store(EnrollCourseRequest $request, CourseEnrollmentService $service)
+    {
         $course = $service->enroll(
             $request->enrollment_key,
             auth()->user()

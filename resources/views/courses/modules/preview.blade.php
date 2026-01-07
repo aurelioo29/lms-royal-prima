@@ -8,7 +8,7 @@
                 <div class="p-5 sm:p-6">
                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div class="flex items-center gap-4">
-                            <a href="{{ route('courses.modules.index', $course) }}"
+                            <a href="{{ route($routePrefix . '.modules.index', $course) }}"
                                 class="group inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all hover:bg-slate-50 hover:text-[#121293]">
                                 <svg class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" fill="none"
                                     viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -35,7 +35,7 @@
                         </div>
 
                         <div class="flex items-center gap-3">
-                            <a href="{{ route('courses.modules.edit', [$course, $module]) }}"
+                            <a href="{{ route($routePrefix . '.modules.edit', [$course, $module]) }}"
                                 class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all shadow-sm">
                                 <svg class="mr-2 h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24"
                                     stroke="currentColor">
@@ -162,7 +162,7 @@
                         <div class="p-2 max-h-[calc(100vh-250px)] overflow-y-auto custom-scrollbar">
                             <div class="space-y-1">
                                 @foreach ($allModules as $m)
-                                    <a href="{{ route('courses.modules.show', [$course, $m]) }}"
+                                    <a href="{{ route($routePrefix . '.modules.show', [$course, $m]) }}"
                                         class="flex items-start gap-3 px-3 py-3 rounded-xl transition-all {{ $m->id === $module->id ? 'bg-[#121293]/5 border border-[#121293]/10' : 'hover:bg-slate-50 border border-transparent' }}">
 
                                         {{-- Icon Based on Type --}}
@@ -226,7 +226,7 @@
                         </div>
 
                         <div class="p-4 border-t border-slate-200">
-                            <a href="{{ route('courses.modules.index', $course) }}"
+                            <a href="{{ route($routePrefix . '.modules.index', $course) }}"
                                 class="flex items-center justify-center gap-2 text-xs font-bold text-[#121293] hover:underline">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

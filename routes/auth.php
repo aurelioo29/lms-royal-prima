@@ -18,6 +18,7 @@ use App\Http\Controllers\AdminMotReviewController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\CourseEnrollmentController;
+use App\Http\Controllers\InstructorCourseController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\EmployeeCourseModuleController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -244,6 +245,56 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | COURSES - INSTRUCTOR
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('instructor')
+        ->middleware(['auth'])
+        ->name('instructor.')
+        ->group(function () {
+
+            // list course milik instructor
+            Route::get('courses', [InstructorCourseController::class, 'index'])
+                ->name('courses.index');
+
+            // MODULE MANAGEMENT (INSTRUCTOR)
+            Route::prefix('courses/{course}')
+                ->middleware('owns.course') // middleware custom
+                ->name('courses.')
+                ->group(function () {
+
+                    Route::get('/modules', [CourseModuleController::class, 'index'])
+                        ->name('modules.index');
+
+                    Route::get('/modules/create', [CourseModuleController::class, 'create'])
+                        ->name('modules.create');
+
+                    Route::post('/modules', [CourseModuleController::class, 'store'])
+                        ->name('modules.store');
+
+                    Route::get('/modules/{module}', [CourseModuleController::class, 'show'])
+                        ->name('modules.show');
+
+                    Route::get('/modules/{module}/edit', [CourseModuleController::class, 'edit'])
+                        ->name('modules.edit');
+
+                    Route::put('/modules/{module}', [CourseModuleController::class, 'update'])
+                        ->name('modules.update');
+
+                    Route::delete('/modules/{module}', [CourseModuleController::class, 'destroy'])
+                        ->name('modules.destroy');
+
+                    Route::patch('/modules/{module}/toggle', [CourseModuleController::class, 'toggle'])
+                        ->name('modules.toggle');
+
+                    Route::patch('/modules/{module}/reorder', [CourseModuleController::class, 'reorder'])
+                        ->name('modules.reorder');
+                });
+        });
+
+
+    /*
+    |--------------------------------------------------------------------------
     | INSTRUCTOR MOT
     |--------------------------------------------------------------------------
     */
@@ -285,7 +336,9 @@ Route::middleware('auth')->group(function () {
         // COURSE ENROLLMENT
         Route::get('/', [CourseEnrollmentController::class, 'index'])->name('index');
         Route::get('/{course}', [CourseEnrollmentController::class, 'show'])->name('show');
+        Route::get('/{course}/enroll', [CourseEnrollmentController::class, 'create'])->name('enroll.form');
         Route::post('/enroll', [CourseEnrollmentController::class, 'store'])->name('enroll');
+        Route::post('/{course}/complete', [CourseEnrollmentController::class, 'complete'])->name('complete');
 
         // COURSE MODULES - EMPLOYEE
         Route::get('/{course}/modules', [EmployeeCourseModuleController::class, 'index'])

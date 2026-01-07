@@ -45,7 +45,7 @@
                         </div>
 
                         <div class="shrink-0">
-                            <a href="{{ route('courses.modules.create', $course->id) }}"
+                            <a href="{{ route($routePrefix . '.modules.create', $course->id) }}"
                                 class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#121293] text-white hover:bg-[#121293]/90 transition-all shadow-sm text-sm font-semibold">
                                 <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -107,7 +107,7 @@
                                         <div class="flex items-center justify-end gap-2">
 
                                             {{-- Preview Modul --}}
-                                            <a href="{{ route('courses.modules.show', [$course->id, $module->id]) }}"
+                                            <a href="{{ route($routePrefix . '.modules.show', [$course->id, $module->id]) }}"
                                                 title="Preview Modul"
                                                 class="p-2 text-slate-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors">
                                                 <svg class="h-5 w-5" fill="none" stroke="currentColor"
@@ -123,7 +123,7 @@
                                             </a>
 
                                             <form
-                                                action="{{ route('courses.modules.toggle', [$course->id, $module->id]) }}"
+                                                action="{{ route($routePrefix . '.modules.toggle', [$course->id, $module->id]) }}"
                                                 method="POST">
                                                 @csrf @method('PATCH')
                                                 <button type="submit" title="Toggle Status"
@@ -137,7 +137,7 @@
                                                 </button>
                                             </form>
 
-                                            <a href="{{ route('courses.modules.edit', [$course->id, $module->id]) }}"
+                                            <a href="{{ route($routePrefix . '.modules.edit', [$course->id, $module->id]) }}"
                                                 class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                                                 title="Edit Modul">
                                                 <svg class="h-5 w-5" fill="none" stroke="currentColor"
@@ -151,7 +151,7 @@
                                             <button type="button" title="Hapus Modul"
                                                 x-on:click="
                                                 document.getElementById('deleteForm').action =
-                                                '{{ route('courses.modules.destroy', [$course->id, ':id']) }}'
+                                                '{{ route($routePrefix . '.modules.destroy', [$course->id, ':id']) }}'
                                                     .replace(':id', {{ $module->id }});
                                                 $dispatch('open-modal', 'confirm-delete-module');
     "
@@ -178,7 +178,7 @@
                                                     d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                             </svg>
                                             <p class="text-sm font-medium">Belum ada modul yang ditambahkan.</p>
-                                            <a href="{{ route('courses.modules.create', $course->id) }}"
+                                            <a href="{{ route($routePrefix . '.modules.create', $course->id) }}"
                                                 class="mt-2 text-[#121293] hover:underline text-sm font-semibold">Klik
                                                 di sini untuk membuat modul pertama.</a>
                                         </div>
