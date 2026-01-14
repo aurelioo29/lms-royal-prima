@@ -1,4 +1,4 @@
-<header class="h-16 bg-white border-b flex items-center justify-between px-4">
+<header class="h-16 bg-white border-b flex items-center justify-between px-4 relative z-50">
     <div class="flex items-center gap-3">
         {{-- Toggle Button --}}
         <button @click="collapsed = !collapsed"
