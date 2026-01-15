@@ -32,4 +32,9 @@ class CourseModule extends Model
     {
         return $this->hasMany(ModuleProgress::class);
     }
+
+    public function quiz()
+    {
+        return $this->hasOne(ModuleQuiz::class);
+    }
 }

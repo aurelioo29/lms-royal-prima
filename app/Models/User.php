@@ -174,4 +174,10 @@ class User extends Authenticatable
             ->withPivot(['role', 'status', 'can_manage_modules'])
             ->withTimestamps();
     }
+
+    public function quizAttempts()
+    {
+        return $this->hasMany(QuizAttempt::class);
+
+    }
 }
