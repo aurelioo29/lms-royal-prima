@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Royal LMS</title>
+    <title>LMS Royal Prima</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -51,7 +51,7 @@
             class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col lg:hidden">
             <!-- Mobile Header -->
             <div class="h-16 flex items-center justify-between px-4 border-b">
-                <img src="{{ asset('images/logo-royal.png') }}" class="h-12 w-auto" alt="Royal LMS">
+                <img src="{{ asset('images/logo-royal.png') }}" class="h-12 w-auto" alt="LMS Royal Prima">
                 <button @click="sidebarOpen = false" class="p-2 rounded hover:bg-slate-100">✕</button>
             </div>
 
@@ -63,7 +63,7 @@
             class="hidden lg:flex fixed inset-y-0 left-0 bg-white border-r border-slate-200 transition-all duration-300 flex-col overflow-hidden">
             <!-- Logo (ONLY expanded) -->
             <div x-show="!collapsed" x-transition.opacity class="h-16 flex items-center justify-center border-b">
-                <img src="{{ asset('images/logo-royal.png') }}" class="h-12 w-auto" alt="Royal LMS">
+                <img src="{{ asset('images/logo-royal.png') }}" class="h-12 w-auto" alt="LMS Royal Prima">
             </div>
 
             @include('layouts.sidebar-content')

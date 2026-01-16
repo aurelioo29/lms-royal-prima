@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>{{ config('app.name', 'LMS Royal Prima') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -26,7 +26,7 @@
         @if (Route::has('login'))
             <nav class="flex items-center justify-between w-full">
                 <a href="{{ url('/') }}" class="flex items-center gap-3">
-                    <img src="{{ asset('images/logo-royal.png') }}" class="h-12 w-auto" alt="Royal LMS">
+                    <img src="{{ asset('images/logo-royal.png') }}" class="h-12 w-auto" alt="LMS Royal Prima">
                 </a>
 
                 <div class="flex items-center gap-3">
