@@ -54,9 +54,10 @@ Route::middleware('guest')->group(function () {
 | AUTH
 |--------------------------------------------------------------------------
 */
+Route::get('calendar/events', [CalendarController::class, 'events'])->name('calendar.events');
+
 Route::middleware('auth')->group(function () {
     Route::get('calendar', [CalendarController::class, 'index'])->name('calendar.index');
-    Route::get('calendar/events', [CalendarController::class, 'events'])->name('calendar.events');
 
     /*
     |--------------------------------------------------------------------------
