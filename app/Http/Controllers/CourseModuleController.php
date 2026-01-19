@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\CourseModule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use App\Services\Course\CourseInstructorService;
 use App\Http\Requests\CourseModule\StoreCourseModuleRequest;
 use App\Http\Requests\CourseModule\UpdateCourseModuleRequest;
@@ -27,7 +28,12 @@ class CourseModuleController extends Controller
         $service->authorizeModuleManagement($course, auth()->id());
 
         $modules = $course->modules()
-            ->orderBy('sort_order')
+            ->with([
+                'quiz' => function ($q) {
+                    $q->withCount('questions');
+                }
+            ])
+            ->orderBy('sort_order', 'asc')
             ->get();
 
         $mentors = $service->getActiveInstructors($course);
@@ -45,11 +51,6 @@ class CourseModuleController extends Controller
         // Pastikan modul milik course yang sama
         abort_if($module->course_id !== $course->id, 404);
 
-        // Pastikan modul aktif
-        if (! $module->is_active) {
-            abort(403, 'Modul tidak aktif');
-        }
-
         // hanya user yang enroll / instructor / admin
         if (
             !auth()->user()->canCreateCourses() &&
@@ -60,6 +61,7 @@ class CourseModuleController extends Controller
         }
 
         $allModules = $course->modules()
+
             ->orderBy('sort_order', 'asc')
             ->get();
 
@@ -110,7 +112,17 @@ class CourseModuleController extends Controller
             $data['sort_order'] = $maxOrder + 1;
         }
 
-        CourseModule::create($data);
+        $module = CourseModule::create($data);
+
+        // Cek apakah quiz harus dibuat
+        $shouldCreateQuiz =
+            $request->boolean('has_quiz') ||
+            $data['type'] === 'quiz';
+
+        //JIKA MODUL BERTIPE QUIZ
+        if ($shouldCreateQuiz && !empty($data['quiz'])) {
+            $module->quiz()->create($data['quiz']);
+        }
 
         return redirect()
             ->route($this->moduleRoutePrefix() . '.modules.index', $data['course_id'])
@@ -122,6 +134,8 @@ class CourseModuleController extends Controller
     {
         abort_if($module->course_id !== $course->id, 404);
         $service->authorizeModuleManagement($course, auth()->id());
+
+        $module->load('quiz');
 
         // menentukan route prefix sesuai dengan route yang diakses
         $routePrefix = request()->routeIs('instructor.*')
@@ -138,6 +152,10 @@ class CourseModuleController extends Controller
         $service->authorizeModuleManagement($course, auth()->id());
         $data = $request->validated();
 
+        // Pisahkan quiz dari data module
+        $quizData = $data['quiz'] ?? null;
+        unset($data['quiz']);
+
         // handle upload baru
         if ($request->hasFile('file')) {
             if ($module->file_path) {
@@ -149,6 +167,31 @@ class CourseModuleController extends Controller
         }
 
         $module->update($data);
+
+        // Tentukan apakah quiz harus ada
+        $shouldHaveQuiz =
+            $request->boolean('has_quiz') ||
+            $data['type'] === 'quiz';
+
+        // 🚨 Modul tipe quiz WAJIB punya quiz
+        if ($data['type'] === 'quiz' && empty($quizData)) {
+            throw ValidationException::withMessages([
+                'quiz' => 'Data quiz wajib diisi untuk modul bertipe quiz.'
+            ]);
+        }
+
+        // Handle quiz
+        if ($shouldHaveQuiz && $quizData) {
+            // update or create
+            $module->quiz()
+                ->updateOrCreate(
+                    ['course_module_id' => $module->id],
+                    $quizData
+                );
+        } else {
+            // hapus quiz jika user uncheck
+            $module->quiz()?->delete();
+        }
 
         return redirect()
             ->route($this->moduleRoutePrefix() . '.modules.index', $module->course_id)
@@ -165,6 +208,11 @@ class CourseModuleController extends Controller
             Storage::disk('public')->delete($module->file_path);
         }
 
+        // hapus quiz (jika ada)    
+        if ($module->quiz) {
+            $module->quiz()->delete();
+        }
+
         $module->delete();
 
         return back()->with('success', 'Modul berhasil dihapus');
@@ -175,6 +223,16 @@ class CourseModuleController extends Controller
     {
         abort_if($module->course_id !== $course->id, 404);
         $service->authorizeModuleManagement($course, auth()->id());
+
+        // Cek jika mengaktifkan module quiz, pastikan quiz memiliki soal
+        if (! $module->is_active && $module->quiz) {
+            if (! $module->quiz || $module->quiz->questions()->count() === 0) {
+                return back()->withErrors([
+                    'module' => 'Quiz belum memiliki soal.'
+                ]);
+            }
+        }
+
         $module->update([
             'is_active' => ! $module->is_active
         ]);

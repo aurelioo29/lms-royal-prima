@@ -89,8 +89,34 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <div class="text-sm font-medium text-slate-900">{{ $module->title }}</div>
+                                        <div class="flex flex-col gap-1">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-sm font-medium text-slate-900">
+                                                    {{ $module->title }}
+                                                </span>
+
+                                                @if ($module->quiz)
+                                                    <span
+                                                        class="inline-flex items-center rounded-full bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-0.5">
+                                                        Quiz
+                                                    </span>
+                                                @endif
+                                            </div>
+
+                                            @if ($module->quiz)
+                                                @php
+                                                    $questionCount = $module->quiz?->questions_count ?? 0;
+                                                @endphp
+
+                                                <span title="Tambahkan soal quiz agar bisa di"
+                                                    class="inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                                    {{ $questionCount === 0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700' }}">
+                                                    {{ $questionCount === 0 ? 'Belum Ada Soal' : $questionCount . ' Soal' }}
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
+
                                     <td class="px-6 py-4 text-center">
                                         <span
                                             class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $module->is_required ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-600' }}">
@@ -98,13 +124,36 @@
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 text-center">
-                                        <span
-                                            class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ $module->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                            {{ $module->is_active ? 'Aktif' : 'Nonaktif' }}
-                                        </span>
+                                        @if ($module->quiz && $module->quiz->questions_count === 0)
+                                            <span
+                                                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                                     bg-amber-100 text-amber-800">
+                                                Draft
+                                            </span>
+                                        @else
+                                            <span
+                                                class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                                                {{ $module->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                                {{ $module->is_active ? 'Aktif' : 'Nonaktif' }}
+                                            </span>
+                                        @endif
                                     </td>
+
                                     <td class="px-6 py-4">
                                         <div class="flex items-center justify-end gap-2">
+
+                                            @if ($module->quiz)
+                                                <a href="{{ route($routePrefix . '.modules.quiz.questions.index', [$course->id, $module->id]) }}"
+                                                    title="Kelola Soal Quiz"
+                                                    class="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5v2m6-2v2" />
+                                                    </svg>
+                                                </a>
+                                            @endif
 
                                             {{-- Preview Modul --}}
                                             <a href="{{ route($routePrefix . '.modules.show', [$course->id, $module->id]) }}"
@@ -122,20 +171,35 @@
                                                 </svg>
                                             </a>
 
-                                            <form
-                                                action="{{ route($routePrefix . '.modules.toggle', [$course->id, $module->id]) }}"
-                                                method="POST">
-                                                @csrf @method('PATCH')
-                                                <button type="submit" title="Toggle Status"
-                                                    class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                                            {{-- Toggle Status --}}
+                                            @if ($module->quiz && $module->quiz->questions_count === 0)
+                                                <span title="Quiz belum memiliki soal"
+                                                    class="p-2 text-slate-300 cursor-not-allowed rounded-lg">
                                                     <svg class="h-5 w-5" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round"
                                                             stroke-width="2"
                                                             d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                                                     </svg>
-                                                </button>
-                                            </form>
+                                                </span>
+                                            @else
+                                                <form
+                                                    action="{{ route($routePrefix . '.modules.toggle', [$course->id, $module->id]) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    @method('PATCH')
+
+                                                    <button type="submit" title="Toggle Status"
+                                                        class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                                                        <svg class="h-5 w-5" fill="none" stroke="currentColor"
+                                                            viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @endif
 
                                             <a href="{{ route($routePrefix . '.modules.edit', [$course->id, $module->id]) }}"
                                                 class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"

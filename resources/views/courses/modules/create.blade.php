@@ -96,7 +96,6 @@
                                             <option value="pdf">Dokumen (PDF)</option>
                                             <option value="video">Video (URL/Embed)</option>
                                             <option value="link">Tautan Luar (Link)</option>
-                                            <option value="quiz">Kuis Interaktif</option>
                                         </select>
                                     </div>
                                     <p class="mt-1.5 text-[11px] text-slate-500">Pilih jenis materi yang akan diberikan.
@@ -167,10 +166,10 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         @include('courses.modules.quizz.form-quiz')
                     </div>
-                  
+
                 </div>
 
                 {{-- RIGHT COLUMN: Settings --}}
@@ -185,15 +184,20 @@
                             <div class="space-y-4">
 
                                 {{-- Checkbox Trigger Quiz (TAMBAHAN) --}}
-                                <label class="flex items-center cursor-pointer group mt-4 pt-4 border-t border-slate-100">
+                                <label
+                                    class="flex items-center cursor-pointer group mt-4 pt-4 border-t border-slate-100">
                                     <div class="relative">
-                                        <input type="checkbox" name="has_quiz" x-model="has_quiz" class="sr-only peer" value="1">
-                                        <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500">
+                                        <input type="checkbox" name="has_quiz" x-model="has_quiz"
+                                            class="sr-only peer" value="1">
+                                        <div
+                                            class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500">
                                         </div>
                                     </div>
                                     <div class="ms-3">
-                                        <span class="text-sm font-semibold text-slate-700">Modul ini memiliki Quiz</span>
-                                        <p class="text-[10px] text-slate-500">Aktifkan untuk menambah kuis di akhir modul.</p>
+                                        <span class="text-sm font-semibold text-slate-700">Modul ini memiliki
+                                            Quiz</span>
+                                        <p class="text-[10px] text-slate-500">Aktifkan untuk menambah kuis di akhir
+                                            modul.</p>
                                     </div>
                                 </label>
 

@@ -34,7 +34,15 @@ class UpdateQuizRequest extends FormRequest
     {
         $this->merge([
             'is_mandatory' => $this->boolean('is_mandatory'),
-            'is_active'    => $this->boolean('is_active'),
         ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'title.required' => 'Judul quiz wajib diisi',
+            'passing_score.required' => 'Passing score wajib diisi',
+            'passing_score.integer'  => 'Passing score harus berupa angka',
+        ];
     }
 }

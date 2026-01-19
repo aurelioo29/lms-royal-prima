@@ -41,4 +41,9 @@ class ModuleQuiz extends Model
     {
         return $this->status === 'active';
     }
+
+    public function canBeActivated(): bool
+    {
+        return $this->questions()->where('is_active', true)->count() > 0;
+    }
 }

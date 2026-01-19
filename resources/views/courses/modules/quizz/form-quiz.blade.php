@@ -1,10 +1,9 @@
 {{-- SECTION FORM QUIZ (TAMBAHAN) --}}
-<div x-show="has_quiz" 
-     x-transition:enter="transition ease-out duration-300"
-     x-transition:enter-start="opacity-0 transform translate-y-4"
-     x-transition:enter-end="opacity-100 transform translate-y-0"
-     class="mt-6 rounded-2xl border-2 border-orange-100 bg-orange-50/30 shadow-sm overflow-hidden">
-    
+<div x-show="has_quiz" x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 transform translate-y-4"
+    x-transition:enter-end="opacity-100 transform translate-y-0"
+    class="mt-6 rounded-2xl border-2 border-orange-100 bg-orange-50/30 shadow-sm overflow-hidden">
+
     <div class="px-6 py-4 border-b border-orange-100 bg-orange-50 flex items-center gap-3">
         <div class="p-2 bg-orange-500 rounded-lg text-white">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,23 +29,30 @@
                 <label class="block text-sm font-semibold text-slate-700 mb-1.5">
                     Judul Quiz <span class="text-red-500">*</span>
                 </label>
-                <input type="text" 
-                       name="title"
-                       value="{{ old('title') }}"
-                       class="w-full rounded-xl border-slate-200 focus:border-orange-500 focus:ring focus:ring-orange-500/10"
-                       placeholder="Contoh: Quiz Evaluasi Modul 1">
+                <input type="text" name="quiz[title]" value="{{ old('quiz.title', $module->quiz->title ?? '') }}"
+                    class="w-full rounded-xl border-slate-200 focus:border-orange-500 focus:ring focus:ring-orange-500/10"
+                    placeholder="Contoh: Quiz Evaluasi Modul 1">
             </div>
+
+            {{-- Deskripsi Quiz --}}
+            <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Deskripsi Quiz
+                </label>
+                <textarea name="quiz[description]" rows="3"
+                    class="w-full rounded-xl border-slate-200 focus:border-orange-500 focus:ring focus:ring-orange-500/10"
+                    placeholder="Penjelasan singkat tentang quiz ini (opsional)">{{ old('quiz.description', $module->quiz->description ?? '') }}</textarea>
+            </div>
+
 
             {{-- Passing Score --}}
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-1.5">
                     Passing Score
                 </label>
-                <input type="number"
-                       name="passing_score"
-                       min="0"
-                       value="{{ old('passing_score', 70) }}"
-                       class="w-full rounded-xl border-slate-200 focus:border-orange-500 focus:ring focus:ring-orange-500/10">
+                <input type="number" name="quiz[passing_score]" min="0"
+                    value="{{ old('quiz.passing_score', $module->quiz->passing_score ?? 70) }}"
+                    class="w-full rounded-xl border-slate-200 focus:border-orange-500 focus:ring focus:ring-orange-500/10">
                 <p class="text-[11px] text-slate-500 mt-1">
                     Nilai minimum untuk lulus quiz
                 </p>
@@ -57,22 +63,18 @@
                 <label class="block text-sm font-semibold text-slate-700 mb-1.5">
                     Batas Waktu (Menit)
                 </label>
-                <input type="number"
-                       name="time_limit"
-                       min="1"
-                       value="{{ old('time_limit') }}"
-                       class="w-full rounded-xl border-slate-200 focus:border-orange-500 focus:ring focus:ring-orange-500/10"
-                       placeholder="Opsional">
+                <input type="number" name="quiz[time_limit]" min="1"
+                    value="{{ old('quiz.time_limit', $module->quiz->time_limit ?? '') }}"
+                    class="w-full rounded-xl border-slate-200 focus:border-orange-500 focus:ring focus:ring-orange-500/10"
+                    placeholder="Opsional">
             </div>
 
             {{-- Mandatory Quiz --}}
             <div class="md:col-span-2">
                 <label class="flex items-center cursor-pointer group">
-                    <input type="checkbox"
-                           name="is_mandatory"
-                           value="1"
-                           class="w-5 h-5 rounded border-slate-300 text-orange-500 focus:ring-orange-500/20"
-                           {{ old('is_mandatory', true) ? 'checked' : '' }}>
+                    <input type="checkbox" name="quiz[is_mandatory]" value="1"
+                        class="w-5 h-5 rounded border-slate-300 text-orange-500 focus:ring-orange-500/20"
+                        {{ old('quiz.is_mandatory', $module->quiz->is_mandatory ?? true) ? 'checked' : '' }}>
                     <div class="ms-3">
                         <span class="text-sm font-semibold text-slate-700">
                             Quiz Wajib Lulus
@@ -83,6 +85,10 @@
                     </div>
                 </label>
             </div>
+
+            {{-- status --}}
+            <input type="hidden" name="quiz[status]"
+                value="{{ old('quiz.status', $module->quiz->status ?? 'draft') }}">
 
         </div>
     </div>
