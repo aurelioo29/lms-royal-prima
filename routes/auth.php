@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\QuizAttemptController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\JobTitleController;
@@ -313,6 +314,9 @@ Route::middleware('auth')->group(function () {
                             Route::put('/questions/{question}', [QuizQuestionController::class, 'update'])
                                 ->name('questions.update');
 
+                            Route::put('/questions', [QuizQuestionController::class, 'bulkUpdate'])
+                                ->name('questions.bulk-update');
+
                             Route::delete('/questions/{question}', [QuizQuestionController::class, 'destroy'])
                                 ->name('questions.destroy');
                         });
@@ -404,6 +408,15 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/{course}/modules/{module}/complete', [EmployeeCourseModuleController::class, 'complete'])
             ->name('modules.complete');
+
+        // QUIZ ATTEMPTS - EMPLOYEE
+        Route::prefix('{course}/modules/{module}/quiz')->name('modules.quiz.')->group(function () {
+
+            Route::get('/start', [QuizAttemptController::class, 'start'])->name('start');
+            Route::post('/submit', [QuizAttemptController::class, 'submit'])->name('submit');
+            Route::get('/attempts/{attempt}/result', [QuizAttemptController::class, 'result'])->name('result');
+            Route::get('/attempts/{attempt}/review', [QuizAttemptController::class, 'review'])->name('review');
+        });
     });
 
     /*

@@ -79,6 +79,45 @@ class CourseEnrollmentController extends Controller
         );
     }
 
+    //     public function show(Course $course)
+    // {
+    //     abort_unless(auth()->user()->can('access', $course), 403);
+
+    //     // Load SEMUA data yang dibutuhkan halaman course detail
+    //     $course->load([
+    //         // Instruktur aktif
+    //         'instructors' => fn($q) =>
+    //         $q->wherePivot('status', 'active'),
+
+    //         // Modul aktif & urut
+    //         'modules' => fn($q) =>
+    //         $q->where('is_active', true)
+    //             ->orderBy('sort_order'),
+
+    //         // Quiz per modul
+    //         'modules.quiz',
+
+    //         // Attempt quiz user login
+    //         'modules.quiz.attempts' => fn($q) =>
+    //         $q->where('user_id', auth()->id()),
+
+    //         // Progress modul user login
+    //         'modules.progresses' => fn($q) =>
+    //         $q->where('user_id', auth()->id()),
+    //     ]);
+
+    //     // COURSE SUMMARY
+    //     $progress = CourseProgressService::summary(
+    //         $course,
+    //         auth()->id()
+    //     );
+
+    //     return view(
+    //         'course-enrollment.show',
+    //         compact('course', 'progress')
+    //     );
+    // }
+
     // Form enroll course
     public function create(Course $course)
     {
