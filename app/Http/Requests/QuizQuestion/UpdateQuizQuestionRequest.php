@@ -22,11 +22,26 @@ class UpdateQuizQuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'question'    => 'required|string',
-            'score'       => 'required|integer|min:1',
-            'options'     => 'sometimes|array|min:2',
-            'options.*.text' => 'required|string',
-            'options.*.is_correct' => 'boolean'
+            'question' => ['required', 'string'],
+            'type'     => ['required', 'in:mcq,true_false,essay'],
+            'score'    => ['required', 'integer', 'min:1'],
+
+            'options' => [
+                'required_if:type,mcq,true_false',
+                'array',
+                'min:2',
+            ],
+
+            'options.*.text' => [
+                'required_if:type,mcq,true_false',
+                'string',
+            ],
+
+            'correct_index' => [
+                'required_if:type,mcq,true_false',
+                'integer',
+                'min:0',
+            ],
         ];
     }
 }

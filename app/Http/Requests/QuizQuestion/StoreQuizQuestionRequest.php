@@ -22,12 +22,39 @@ class StoreQuizQuestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type'        => 'required|in:multiple_choice,essay',
-            'question'    => 'required|string',
-            'score'       => 'required|integer|min:1',
-            'options'     => 'required_if:type,multiple_choice|array|min:2',
-            'options.*.text' => 'required|string',
-            'options.*.is_correct' => 'boolean'
+            'questions' => ['required', 'array', 'min:1'],
+
+            'questions.*.question' => ['required', 'string'],
+            'questions.*.type'     => ['required', 'in:mcq,true_false,essay'],
+            'questions.*.score'    => ['nullable', 'integer', 'min:1'],
+
+            // OPTIONS → hanya untuk mcq & true_false
+            'questions.*.options' => [
+                'required_if:questions.*.type,mcq,true_false',
+                'array',
+                'min:2',
+            ],
+
+            'questions.*.options.*.text' => [
+                'required_if:questions.*.type,mcq,true_false',
+                'string',
+            ],
+
+            'questions.*.correct_index' => [
+                'required_if:questions.*.type,mcq,true_false',
+                'integer',
+                'min:0',
+            ],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'questions.required' => 'Minimal harus ada satu soal.',
+            'questions.*.question.required' => 'Teks soal wajib diisi.',
+            'questions.*.options.min' => 'Minimal dua opsi jawaban.',
+            'questions.*.correct_index.required' => 'Jawaban benar harus dipilih.',
         ];
     }
 }

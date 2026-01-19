@@ -227,6 +227,9 @@ Route::middleware('auth')->group(function () {
                         Route::put('/questions/{question}', [QuizQuestionController::class, 'update'])
                             ->name('questions.update');
 
+                        Route::put('/questions', [QuizQuestionController::class, 'bulkUpdate'])
+                            ->name('questions.bulk-update');
+
                         Route::delete('/questions/{question}', [QuizQuestionController::class, 'destroy'])
                             ->name('questions.destroy');
                     });
