@@ -71,7 +71,12 @@
                 </div>
 
                 <!-- START BUTTON -->
-                <form method="POST" action="{{ route('quiz.start', $quiz) }}">
+                <form method="POST"
+                    action="{{ route('employee.courses.modules.quiz.start.submit', [
+                        $course->id,
+                        $module->id
+                    ]) }}">
+                    
                     @csrf
 
                     <div class="flex justify-end">
@@ -81,6 +86,7 @@
                         </button>
                     </div>
                 </form>
+
 
             </div>
 

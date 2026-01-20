@@ -32,6 +32,10 @@ class QuizAttemptService
             'module_quiz_id' => $quiz->id,
             'user_id'        => $user->id,
             'started_at'     => now(),
+            'expired_at'     => $quiz->time_limit
+                ? now()->addMinutes($quiz->time_limit)
+                : null,
+            'status'         => 'started',
             'max_score'      => $quiz->questions()->sum('score'),
         ]);
     }
@@ -40,18 +44,17 @@ class QuizAttemptService
     // submit jawaban kuis
     public function submitQuiz(QuizAttempt $attempt, array $answers): QuizAttempt
     {
-        if ($attempt->submitted_at) {
-            throw new DomainException('Quiz sudah disubmit');
+        if ($attempt->status !== 'started') {
+            throw new DomainException('Attempt tidak aktif');
         }
 
-        // validasi time limit
-        if ($attempt->quiz->time_limit) {
-            $expiredAt = Carbon::parse($attempt->started_at)
-                ->addMinutes($attempt->quiz->time_limit);
+        if ($attempt->expired_at && now()->greaterThan($attempt->expired_at)) {
+            $attempt->update([
+                'status'       => 'expired',
+                'submitted_at' => now(),
+            ]);
 
-            if (now()->greaterThan($expiredAt)) {
-                throw new DomainException('Waktu quiz sudah habis');
-            }
+            throw new DomainException('Waktu quiz sudah habis');
         }
 
         return DB::transaction(function () use ($attempt, $answers) {
@@ -101,6 +104,7 @@ class QuizAttemptService
                 'score'        => $totalScore,
                 'is_passed'    => $totalScore >= $attempt->quiz->passing_score,
                 'submitted_at' => now(),
+                'status'       => 'submitted',
             ]);
 
             return $attempt;

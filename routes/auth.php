@@ -409,13 +409,31 @@ Route::middleware('auth')->group(function () {
         Route::post('/{course}/modules/{module}/complete', [EmployeeCourseModuleController::class, 'complete'])
             ->name('modules.complete');
 
-        // QUIZ ATTEMPTS - EMPLOYEE
-        Route::prefix('{course}/modules/{module}/quiz')->name('modules.quiz.')->group(function () {
+         Route::prefix('{course}/modules/{module}')
+        ->name('modules.')
+        ->group(function () {
 
-            Route::get('/start', [QuizAttemptController::class, 'start'])->name('start');
-            Route::post('/submit', [QuizAttemptController::class, 'submit'])->name('submit');
-            Route::get('/attempts/{attempt}/result', [QuizAttemptController::class, 'result'])->name('result');
-            Route::get('/attempts/{attempt}/review', [QuizAttemptController::class, 'review'])->name('review');
+            // ================= QUIZ =================
+
+            // HALAMAN START QUIZ
+            Route::get('quiz/start', [QuizAttemptController::class, 'startPage'])
+                ->name('quiz.start');
+
+            // ACTION START QUIZ
+            Route::post('quiz/start', [QuizAttemptController::class, 'start'])
+                ->name('quiz.start.submit');
+
+            // ATTEMPT
+            Route::get('quiz/attempt/{attempt}', [QuizAttemptController::class, 'attempt'])
+                ->name('quiz.attempt');
+
+            // SUBMIT
+            Route::post('quiz/submit/{attempt}', [QuizAttemptController::class, 'submit'])
+                ->name('quiz.submit');
+
+            // RESULT
+            Route::get('quiz/result/{attempt}', [QuizAttemptController::class, 'result'])
+                ->name('quiz.result');
         });
     });
 

@@ -1,181 +1,100 @@
 <x-app-layout>
-    <div
-        class="py-12"
-        x-data="quizAttempt({
-            timeLimit: {{ $quiz->time_limit ?? 'null' }},
-            startedAt: '{{ $attempt->started_at }}'
-        })"
-        x-init="initTimer"
-    >
+    <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
 
             <!-- HEADER -->
-            <div class="mb-6 flex justify-between items-center">
+            <div class="mb-6">
                 <h1 class="text-xl font-bold">
                     {{ $quiz->title }}
                 </h1>
 
-                <!-- TIMER -->
-                @if($quiz->time_limit)
-                    <div class="px-4 py-2 bg-red-50 border border-red-200 rounded-xl text-red-700 font-semibold"
-                         x-text="timeText">
-                    </div>
-                @endif
+                <div class="mt-2 text-sm text-slate-600">
+                    Skor:
+                    <strong>{{ $attempt->score }}</strong> /
+                    {{ $attempt->max_score }}
+                </div>
+
+                <div class="mt-1 text-sm">
+                    Status:
+                    @if($attempt->is_passed)
+                        <span class="text-green-600 font-semibold">LULUS</span>
+                    @else
+                        <span class="text-red-600 font-semibold">TIDAK LULUS</span>
+                    @endif
+                </div>
             </div>
 
-            <form
-                method="POST"
-                action="{{ route('quiz.submit', $attempt) }}"
-                @submit.prevent="submitForm($event)"
-            >
-                @csrf
+            <!-- QUESTIONS -->
+            <div class="space-y-8">
 
-                <!-- QUESTIONS -->
-                <div class="space-y-8">
+                @foreach ($quiz->questions as $index => $question)
+                    @php
+                        $answer = $attempt->answers
+                            ->firstWhere('quiz_question_id', $question->id);
+                    @endphp
 
-                    @foreach ($quiz->questions as $index => $question)
-                        <div class="bg-white border rounded-2xl p-6">
+                    <div class="bg-white border rounded-2xl p-6">
 
-                            <!-- QUESTION HEADER -->
-                            <div class="mb-4">
-                                <div class="font-semibold text-slate-900">
-                                    Soal {{ $index + 1 }}
-                                </div>
+                        <div class="mb-4">
+                            <div class="font-semibold text-slate-900">
+                                Soal {{ $index + 1 }}
+                            </div>
 
-                                <div class="mt-1 text-slate-700">
-                                    {{ $question->question }}
+                            <div class="mt-1 text-slate-700">
+                                {{ $question->question }}
+                            </div>
+
+                            <div class="text-xs text-slate-400 mt-1">
+                                Skor: {{ $question->score }}
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+
+                            {{-- MCQ & TRUE/FALSE --}}
+                            @if(in_array($question->type, ['mcq', 'true_false']))
+                                @foreach ($question->options as $option)
+                                    <div class="flex items-center gap-3">
+                                        <input
+                                            type="radio"
+                                            disabled
+                                            {{ optional($answer)->option_id === $option->id ? 'checked' : '' }}
+                                        >
+                                        <span class="{{ $option->is_correct ? 'text-green-700 font-semibold' : '' }}">
+                                            {{ $option->option_text }}
+                                        </span>
+                                    </div>
+                                @endforeach
+                            @endif
+
+                            {{-- ESSAY --}}
+                            @if ($question->type === 'essay')
+                                <div class="p-3 bg-slate-50 border rounded-xl">
+                                    {{ $answer->essay_answer ?? '-' }}
                                 </div>
 
                                 <div class="text-xs text-slate-400 mt-1">
-                                    Skor: {{ $question->score }}
+                                    Dinilai manual oleh instruktur.
                                 </div>
-                            </div>
-
-                            <!-- ANSWERS -->
-                            <div class="space-y-3">
-
-                                {{-- MCQ --}}
-                                @if ($question->type === 'mcq')
-                                    @foreach ($question->options as $option)
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="answers[{{ $question->id }}]"
-                                                value="{{ $option->id }}"
-                                                class="text-indigo-600"
-                                            >
-                                            <span>{{ $option->option_text }}</span>
-                                        </label>
-                                    @endforeach
-                                @endif
-
-                                {{-- TRUE / FALSE --}}
-                                @if ($question->type === 'true_false')
-                                    @foreach ($question->options as $option)
-                                        <label class="flex items-center gap-3 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="answers[{{ $question->id }}]"
-                                                value="{{ $option->id }}"
-                                                class="text-indigo-600"
-                                            >
-                                            <span>{{ $option->option_text }}</span>
-                                        </label>
-                                    @endforeach
-                                @endif
-
-                                {{-- ESSAY --}}
-                                @if ($question->type === 'essay')
-                                    <textarea
-                                        name="answers[{{ $question->id }}]"
-                                        rows="4"
-                                        class="w-full rounded-xl border border-slate-300"
-                                        placeholder="Tulis jawaban Anda..."
-                                    ></textarea>
-
-                                    <div class="text-xs text-slate-400 mt-1">
-                                        Jawaban essay akan dinilai secara manual.
-                                    </div>
-                                @endif
-
-                            </div>
+                            @endif
 
                         </div>
-                    @endforeach
 
-                </div>
+                    </div>
+                @endforeach
 
-                <!-- SUBMIT -->
-                <div class="mt-10 flex justify-end">
-                    <button
-                        type="submit"
-                        class="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700"
-                        :disabled="submitting"
-                        x-text="submitting ? 'Mengirim...' : 'Kumpulkan Quiz'"
-                    >
-                    </button>
-                </div>
+            </div>
 
-            </form>
+            <!-- ACTION -->
+            <div class="mt-10 flex justify-end">
+                <a
+                    href="{{ route('employee.courses.show', $course) }}"
+                    class="px-6 py-3 bg-slate-600 text-white rounded-xl hover:bg-slate-700"
+                >
+                    Kembali ke Course
+                </a>
+            </div>
 
         </div>
     </div>
-
-    <!-- SCRIPT -->
-    <script>
-        function quizAttempt({ timeLimit, startedAt }) {
-            return {
-                submitting: false,
-                timeText: '',
-                remainingSeconds: null,
-
-                initTimer() {
-                    if (!timeLimit) return;
-
-                    const start = new Date(startedAt);
-                    const end = new Date(start.getTime() + timeLimit * 60000);
-
-                    this.updateTimer(end);
-                    setInterval(() => this.updateTimer(end), 1000);
-                },
-
-                updateTimer(end) {
-                    const now = new Date();
-                    const diff = Math.floor((end - now) / 1000);
-
-                    if (diff <= 0) {
-                        this.timeText = 'Waktu habis';
-                        this.autoSubmit();
-                        return;
-                    }
-
-                    const minutes = Math.floor(diff / 60);
-                    const seconds = diff % 60;
-
-                    this.timeText =
-                        String(minutes).padStart(2, '0') +
-                        ':' +
-                        String(seconds).padStart(2, '0');
-                },
-
-                submitForm(event) {
-                    if (this.submitting) return;
-
-                    if (!confirm('Apakah Anda yakin ingin mengumpulkan quiz?')) {
-                        return;
-                    }
-
-                    this.submitting = true;
-                    event.target.submit();
-                },
-
-                autoSubmit() {
-                    if (this.submitting) return;
-
-                    this.submitting = true;
-                    document.querySelector('form').submit();
-                }
-            }
-        }
-    </script>
 </x-app-layout>

@@ -3,7 +3,7 @@
         class="py-12"
         x-data="quizAttempt({
             timeLimit: {{ $quiz->time_limit ?? 'null' }},
-            startedAt: '{{ $attempt->started_at }}'
+            startedAt: '{{ $attempt->started_at->toIso8601String() }}'
         })"
         x-init="initTimer"
     >
@@ -25,7 +25,10 @@
 
             <form
                 method="POST"
-                action="{{ route('quiz.submit', $attempt) }}"
+                action="{{ route(
+                    'employee.courses.modules.quiz.submit',
+                    [$course->id, $module->id, $attempt->id]
+                ) }}"
                 @submit.prevent="submitForm($event)"
             >
                 @csrf
@@ -130,14 +133,23 @@
                 remainingSeconds: null,
 
                 initTimer() {
-                    if (!timeLimit) return;
+                    if (!timeLimit || !startedAt) return;
 
                     const start = new Date(startedAt);
+
+                    // ⛔ PROTEKSI PENTING
+                    if (isNaN(start.getTime())) {
+                        console.error('Invalid startedAt:', startedAt);
+                        this.timeText = 'Timer error';
+                        return;
+                    }
+
                     const end = new Date(start.getTime() + timeLimit * 60000);
 
                     this.updateTimer(end);
                     setInterval(() => this.updateTimer(end), 1000);
                 },
+
 
                 updateTimer(end) {
                     const now = new Date();
@@ -175,7 +187,11 @@
                     this.submitting = true;
                     document.querySelector('form').submit();
                 }
+
+                
             }
         }
+        console.log('startedAt:', startedAt);
+console.log('timeLimit:', timeLimit);
     </script>
 </x-app-layout>

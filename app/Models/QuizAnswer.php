@@ -34,4 +34,12 @@ class QuizAnswer extends Model
     {
         return $this->belongsTo(QuizQuestionOption::class, 'quiz_question_option_id');
     }
+
+    public function option(): BelongsTo
+    {
+        return $this->belongsTo(
+            QuizQuestionOption::class,
+            'quiz_question_option_id'
+        );
+    }
 }

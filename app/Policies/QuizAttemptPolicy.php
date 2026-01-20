@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\QuizAttempt;
 use App\Models\ModuleQuiz;
 use App\Models\User;
+use App\Models\CourseEnrollment;
 
 class QuizAttemptPolicy
 {
@@ -16,27 +17,18 @@ class QuizAttemptPolicy
         //
     }
 
-    public function start(User $user, ModuleQuiz $quiz): bool
-    {
-        // contoh rule: user harus terdaftar di course
-        return $quiz->module
-            ->course
-            ->users()
-            ->where('users.id', $user->id)
-            ->exists();
-    }
-
     public function attempt(User $user, QuizAttempt $attempt): bool
     {
         return $attempt->user_id === $user->id
-            && is_null($attempt->submitted_at);
+            && $attempt->status === 'started';
     }
 
     public function submit(User $user, QuizAttempt $attempt): bool
     {
         return $attempt->user_id === $user->id
-            && is_null($attempt->submitted_at);
+            && $attempt->status === 'started';
     }
+
 
     public function viewResult(User $user, QuizAttempt $attempt): bool
     {

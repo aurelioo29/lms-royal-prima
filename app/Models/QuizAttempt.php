@@ -8,14 +8,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class QuizAttempt extends Model
 {
-     protected $fillable = [
+    protected $fillable = [
         'module_quiz_id',
         'user_id',
         'score',
         'max_score',
         'is_passed',
         'started_at',
+        'expired_at',
         'submitted_at',
+        'status',
     ];
 
     protected $casts = [
