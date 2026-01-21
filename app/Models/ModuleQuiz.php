@@ -14,6 +14,7 @@ class ModuleQuiz extends Model
         'description',
         'passing_score',
         'time_limit',
+        'max_attempts',
         'is_mandatory',
         'status',
     ];
@@ -46,4 +47,14 @@ class ModuleQuiz extends Model
     {
         return $this->questions()->where('is_active', true)->count() > 0;
     }
+
+    public function isUnlimitedAttempts(): bool
+    {
+        return is_null($this->max_attempts);
+    }
+
+    protected $casts = [
+        'max_attempts' => 'integer',
+        'is_mandatory' => 'boolean',
+    ];
 }

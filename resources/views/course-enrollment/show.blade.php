@@ -121,11 +121,25 @@
                         @php
                             $quiz = $module->quiz;
 
-                            $attempt = $quiz?->attempts->first();
+                            $attempts = $quiz?->attempts ?? collect();
 
-                            $quizPassed = $attempt && $attempt->is_passed;
-                            $quizDone   = $attempt && $attempt->submitted_at;
+                            $lastAttempt = $attempts->first();
+
+                            $quizPassed = $lastAttempt?->is_passed;
+
+                            $quizDone = $lastAttempt && $lastAttempt->submitted_at;
+
+                            $usedAttempts = $attempts->count();
+
+                            $maxAttempts = $quiz?->max_attempts; // null = unlimited
+
+                            $attemptsLeft = is_null($maxAttempts)
+                                ? null
+                                : max(0, $maxAttempts - $usedAttempts);
+
+                            $attemptsExhausted = ! is_null($maxAttempts) && $attemptsLeft <= 0;
                         @endphp
+
 
                         <div class="p-5 flex justify-between items-center hover:bg-slate-50">
                             <div>
@@ -187,19 +201,27 @@
                                     @if ($quizPassed)
                                         <span
                                             class="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd"
-                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                                    clip-rule="evenodd" />
-                                            </svg>
-                                            Lulus
+                                            ✔ Lulus
                                         </span>
 
-                                    {{-- ❌ SUDAH DIKERJAKAN TAPI TIDAK LULUS --}}
+                                    {{-- ❌ ATTEMPT HABIS --}}
+                                    @elseif ($attemptsExhausted)
+                                        <button
+                                            @click="openQuizLimitModal = true"
+                                            class="inline-flex items-center rounded-xl bg-red-500 px-4 py-2 text-xs font-bold text-white hover:bg-red-600 transition">
+                                            Quiz Tidak Bisa Dikerjakan
+                                        </button>
+
+                                    {{-- 🔁 BISA ULANG --}}
                                     @elseif ($quizDone)
                                         <a href="{{ route('employee.courses.modules.quiz.start', [$course, $module]) }}"
                                             class="inline-flex items-center rounded-xl bg-yellow-500 px-4 py-2 text-xs font-bold text-white hover:bg-yellow-600 transition">
                                             Ulangi Quiz
+                                            @if (!is_null($attemptsLeft))
+                                                <span class="ml-2 text-[10px] opacity-80">
+                                                    (Sisa {{ $attemptsLeft }}x)
+                                                </span>
+                                            @endif
                                         </a>
 
                                     {{-- ▶️ BELUM DIKERJAKAN --}}
@@ -211,6 +233,42 @@
                                     @endif
 
                                 </div>
+
+                                <div
+                                        x-data="{ openQuizLimitModal: false }"
+                                        x-show="openQuizLimitModal"
+                                        x-transition
+                                        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+
+                                        <div
+                                            @click.away="openQuizLimitModal = false"
+                                            class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+
+                                            <div class="flex items-center gap-3 mb-4">
+                                                <div class="rounded-full bg-red-100 p-3 text-red-600">
+                                                    ⚠
+                                                </div>
+                                                <h2 class="text-lg font-bold text-slate-800">
+                                                    Percobaan Quiz Habis
+                                                </h2>
+                                            </div>
+
+                                            <p class="text-sm text-slate-600 mb-4">
+                                                Anda telah menggunakan seluruh kesempatan pengerjaan quiz untuk modul ini.
+                                                Silakan hubungi admin atau narasumber jika memerlukan reset percobaan.
+                                            </p>
+
+                                            <div class="flex justify-end gap-2">
+                                                <button
+                                                    @click="openQuizLimitModal = false"
+                                                    class="rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-300">
+                                                    Tutup
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
                             </div>
                         @endif
 

@@ -14,6 +14,19 @@ use DomainException;
 
 class QuizAttemptService
 {
+    private function hasReachedMaxAttempts(ModuleQuiz $quiz, User $user): bool
+    {
+        if ($quiz->isUnlimitedAttempts()) {
+            return false;
+        }
+
+        $attemptCount = QuizAttempt::where('module_quiz_id', $quiz->id)
+            ->where('user_id', $user->id)
+            ->whereNotNull('submitted_at')
+            ->count();
+
+        return $attemptCount >= $quiz->max_attempts;
+    }
 
 
     // mulai kuis
@@ -26,6 +39,21 @@ class QuizAttemptService
 
         if ($existing) {
             return $existing;
+        }
+
+        // 2️⃣ Cek apakah sudah lulus (best practice)
+        $passed = QuizAttempt::where('module_quiz_id', $quiz->id)
+            ->where('user_id', $user->id)
+            ->where('is_passed', true)
+            ->exists();
+
+        if ($passed) {
+            throw new DomainException('Quiz sudah lulus dan tidak dapat dikerjakan ulang.');
+        }
+
+        // 3️⃣ Cek batas percobaan
+        if ($this->hasReachedMaxAttempts($quiz, $user)) {
+            throw new DomainException('Jumlah percobaan quiz telah mencapai batas maksimum.');
         }
 
         return QuizAttempt::create([

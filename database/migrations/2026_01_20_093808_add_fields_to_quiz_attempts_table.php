@@ -33,7 +33,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('quiz_attempts', function (Blueprint $table) {
-            //
+            $table->timestamp('started_at')->nullable()->change();
+            $table->dropColumn(['expired_at', 'status']);
         });
     }
 };

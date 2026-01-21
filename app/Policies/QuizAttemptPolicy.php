@@ -20,13 +20,15 @@ class QuizAttemptPolicy
     public function attempt(User $user, QuizAttempt $attempt): bool
     {
         return $attempt->user_id === $user->id
-            && $attempt->status === 'started';
+            && $attempt->status === 'started'
+            && is_null($attempt->submitted_at);
     }
 
     public function submit(User $user, QuizAttempt $attempt): bool
     {
         return $attempt->user_id === $user->id
-            && $attempt->status === 'started';
+            && $attempt->status === 'started'
+            && is_null($attempt->submitted_at);
     }
 
 
