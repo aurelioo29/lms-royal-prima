@@ -51,6 +51,8 @@
     $openCourseMgmt = $courseMgmtActive;
 
     $openUsers = $manageUsersActive;
+
+    $isDeveloper = $user->role?->name === 'Developer';
 @endphp
 
 <nav class="flex-1 p-2 space-y-1">
@@ -285,11 +287,13 @@
                     Tambah Job Categories
                 </a>
 
-                <a href="{{ route('roles.index') }}"
-                    class="block px-3 py-2 rounded-lg text-sm transition
+                @if ($isDeveloper)
+                    <a href="{{ route('roles.index') }}"
+                        class="block px-3 py-2 rounded-lg text-sm transition
                     {{ request()->routeIs('roles.*') ? 'bg-slate-100 text-[#121293]' : 'text-slate-600 hover:bg-slate-100' }}">
-                    Tambah Roles
-                </a>
+                        Tambah Roles
+                    </a>
+                @endif
             </div>
         </div>
     @endif
@@ -338,7 +342,7 @@
 </nav>
 
 <!-- LOGOUT -->
-<div class="p-2 border-t">
+{{-- <div class="p-2 border-t">
     <form method="POST" action="{{ route('logout') }}">
         @csrf
         <button class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition">
@@ -350,4 +354,4 @@
             <span x-show="!collapsed" x-transition.opacity class="text-sm font-medium">Logout</span>
         </button>
     </form>
-</div>
+</div> --}}
