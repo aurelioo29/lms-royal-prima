@@ -100,7 +100,7 @@
                     </button>
 
                     <div x-show="open" @click.outside="open=false" x-transition
-                        class="absolute right-0 mt-2 w-40 bg-white border rounded shadow">
+                        class="absolute right-0 mt-2 w-40 bg-white border rounded shadow z-50">
                         <a href="{{ route('profile.edit') }}" class="block px-4 py-2 hover:bg-slate-100">Profile</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
