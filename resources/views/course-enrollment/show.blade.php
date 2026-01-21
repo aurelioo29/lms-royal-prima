@@ -115,6 +115,16 @@
                     @forelse ($modules as $module)
                         @php
                             $progressModule = $module->progresses->first();
+                            
+                        @endphp
+
+                        @php
+                            $quiz = $module->quiz;
+
+                            $attempt = $quiz?->attempts->first();
+
+                            $quizPassed = $attempt && $attempt->is_passed;
+                            $quizDone   = $attempt && $attempt->submitted_at;
                         @endphp
 
                         <div class="p-5 flex justify-between items-center hover:bg-slate-50">
@@ -155,6 +165,55 @@
                                 @endif
                             </div>
                         </div>
+
+                        {{-- ================= QUIZ ACTION ================= --}}
+                        @if ($quiz)
+                            <div class="mt-4 flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-[#121293]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                                    </svg>
+                                    <span class="text-sm font-semibold text-slate-700">
+                                        Quiz Modul
+                                    </span>
+                                </div>
+
+                                {{-- ================= STATUS / ACTION ================= --}}
+                                <div class="flex items-center gap-2">
+
+                                    {{-- ✅ SUDAH LULUS --}}
+                                    @if ($quizPassed)
+                                        <span
+                                            class="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            Lulus
+                                        </span>
+
+                                    {{-- ❌ SUDAH DIKERJAKAN TAPI TIDAK LULUS --}}
+                                    @elseif ($quizDone)
+                                        <a href="{{ route('employee.courses.modules.quiz.start', [$course, $module]) }}"
+                                            class="inline-flex items-center rounded-xl bg-yellow-500 px-4 py-2 text-xs font-bold text-white hover:bg-yellow-600 transition">
+                                            Ulangi Quiz
+                                        </a>
+
+                                    {{-- ▶️ BELUM DIKERJAKAN --}}
+                                    @else
+                                        <a href="{{ route('employee.courses.modules.quiz.start', [$course, $module]) }}"
+                                            class="inline-flex items-center rounded-xl bg-[#121293] px-4 py-2 text-xs font-bold text-white hover:opacity-90 transition">
+                                            Kerjakan Quiz
+                                        </a>
+                                    @endif
+
+                                </div>
+                            </div>
+                        @endif
+
                     @empty
                         <div class="p-6 text-center text-slate-500">
                             Belum ada modul pada course ini.

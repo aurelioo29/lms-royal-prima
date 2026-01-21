@@ -3,14 +3,17 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\QuizAttemptController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\JobTitleController;
 use App\Http\Controllers\PlanEventController;
 use App\Http\Controllers\AnnualPlanController;
 use App\Http\Controllers\CourseTypeController;
+use App\Http\Controllers\ModuleQuizController;
 use App\Http\Controllers\JobCategoryController;
 use App\Http\Controllers\CourseModuleController;
+use App\Http\Controllers\QuizQuestionController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\InstructorMotController;
 use App\Http\Controllers\TorSubmissionController;
@@ -206,6 +209,34 @@ Route::middleware('auth')->group(function () {
             ->name('courses.')
             ->group(function () {
 
+                // QUIZ QUESTION MANAGEMENT (ADMIN)
+                Route::prefix('/modules/{module}/quiz')
+                    ->name('modules.quiz.')
+                    ->group(function () {
+
+                        Route::get('/questions', [QuizQuestionController::class, 'index'])
+                            ->name('questions.index');
+
+                        Route::get('/questions/create', [QuizQuestionController::class, 'create'])
+                            ->name('questions.create');
+
+                        Route::post('/questions', [QuizQuestionController::class, 'store'])
+                            ->name('questions.store');
+
+                        Route::get('/questions/{question}/edit', [QuizQuestionController::class, 'edit'])
+                            ->name('questions.edit');
+
+                        Route::put('/questions/{question}', [QuizQuestionController::class, 'update'])
+                            ->name('questions.update');
+
+                        Route::put('/questions', [QuizQuestionController::class, 'bulkUpdate'])
+                            ->name('questions.bulk-update');
+
+                        Route::delete('/questions/{question}', [QuizQuestionController::class, 'destroy'])
+                            ->name('questions.destroy');
+                    });
+
+
                 Route::get('/modules', [CourseModuleController::class, 'index'])
                     ->name('modules.index');
 
@@ -263,6 +294,34 @@ Route::middleware('auth')->group(function () {
                 ->middleware('owns.course') // middleware custom
                 ->name('courses.')
                 ->group(function () {
+
+                    // QUIZ QUESTION MANAGEMENT (INSTRUCTOR)
+                    Route::prefix('/modules/{module}/quiz')
+                        ->name('modules.quiz.')
+                        ->group(function () {
+
+                            Route::get('/questions', [QuizQuestionController::class, 'index'])
+                                ->name('questions.index');
+
+                            Route::get('/questions/create', [QuizQuestionController::class, 'create'])
+                                ->name('questions.create');
+
+                            Route::post('/questions', [QuizQuestionController::class, 'store'])
+                                ->name('questions.store');
+
+                            Route::get('/questions/{question}/edit', [QuizQuestionController::class, 'edit'])
+                                ->name('questions.edit');
+
+                            Route::put('/questions/{question}', [QuizQuestionController::class, 'update'])
+                                ->name('questions.update');
+
+                            Route::put('/questions', [QuizQuestionController::class, 'bulkUpdate'])
+                                ->name('questions.bulk-update');
+
+                            Route::delete('/questions/{question}', [QuizQuestionController::class, 'destroy'])
+                                ->name('questions.destroy');
+                        });
+
 
                     Route::get('/modules', [CourseModuleController::class, 'index'])
                         ->name('modules.index');
@@ -350,6 +409,33 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/{course}/modules/{module}/complete', [EmployeeCourseModuleController::class, 'complete'])
             ->name('modules.complete');
+
+         Route::prefix('{course}/modules/{module}')
+        ->name('modules.')
+        ->group(function () {
+
+            // ================= QUIZ =================
+
+            // HALAMAN START QUIZ
+            Route::get('quiz/start', [QuizAttemptController::class, 'startPage'])
+                ->name('quiz.start');
+
+            // ACTION START QUIZ
+            Route::post('quiz/start', [QuizAttemptController::class, 'start'])
+                ->name('quiz.start.submit');
+
+            // ATTEMPT
+            Route::get('quiz/attempt/{attempt}', [QuizAttemptController::class, 'attempt'])
+                ->name('quiz.attempt');
+
+            // SUBMIT
+            Route::post('quiz/submit/{attempt}', [QuizAttemptController::class, 'submit'])
+                ->name('quiz.submit');
+
+            // RESULT
+            Route::get('quiz/result/{attempt}', [QuizAttemptController::class, 'result'])
+                ->name('quiz.result');
+        });
     });
 
     /*
