@@ -29,6 +29,7 @@ use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\QuizEssayReviewController;
 
 /*
 |--------------------------------------------------------------------------
@@ -236,6 +237,24 @@ Route::middleware('auth')->group(function () {
                             ->name('questions.destroy');
                     });
 
+                // QUIZ ESSAY REVIEW 
+                Route::prefix('/modules/{module}/quiz/review')
+                    ->name('modules.quiz.review.')
+                    ->group(function () {
+
+                        // List attempt yang ada essay
+                        Route::get('/', [QuizEssayReviewController::class, 'index'])
+                            ->name('index');
+
+                        // Detail jawaban essay per attempt
+                        Route::get('/attempts/{attempt}', [QuizEssayReviewController::class, 'show'])
+                            ->name('show');
+
+                        // Simpan nilai essay
+                        Route::post('/answers/{answer}', [QuizEssayReviewController::class, 'store'])
+                            ->name('store');
+                    });
+
 
                 Route::get('/modules', [CourseModuleController::class, 'index'])
                     ->name('modules.index');
@@ -322,6 +341,24 @@ Route::middleware('auth')->group(function () {
                                 ->name('questions.destroy');
                         });
 
+                    // QUIZ ESSAY REVIEW 
+                    Route::prefix('/modules/{module}/quiz/review')
+                        ->name('modules.quiz.review.')
+                        ->group(function () {
+
+                            // List attempt yang ada essay
+                            Route::get('/', [QuizEssayReviewController::class, 'index'])
+                                ->name('index');
+
+                            // Detail jawaban essay per attempt
+                            Route::get('/attempts/{attempt}', [QuizEssayReviewController::class, 'show'])
+                                ->name('show');
+
+                            // Simpan nilai essay
+                            Route::post('/answers/{answer}', [QuizEssayReviewController::class, 'store'])
+                                ->name('store');
+                        });
+
 
                     Route::get('/modules', [CourseModuleController::class, 'index'])
                         ->name('modules.index');
@@ -350,7 +387,7 @@ Route::middleware('auth')->group(function () {
                     Route::patch('/modules/{module}/reorder', [CourseModuleController::class, 'reorder'])
                         ->name('modules.reorder');
                 });
-        });
+    });
 
 
     /*
@@ -410,32 +447,32 @@ Route::middleware('auth')->group(function () {
         Route::post('/{course}/modules/{module}/complete', [EmployeeCourseModuleController::class, 'complete'])
             ->name('modules.complete');
 
-         Route::prefix('{course}/modules/{module}')
-        ->name('modules.')
-        ->group(function () {
+        Route::prefix('{course}/modules/{module}')
+            ->name('modules.')
+            ->group(function () {
 
-            // ================= QUIZ =================
+                // ================= QUIZ =================
 
-            // HALAMAN START QUIZ
-            Route::get('quiz/start', [QuizAttemptController::class, 'startPage'])
-                ->name('quiz.start');
+                // HALAMAN START QUIZ
+                Route::get('quiz/start', [QuizAttemptController::class, 'startPage'])
+                    ->name('quiz.start');
 
-            // ACTION START QUIZ
-            Route::post('quiz/start', [QuizAttemptController::class, 'start'])
-                ->name('quiz.start.submit');
+                // ACTION START QUIZ
+                Route::post('quiz/start', [QuizAttemptController::class, 'start'])
+                    ->name('quiz.start.submit');
 
-            // ATTEMPT
-            Route::get('quiz/attempt/{attempt}', [QuizAttemptController::class, 'attempt'])
-                ->name('quiz.attempt');
+                // ATTEMPT
+                Route::get('quiz/attempt/{attempt}', [QuizAttemptController::class, 'attempt'])
+                    ->name('quiz.attempt');
 
-            // SUBMIT
-            Route::post('quiz/submit/{attempt}', [QuizAttemptController::class, 'submit'])
-                ->name('quiz.submit');
+                // SUBMIT
+                Route::post('quiz/submit/{attempt}', [QuizAttemptController::class, 'submit'])
+                    ->name('quiz.submit');
 
-            // RESULT
-            Route::get('quiz/result/{attempt}', [QuizAttemptController::class, 'result'])
-                ->name('quiz.result');
-        });
+                // RESULT
+                Route::get('quiz/result/{attempt}', [QuizAttemptController::class, 'result'])
+                    ->name('quiz.result');
+            });
     });
 
     /*

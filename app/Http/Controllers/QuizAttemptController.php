@@ -7,9 +7,12 @@ use App\Services\Quiz\QuizAttemptService;
 use App\Models\QuizAttempt;
 use App\Models\CourseModule;
 use App\Models\Course;
+use DomainException;
+
 
 class QuizAttemptController extends Controller
 {
+
     public function __construct(
         protected QuizAttemptService $quizService
     ) {}
@@ -67,7 +70,15 @@ class QuizAttemptController extends Controller
 
         // buat attempt baru jika belum ada
         if (! $attempt) {
-            $attempt = $this->quizService->startQuiz($quiz, $user);
+            try {
+                $attempt = $this->quizService->startQuiz($quiz, $user);
+            } catch (DomainException $e) {
+                return redirect()
+                    ->route('employee.courses.modules.show', [$course->id, $module->id])
+                    ->withErrors([
+                        'quiz' => $e->getMessage()
+                    ]);
+            }
         }
 
         return redirect()->route(
@@ -86,6 +97,10 @@ class QuizAttemptController extends Controller
         CourseModule $module,
         QuizAttempt $attempt
     ) {
+        abort_unless(
+            $attempt->quiz->course_module_id === $module->id,
+            404
+        );
         abort_if($attempt->status !== 'started', 403, 'Attempt tidak aktif');
         abort_if($attempt->submitted_at, 403, 'Quiz sudah dikumpulkan');
 

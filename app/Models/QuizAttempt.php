@@ -33,6 +33,11 @@ class QuizAttempt extends Model
         return $this->belongsTo(ModuleQuiz::class, 'module_quiz_id');
     }
 
+    public function moduleQuiz(): BelongsTo
+    {
+        return $this->belongsTo(ModuleQuiz::class, 'module_quiz_id');
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -48,5 +53,32 @@ class QuizAttempt extends Model
     public function isFinished(): bool
     {
         return !is_null($this->submitted_at);
+    }
+
+    // Recalculate score berdasarkan jawaban dan review
+    public function recalculateScore(): void
+    {
+        $total = 0;
+
+        foreach ($this->answers as $answer) {
+
+            // Essay → ambil dari review
+            if ($answer->question->type === 'essay') {
+                if ($answer->is_correct) {
+                    $total += $answer->question->score;
+                }
+            }
+
+            // MCQ / TF → auto
+            if (in_array($answer->question->type, ['mcq', 'true_false'])) {
+                if ($answer->option && $answer->option->is_correct) {
+                    $total += $answer->question->score;
+                }
+            }
+        }
+
+        $this->score = $total;
+        $this->is_passed = $total >= $this->passing_score;
+        $this->save();
     }
 }

@@ -24,6 +24,50 @@
     <div class="p-6 space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
+            {{-- Max Attempts --}}
+            <div class="md:col-span-2"
+                x-data="{
+                    unlimited: {{ old('quiz.max_attempts', $module->quiz->max_attempts ?? null) === null ? 'true' : 'false' }}
+                }">
+
+                <label class="block text-sm font-semibold text-slate-700 mb-2">
+                    Batas Percobaan Pengerjaan Quiz
+                </label>
+
+                <div class="flex items-center gap-6 mb-3">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio"
+                            name="quiz_attempt_type"
+                            value="unlimited"
+                            @change="unlimited = true"
+                            :checked="unlimited">
+                        <span class="text-sm">Tanpa Batas</span>
+                    </label>
+
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio"
+                            name="quiz_attempt_type"
+                            value="limited"
+                            @change="unlimited = false"
+                            :checked="!unlimited">
+                        <span class="text-sm">Batasi Percobaan</span>
+                    </label>
+                </div>
+
+                <div x-show="!unlimited" x-transition>
+                    <input type="number"
+                        name="quiz[max_attempts]"
+                        min="1"
+                        :disabled="unlimited"
+                        value="{{ old('quiz.max_attempts', $module->quiz->max_attempts ?? 3) }}"
+                        class="w-40 rounded-xl border-slate-200">
+                </div>
+
+            </div>
+
+
+
+
             {{-- Judul Quiz --}}
             <div class="md:col-span-2">
                 <label class="block text-sm font-semibold text-slate-700 mb-1.5">

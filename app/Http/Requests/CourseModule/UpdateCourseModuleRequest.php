@@ -68,6 +68,12 @@ class UpdateCourseModuleRequest extends FormRequest
 
             'quiz.time_limit' => ['nullable', 'integer', 'min:1'],
 
+            'quiz.max_attempts' => [
+                'nullable',
+                'integer',
+                'min:1',
+            ],
+
             'quiz.is_mandatory' => ['nullable', 'boolean'],
 
             'quiz.status' => [

@@ -27,10 +27,17 @@ class CourseModuleController extends Controller
 
         $service->authorizeModuleManagement($course, auth()->id());
 
+
         $modules = $course->modules()
             ->with([
                 'quiz' => function ($q) {
                     $q->withCount('questions');
+                }
+            ])
+            ->with([
+                'quiz.attempts' => function ($q) {
+                    $q->where('user_id', auth()->id())
+                        ->orderByDesc('created_at');
                 }
             ])
             ->orderBy('sort_order', 'asc')
@@ -121,6 +128,11 @@ class CourseModuleController extends Controller
 
         //JIKA MODUL BERTIPE QUIZ
         if ($shouldCreateQuiz && !empty($data['quiz'])) {
+            // normalize max_attempts
+            if (empty($data['quiz']['max_attempts'])) {
+                $data['quiz']['max_attempts'] = null;
+            }
+
             $module->quiz()->create($data['quiz']);
         }
 
@@ -182,6 +194,11 @@ class CourseModuleController extends Controller
 
         // Handle quiz
         if ($shouldHaveQuiz && $quizData) {
+            // normalize max_attempts
+            if (empty($quizData['max_attempts'])) {
+                $quizData['max_attempts'] = null;
+            }
+
             // update or create
             $module->quiz()
                 ->updateOrCreate(
