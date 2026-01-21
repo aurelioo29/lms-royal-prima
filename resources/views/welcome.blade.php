@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>{{ config('app.name', 'LMS Royal Prima') }}</title>
+    <link href='{{ asset('favicon.ico') }}' rel='shortcut icon'>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
