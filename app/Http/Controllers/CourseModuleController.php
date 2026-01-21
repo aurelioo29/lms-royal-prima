@@ -26,6 +26,7 @@ class CourseModuleController extends Controller
     {
 
         $service->authorizeModuleManagement($course, auth()->id());
+        
 
         $modules = $course->modules()
             ->with([
