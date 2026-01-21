@@ -12,7 +12,7 @@ use App\Services\Dashboard\Contracts\DashboardRoleService;
 
 class AdminDashboardService implements DashboardRoleService
 {
-     protected int $employeeRoleId;
+    protected int $employeeRoleId;
 
     public function __construct()
     {
@@ -121,5 +121,46 @@ class AdminDashboardService implements DashboardRoleService
     public function getActivities(User $user): array
     {
         return [];
+    }
+
+    /**
+     * CHARTS (ADMIN)
+     * - monthly_jpl: total earned_hours per bulan (tahun berjalan)
+     */
+    public function getCharts(User $user): array
+    {
+        $year = now()->year;
+
+        // Karyawan aktif
+        $employeeIds = User::where('role_id', $this->employeeRoleId)
+            ->where('is_active', true)
+            ->pluck('id');
+
+        // Ambil total JPL per bulan (1-12)
+        $rows = CourseCompletion::query()
+            ->selectRaw('MONTH(completed_at) as m, COALESCE(SUM(earned_hours),0) as total')
+            ->whereYear('completed_at', $year)
+            ->whereIn('user_id', $employeeIds)
+            ->groupByRaw('MONTH(completed_at)')
+            ->orderByRaw('MONTH(completed_at)')
+            ->get()
+            ->keyBy('m');
+
+        // Label bulan (ID)
+        $labels = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun', 7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'];
+
+        // Isi 12 bulan (kalau ga ada data -> 0)
+        $monthly = [];
+        for ($m = 1; $m <= 12; $m++) {
+            $monthly[] = [
+                'label' => $labels[$m],
+                'value' => (float) optional($rows->get($m))->total ?? 0,
+            ];
+        }
+
+        return [
+            'monthly_jpl' => $monthly,
+            'year' => $year,
+        ];
     }
 }

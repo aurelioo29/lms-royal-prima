@@ -1,25 +1,38 @@
-<header class="h-16 bg-white border-b flex items-center justify-between px-4 relative z-50">
+<header
+    class="h-16 bg-white/80 backdrop-blur
+           border-b border-slate-300/90
+           flex items-center justify-between px-4
+           shadow-[0_1px_0_rgba(15,23,42,0.04)]
+           relative isolate">
+
     <div class="flex items-center gap-3">
-        {{-- Toggle Button --}}
         <button @click="collapsed = !collapsed"
-            class="p-2 rounded-md hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            class="p-2 rounded-lg hover:bg-white/60 transition
+                   focus:outline-none focus:ring-2 focus:ring-[#121293]/20"
+            aria-label="Toggle Sidebar">
+            <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
         </button>
 
-        <h1 class="font-semibold text-slate-700">Dashboard</h1>
+        <div class="leading-tight">
+            <h1 class="text-sm font-semibold text-slate-900">Dashboard</h1>
+            <div class="text-[11px] text-slate-500 hidden sm:block">
+                {{ now()->translatedFormat('l, d F Y') }}
+            </div>
+        </div>
     </div>
 
-    {{-- Right: Dropdown --}}
     <div class="flex items-center gap-3">
-        <x-dropdown align="right" width="48">
+        <x-dropdown align="right" width="56" contentClasses="py-1 bg-white/95 backdrop-blur">
             <x-slot name="trigger">
-                <button
-                    class="group inline-flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 transition">
+                <button type="button"
+                    class="group inline-flex items-center gap-3 rounded-xl px-2 py-1.5
+                           hover:bg-white/60 transition
+                           focus:outline-none focus:ring-2 focus:ring-[#121293]/20">
 
                     <div class="text-right leading-tight hidden sm:block">
-                        <div class="text-sm font-medium text-slate-700">
+                        <div class="text-sm font-semibold text-slate-900">
                             {{ Auth::user()->name }}
                         </div>
                         <div class="text-xs text-slate-500">
@@ -28,7 +41,7 @@
                     </div>
 
                     <div
-                        class="h-9 w-9 rounded-full bg-indigo-500 text-white flex items-center justify-center font-semibold">
+                        class="h-9 w-9 rounded-full bg-[#121293] text-white flex items-center justify-center font-semibold ring-2 ring-white/70">
                         {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                     </div>
 
@@ -43,21 +56,22 @@
 
             <x-slot name="content">
                 <div class="px-4 py-3">
-                    <div class="text-sm font-medium text-slate-800">{{ Auth::user()->name }}</div>
+                    <div class="text-sm font-semibold text-slate-900">{{ Auth::user()->name }}</div>
                     <div class="text-xs text-slate-500">{{ Auth::user()->email }}</div>
                 </div>
 
-                <div class="border-t border-slate-100"></div>
+                <div class="border-t border-slate-200/80"></div>
 
                 <x-dropdown-link :href="route('profile.edit')">
                     {{ __('Profile') }}
                 </x-dropdown-link>
 
-                <form method="POST" action="{{ route('logout') }}">
+                <form id="logout-form" method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
+                    <button type="button" onclick="confirmLogout(event)"
+                        class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">
                         {{ __('Log Out') }}
-                    </x-dropdown-link>
+                    </button>
                 </form>
             </x-slot>
         </x-dropdown>
