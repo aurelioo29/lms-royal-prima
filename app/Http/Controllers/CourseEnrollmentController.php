@@ -52,6 +52,8 @@ class CourseEnrollmentController extends Controller
     {
         abort_unless(auth()->user()->can('access', $course), 403);
 
+        $user = auth()->user();
+
         $course->load([
             'instructors' => function ($q) {
                 $q->wherePivot('status', 'active');
@@ -63,14 +65,114 @@ class CourseEnrollmentController extends Controller
             ->orderBy('sort_order')
             ->with([
                 'progresses' => fn($q) =>
-                $q->where('user_id', auth()->id())
+                $q->where('user_id', $user->id),
+
+                'quiz.attempts' => fn($q) =>
+                $q->where('user_id', $user->id)
+                    ->whereNotNull('submitted_at'),
             ])
             ->get();
 
-        // COURSE SUMMARY
+        // ================= MODULES LOGIC =================
+        $previousMandatoryQuizPassed = true;
+        $previousRequiredModuleCompleted = true;
+
+        // flow blokir modul berikutnya
+        $flowBlocked = false;
+
+
+        foreach ($modules as $module) {
+
+            // ================= DEFAULT FLAGS =================
+            $module->is_locked = false;
+            $module->can_start_quiz = true;
+            $module->quiz_passed = false;
+            $module->quiz_attempts_exhausted = false;
+            $module->quiz_waiting_review = false;
+
+
+            $progressModule = $module->progresses->first();
+            $quiz = $module->quiz;
+
+            // ================= MODULE LOCK FLOW =================
+
+            if ($flowBlocked) {
+                $module->is_locked = true;
+                $module->can_start_quiz = false;
+                continue;
+            }
+
+            if ($module->is_required) {
+                if (! $progressModule || $progressModule->status !== 'completed') {
+                    $module->is_locked = true;
+                    $module->can_start_quiz = false;
+
+                    // 🔒 BLOK SEMUA SETELAHNYA
+                    $flowBlocked = true;
+                    continue;
+                }
+            }
+            // ================= QUIZ LOGIC =================
+            if ($quiz) {
+
+                $attempts = $quiz->attempts;
+
+                //quiz lulus = ADA attempt is_passed
+                $module->quiz_passed = $attempts
+                    ->contains(fn($a) => $a->status === 'reviewed_passed');
+
+                //menunggu review 
+                $module->quiz_waiting_review = $attempts
+                    ->contains(fn($a) => $a->status === 'submitted');
+
+                //attempt habis
+                if (! is_null($quiz->max_attempts)) {
+                    $usedAttempts = $attempts->count();
+                    $module->quiz_attempts_exhausted =
+                        $usedAttempts >= $quiz->max_attempts;
+                }
+
+                // atur akses quiz
+                // modul WAJIB → harus selesai dulu
+                if ($module->is_required) {
+                    if (! $progressModule || $progressModule->status !== 'completed') {
+                        $module->is_locked = true;
+                        $module->can_start_quiz = false;
+
+                        // 🔒 BLOK SEMUA SETELAHNYA
+                        $flowBlocked = true;
+                        continue;
+                    }
+                }
+
+                //masih menunggu review → tidak boleh quiz lagi
+                if ($module->quiz_waiting_review) {
+                    $module->can_start_quiz = false;
+                }
+
+                //attempt habis → tidak bisa quiz
+                if ($module->quiz_attempts_exhausted && ! $module->quiz_passed) {
+                    $module->can_start_quiz = false;
+                }
+
+
+                // modul WAJIB → menentukan akses modul berikutnya
+                if ($module->is_required) {
+                    $previousRequiredModuleCompleted =
+                        $progressModule && $progressModule->status === 'completed';
+                }
+                //quiz mandatory → menentukan modul berikutnya
+                if ($quiz->is_mandatory && ! $module->quiz_passed) {
+                    // $previousMandatoryQuizPassed = false;
+                    $flowBlocked = true;
+                }
+            }
+        }
+
+        // ================= COURSE SUMMARY =================
         $progress = CourseProgressService::summary(
             $course,
-            auth()->id()
+            $user->id
         );
 
         return view(
@@ -79,44 +181,9 @@ class CourseEnrollmentController extends Controller
         );
     }
 
-    //     public function show(Course $course)
-    // {
-    //     abort_unless(auth()->user()->can('access', $course), 403);
 
-    //     // Load SEMUA data yang dibutuhkan halaman course detail
-    //     $course->load([
-    //         // Instruktur aktif
-    //         'instructors' => fn($q) =>
-    //         $q->wherePivot('status', 'active'),
 
-    //         // Modul aktif & urut
-    //         'modules' => fn($q) =>
-    //         $q->where('is_active', true)
-    //             ->orderBy('sort_order'),
 
-    //         // Quiz per modul
-    //         'modules.quiz',
-
-    //         // Attempt quiz user login
-    //         'modules.quiz.attempts' => fn($q) =>
-    //         $q->where('user_id', auth()->id()),
-
-    //         // Progress modul user login
-    //         'modules.progresses' => fn($q) =>
-    //         $q->where('user_id', auth()->id()),
-    //     ]);
-
-    //     // COURSE SUMMARY
-    //     $progress = CourseProgressService::summary(
-    //         $course,
-    //         auth()->id()
-    //     );
-
-    //     return view(
-    //         'course-enrollment.show',
-    //         compact('course', 'progress')
-    //     );
-    // }
 
     // Form enroll course
     public function create(Course $course)

@@ -102,15 +102,13 @@
                                                     </span>
                                                 @endif
 
-                                                @if (
-                                                    $module->quiz &&
-                                                    $module->quiz->questions->where('type', 'essay')->count() > 0
-                                                )
+                                                @if ($module->quiz && ($module->quiz->essay_questions_count ?? 0) > 0)
                                                     <span
                                                         class="inline-flex items-center rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-0.5">
                                                         Essay
                                                     </span>
                                                 @endif
+
 
                                             </div>
 
@@ -153,25 +151,22 @@
                                     <td class="px-6 py-4">
                                         <div class="flex items-center justify-end gap-2">
 
-                                           @if (
-                                                    $module->quiz &&
-                                                    $module->quiz->questions->where('type', 'essay')->count() > 0
-                                                )
-                                                    <a
-                                                        href="{{ route($routePrefix . '.modules.quiz.review.index', [
-                                                            'course' => $course->id,
-                                                            'module' => $module->id,
-                                                        ]) }}"
-                                                        title="Review Jawaban Essay"
-                                                        class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                                                    >
-                                                        {{-- Icon clipboard / review --}}
-                                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5v2m6-2v2M9 14h6M9 18h6" />
-                                                        </svg>
-                                                    </a>
-                                                @endif
+                                            @if ($module->quiz && $module->quiz->questions->where('type', 'essay')->count() > 0)
+                                                <a href="{{ route($routePrefix . '.modules.quiz.review.index', [
+                                                    'course' => $course->id,
+                                                    'module' => $module->id,
+                                                ]) }}"
+                                                    title="Review Jawaban Essay"
+                                                    class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                                                    {{-- Icon clipboard / review --}}
+                                                    <svg class="h-5 w-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5v2m6-2v2M9 14h6M9 18h6" />
+                                                    </svg>
+                                                </a>
+                                            @endif
 
 
 

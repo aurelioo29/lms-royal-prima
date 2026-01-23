@@ -19,6 +19,24 @@ class QuizEssayReviewController extends Controller
             : 'courses';
     }
 
+    private function finalizeAttempt(QuizAttempt $attempt): void
+    {
+        $essayAnswers = $attempt->answers()
+            ->whereHas('question', fn($q) => $q->where('type', 'essay'))
+            ->with('review')
+            ->get();
+
+        // jika ADA essay tapi BELUM DIREVIEW → STOP
+        if ($essayAnswers->contains(fn($a) => $a->review === null)) {
+            return;
+        }
+
+        // SATU-SATUNYA TEMPAT SET STATUS
+        $attempt->recalculateScore();
+    }
+
+
+
     public function index(Course $course, CourseModule $module)
     {
         $routePrefix = $this->moduleRoutePrefix();
@@ -48,10 +66,7 @@ class QuizEssayReviewController extends Controller
         CourseModule $module,
         QuizAttempt $attempt
     ) {
-        // abort_unless(
-        //     $attempt->module_id === $module->id,
-        //     404
-        // );
+
         $routePrefix = $this->moduleRoutePrefix();
 
         $attempt->load([
@@ -96,7 +111,7 @@ class QuizEssayReviewController extends Controller
             ]
         );
 
-        // update nilai answer
+        // OPTIONAL: cache score di answer (BUKAN sumber kebenaran)
         $answer->update([
             'is_correct' => $request->boolean('is_correct'),
             'score' => $request->boolean('is_correct')
@@ -104,7 +119,7 @@ class QuizEssayReviewController extends Controller
                 : 0,
         ]);
 
-        $answer->attempt->recalculateScore();
+        $this->finalizeAttempt($answer->attempt);
 
         return back()->with('success', 'Jawaban essay berhasil dinilai.');
     }

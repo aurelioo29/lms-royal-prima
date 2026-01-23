@@ -9,8 +9,12 @@ class QuizAnswerReview extends Model
     protected $fillable = [
         'quiz_answer_id',
         'reviewer_id',
-        'score',
+        'is_correct',
         'note',
+    ];
+
+    protected $casts = [
+        'is_correct' => 'boolean',
     ];
 
     public function answer()
