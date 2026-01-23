@@ -16,14 +16,18 @@ class QuizAttempt extends Model
         'is_passed',
         'started_at',
         'expired_at',
+        'reviewed_by',
+        'reviewed_at',
         'submitted_at',
         'status',
     ];
 
     protected $casts = [
-        'is_passed' => 'boolean',
-        'started_at' => 'datetime',
+        'is_passed'   => 'boolean',
+        'started_at'  => 'datetime',
         'submitted_at' => 'datetime',
+        'expired_at'  => 'datetime',
+        'reviewed_at' => 'datetime',
     ];
 
     /* ================= RELATIONS ================= */
@@ -43,6 +47,11 @@ class QuizAttempt extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
     public function answers(): HasMany
     {
         return $this->hasMany(QuizAnswer::class);
@@ -50,26 +59,69 @@ class QuizAttempt extends Model
 
     /* ================= DOMAIN HELPERS ================= */
 
-    public function isFinished(): bool
+    public function isStarted(): bool
     {
-        return !is_null($this->submitted_at);
+        return $this->status === 'started';
+    }
+
+    public function isSubmitted(): bool
+    {
+        return $this->status === 'submitted';
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->status === 'expired';
+    }
+
+    public function isReviewed(): bool
+    {
+        return in_array($this->status, [
+            'reviewed_passed',
+            'reviewed_failed',
+        ]);
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($attempt) {
+            $attempt->status = 'started';
+        });
+    }
+
+
+    public function isPassed(): bool
+    {
+        return $this->status === 'reviewed_passed';
     }
 
     // Recalculate score berdasarkan jawaban dan review
     public function recalculateScore(): void
     {
+        $this->loadMissing([
+            'answers.question',
+            'answers.option',
+            'answers.review',
+            'quiz',
+        ]);
+
         $total = 0;
 
         foreach ($this->answers as $answer) {
 
-            // Essay → ambil dari review
+            // ================= ESSAY =================
             if ($answer->question->type === 'essay') {
-                if ($answer->is_correct) {
+
+                // WAJIB: nilai dari REVIEW
+                if (
+                    $answer->review &&
+                    $answer->review->is_correct === true
+                ) {
                     $total += $answer->question->score;
                 }
             }
 
-            // MCQ / TF → auto
+            // ================= MCQ / TRUE_FALSE =================
             if (in_array($answer->question->type, ['mcq', 'true_false'])) {
                 if ($answer->option && $answer->option->is_correct) {
                     $total += $answer->question->score;
@@ -77,8 +129,16 @@ class QuizAttempt extends Model
             }
         }
 
-        $this->score = $total;
-        $this->is_passed = $total >= $this->passing_score;
-        $this->save();
+        $passed = $total >= $this->quiz->passing_score;
+
+        $this->update([
+            'score'       => $total,
+            'is_passed'   => $passed,
+            'status'      => $passed
+                ? 'reviewed_passed'
+                : 'reviewed_failed',
+            'reviewed_at' => now(),
+            'reviewed_by' => auth()->id(),
+        ]);
     }
 }

@@ -16,6 +16,8 @@
                     </p>
                 </div>
 
+
+
                 <!-- Table -->
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
@@ -45,42 +47,60 @@
                                     </td>
 
                                     <td class="px-4 py-4 text-center">
-                                        @if ($attempt->is_passed)
-                                            <span class="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                                                Lulus
-                                            </span>
-                                        @else
-                                            <span class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-                                                Perlu Review
-                                            </span>
-                                        @endif
+                                        @switch($attempt->status)
+                                            @case('submitted')
+                                                <span
+                                                    class="inline-flex rounded-full bg-yellow-100 px-3 py-1
+                text-xs font-semibold text-yellow-700">
+                                                    ⏳ Menunggu Review
+                                                </span>
+                                            @break
+
+                                            @case('reviewed_passed')
+                                                <span
+                                                    class="inline-flex rounded-full bg-green-100 px-3 py-1
+                text-xs font-semibold text-green-700">
+                                                    ✔ Lulus
+                                                </span>
+                                            @break
+
+                                            @case('reviewed_failed')
+                                                <span
+                                                    class="inline-flex rounded-full bg-red-100 px-3 py-1
+                text-xs font-semibold text-red-700">
+                                                    ✖ Tidak Lulus
+                                                </span>
+                                            @break
+                                        @endswitch
                                     </td>
+
+
 
                                     <td class="px-6 py-4 text-right">
                                         <a href="{{ route($routePrefix . '.modules.quiz.review.show', [
-                                            'course'  => $course->id,
-                                            'module'  => $module->id,
+                                            'course' => $course->id,
+                                            'module' => $module->id,
                                             'attempt' => $attempt->id,
                                         ]) }}"
-                                        class="inline-flex items-center gap-2 rounded-xl
+                                            class="inline-flex items-center gap-2 rounded-xl
                                             bg-[#121293] px-4 py-2 text-sm font-semibold
                                             text-white hover:bg-blue-900 transition">
                                             Review Essay
                                         </a>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="px-6 py-8 text-center text-slate-500">
-                                        Tidak ada attempt dengan soal essay.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-8 text-center text-slate-500">
+                                            Tidak ada attempt dengan soal essay.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
 
+                </div>
             </div>
         </div>
-    </div>
-</x-app-layout>
+    </x-app-layout>

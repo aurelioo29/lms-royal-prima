@@ -31,14 +31,17 @@ class CourseModuleController extends Controller
         $modules = $course->modules()
             ->with([
                 'quiz' => function ($q) {
-                    $q->withCount('questions');
-                }
-            ])
-            ->with([
+                    $q->withCount([
+                        'questions',
+                        'questions as essay_questions_count' => function ($q2) {
+                            $q2->where('type', 'essay');
+                        },
+                    ]);
+                },
                 'quiz.attempts' => function ($q) {
                     $q->where('user_id', auth()->id())
                         ->orderByDesc('created_at');
-                }
+                },
             ])
             ->orderBy('sort_order', 'asc')
             ->get();
