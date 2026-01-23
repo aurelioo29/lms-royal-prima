@@ -21,7 +21,10 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register');
+        $jobCategories = \App\Models\JobCategory::orderBy('name')->get();
+        $jobTitles     = \App\Models\JobTitle::orderBy('name')->get();
+
+        return view('auth.register', compact('jobCategories', 'jobTitles'));
     }
 
     /**
@@ -32,26 +35,46 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            // dari form
             'name'       => ['required', 'string', 'max:255'],
             'nik'        => ['required', 'string', 'max:50', Rule::unique('users', 'nik')],
             'phone'      => ['required', 'string', 'max:30', Rule::unique('users', 'phone')],
             'birth_date' => ['required', 'date'],
             'gender'     => ['required', Rule::in(['M', 'F'])],
 
-            // auth
             'email'      => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users', 'email')],
             'password'   => ['required', 'confirmed', Rules\Password::defaults()],
 
-            // hidden (role narasumber)
-            'role_slug'  => ['required', Rule::in(['instructor'])],
+            'role_slug'  => ['required', Rule::in(['karyawan', 'instructor'])],
+
+            // wajib kalau role = karyawan
+            'job_category_id' => ['nullable', 'integer', 'required_if:role_slug,karyawan'],
+            'job_title_id'    => ['nullable', 'integer', 'required_if:role_slug,karyawan'],
+
+            // perawat (nanti kita enforce lagi setelah tahu category yang dipilih)
+            'jabatan' => ['nullable', 'string', 'max:255'],
+            'unit'    => ['nullable', 'string', 'max:255'],
         ]);
 
-        // Ambil role_id narasumber dari slug
-        $roleId = DB::table('roles')->where('slug', 'instructor')->value('id');
+        // Ambil role_id dari slug
+        $roleId = DB::table('roles')->where('slug', $request->role_slug)->value('id');
+        if (!$roleId) abort(500, 'Role belum tersedia. Pastikan roles: karyawan & instructor sudah ada.');
 
-        if (!$roleId) {
-            abort(500, 'Role Narasumber (instructor) belum tersedia. Jalankan seeder roles dulu.');
+        // Kalau role = karyawan, cek apakah category = Perawat
+        $isPerawat = false;
+        if ($request->role_slug === 'karyawan' && $request->job_category_id) {
+            $catName = DB::table('job_categories')->where('id', $request->job_category_id)->value('name');
+            $isPerawat = strtolower(trim($catName ?? '')) === 'perawat';
+        }
+
+        // Enforce wajib jabatan & unit kalau perawat
+        if ($isPerawat) {
+            $request->validate([
+                'jabatan' => ['required', 'string', 'max:255'],
+                'unit'    => ['required', 'string', 'max:255'],
+            ]);
+        } else {
+            // kalau bukan perawat, kosongin aja biar bersih
+            $request->merge(['jabatan' => null, 'unit' => null]);
         }
 
         $user = User::create([
@@ -65,12 +88,17 @@ class RegisteredUserController extends Controller
             'role_id'    => $roleId,
             'is_active'  => true,
             'password'   => Hash::make($request->password),
+
+            // simpan job fields (boleh null kalau instructor)
+            'job_category_id' => $request->role_slug === 'karyawan' ? $request->job_category_id : null,
+            'job_title_id'    => $request->role_slug === 'karyawan' ? $request->job_title_id : null,
+            'jabatan'         => $request->role_slug === 'karyawan' ? $request->jabatan : null,
+            'unit'            => $request->role_slug === 'karyawan' ? $request->unit : null,
         ]);
 
         event(new Registered($user));
         Auth::login($user);
 
-        // arahkan kemana? sementara ke dashboard
         return redirect()->route('dashboard');
     }
 }

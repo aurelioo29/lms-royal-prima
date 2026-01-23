@@ -27,6 +27,8 @@ class User extends Authenticatable
         'gender',
         'job_category_id',
         'job_title_id',
+        'jabatan',
+        'unit',
         'is_active',
     ];
 
@@ -178,6 +180,5 @@ class User extends Authenticatable
     public function quizAttempts()
     {
         return $this->hasMany(QuizAttempt::class);
-
     }
 }

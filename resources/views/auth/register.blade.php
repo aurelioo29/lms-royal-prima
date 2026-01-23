@@ -17,39 +17,91 @@
             <div class="flex-1 overflow-y-auto px-6 pb-8">
                 <div class="w-full max-w-md mx-auto">
 
-                    <form method="POST" action="{{ route('register') }}" class="space-y-4">
+                    <form method="POST" action="{{ route('register') }}" class="space-y-4" novalidate>
                         @csrf
 
-                        {{-- Daftar Sebagai (Narasumber only) --}}
+                        {{-- Daftar Sebagai (Karyawan / Narasumber) --}}
                         <div>
                             <x-required-label value="Daftar Sebagai" />
-                            <div class="mt-2">
-                                <div
-                                    class="w-full rounded-xl border border-[#121293] bg-white px-4 py-3 flex items-center justify-between">
-                                    <div class="flex items-center gap-3">
-                                        <div
-                                            class="h-10 w-10 rounded-full bg-[#121293]/10 flex items-center justify-center overflow-hidden">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#121293]"
-                                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                stroke-width="2">
-                                                <path d="M20 21a8 8 0 0 0-16 0"></path>
-                                                <circle cx="12" cy="7" r="4"></circle>
-                                            </svg>
-                                        </div>
+                            <div class="mt-2 space-y-3">
 
-                                        <div class="leading-tight">
-                                            <div class="text-sm font-semibold text-[#121293]">Narasumber</div>
-                                            <div class="text-xs text-gray-400">Pendaftaran khusus narasumber</div>
-                                        </div>
-                                    </div>
+                                {{-- Karyawan --}}
+                                <label class="block cursor-pointer">
+                                    <input type="radio" name="role_slug" value="karyawan" class="peer sr-only"
+                                        {{ old('role_slug', 'karyawan') === 'karyawan' ? 'checked' : '' }} />
 
                                     <div
-                                        class="h-5 w-5 rounded-full border-2 border-[#121293] flex items-center justify-center">
-                                        <div class="h-2.5 w-2.5 rounded-full bg-[#121293]"></div>
+                                        class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 flex items-center justify-between peer-checked:border-[#121293] peer-checked:ring-2 peer-checked:ring-[#121293]/20 peer-checked:[&_.radio-ring]:border-[#121293] peer-checked:[&_.radio-dot]:opacity-100">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="h-10 w-10 rounded-full bg-[#121293]/10 flex items-center justify-center overflow-hidden">
+                                                {{-- ICON KARYAWAN --}}
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#121293]"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
+                                                    <path d="M16 20V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v16"></path>
+                                                    <path d="M8 6h4"></path>
+                                                    <path d="M8 10h4"></path>
+                                                    <path d="M8 14h4"></path>
+                                                    <path d="M18 20V10a2 2 0 0 0-2-2h-2"></path>
+                                                </svg>
+                                            </div>
+
+                                            <div class="leading-tight">
+                                                <div class="text-sm font-semibold text-slate-900">Karyawan</div>
+                                                <div class="text-xs text-gray-400">Akun untuk karyawan RSU</div>
+                                            </div>
+                                        </div>
+
+                                        {{-- radio indicator --}}
+                                        <div
+                                            class="radio-ring h-5 w-5 rounded-full border-2 border-slate-300 flex items-center justify-center">
+                                            <div
+                                                class="radio-dot h-2.5 w-2.5 rounded-full bg-[#121293] opacity-0 transition">
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                </label>
+
+                                {{-- Narasumber --}}
+                                <label class="block cursor-pointer">
+                                    <input type="radio" name="role_slug" value="instructor" class="peer sr-only"
+                                        {{ old('role_slug') === 'instructor' ? 'checked' : '' }} />
+
+                                    <div
+                                        class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 flex items-center justify-between peer-checked:border-[#121293] peer-checked:ring-2 peer-checked:ring-[#121293]/20 peer-checked:[&_.radio-ring]:border-[#121293] peer-checked:[&_.radio-dot]:opacity-100">
+
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="h-10 w-10 rounded-full bg-[#121293]/10 flex items-center justify-center overflow-hidden">
+                                                {{-- ICON NARASUMBER --}}
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#121293]"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2">
+                                                    <path d="M20 21a8 8 0 0 0-16 0"></path>
+                                                    <circle cx="12" cy="7" r="4"></circle>
+                                                </svg>
+                                            </div>
+
+                                            <div class="leading-tight">
+                                                <div class="text-sm font-semibold text-slate-900">Narasumber</div>
+                                                <div class="text-xs text-gray-400">Pendaftaran khusus narasumber</div>
+                                            </div>
+                                        </div>
+
+                                        {{-- radio indicator --}}
+                                        <div
+                                            class="radio-ring h-5 w-5 rounded-full border-2 border-slate-300 flex items-center justify-center">
+                                            <div
+                                                class="radio-dot h-2.5 w-2.5 rounded-full bg-[#121293] opacity-0 transition">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+
                             </div>
-                            <input type="hidden" name="role_slug" value="instructor">
+
+                            <x-input-error :messages="$errors->get('role_slug')" class="mt-2" />
                         </div>
 
                         {{-- Nama Lengkap --}}
@@ -114,12 +166,64 @@
                             <x-input-error :messages="$errors->get('gender')" class="mt-2" />
                         </div>
 
+                        {{-- SECTION: Data Pekerjaan (muncul kalau role = karyawan) --}}
+                        <div id="karyawanFields" class="hidden space-y-4">
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <x-required-label value="Job Category" />
+                                    <select id="jobCategory" name="job_category_id"
+                                        class="mt-1 w-full rounded-lg border-slate-200 focus:border-[#121293] focus:ring-[#121293]">
+                                        <option value="">-- pilih --</option>
+                                        @foreach ($jobCategories as $jc)
+                                            <option value="{{ $jc->id }}" @selected(old('job_category_id') == $jc->id)>
+                                                {{ $jc->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <x-input-error :messages="$errors->get('job_category_id')" class="mt-2" />
+                                </div>
+
+                                <div>
+                                    <x-required-label value="Job Title" />
+                                    <select id="jobTitle" name="job_title_id"
+                                        class="mt-1 w-full rounded-lg border-slate-200 focus:border-[#121293] focus:ring-[#121293]">
+                                        <option value="">-- pilih --</option>
+                                        @foreach ($jobTitles as $jt)
+                                            <option value="{{ $jt->id }}" @selected(old('job_title_id') == $jt->id)>
+                                                {{ $jt->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <x-input-error :messages="$errors->get('job_title_id')" class="mt-2" />
+                                </div>
+                            </div>
+
+                            {{-- SUB SECTION: Perawat --}}
+                            <div id="perawatFields" class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <x-required-label for="jabatan" value="Jabatan (Manual)" />
+                                    <x-text-input id="jabatan" class="block mt-1 w-full" type="text"
+                                        name="jabatan" :value="old('jabatan')" placeholder="Contoh: Perawat Pelaksana" />
+                                    <x-input-error :messages="$errors->get('jabatan')" class="mt-2" />
+                                </div>
+
+                                <div>
+                                    <x-required-label for="unit" value="Unit (Manual)" />
+                                    <x-text-input id="unit" class="block mt-1 w-full" type="text"
+                                        name="unit" :value="old('unit')"
+                                        placeholder="Contoh: IGD / ICU / Rawat Inap" />
+                                    <x-input-error :messages="$errors->get('unit')" class="mt-2" />
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Password --}}
                         <div>
                             <x-required-label for="password" value="Password" />
                             <div class="relative mt-1">
-                                <x-text-input id="password" class="block w-full pr-12" type="password" name="password"
-                                    required autocomplete="new-password" placeholder="Masukan Kata Sandi" />
+                                <x-text-input id="password" class="block w-full pr-12" type="password"
+                                    name="password" required autocomplete="new-password"
+                                    placeholder="Masukan Kata Sandi" />
                                 <button type="button" id="togglePassword"
                                     class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700 focus:outline-none"
                                     aria-label="Tampilkan/Sembunyikan password">
@@ -234,6 +338,75 @@
 
             bindToggle('togglePassword', 'password', 'eyeIcon', 'eyeOffIcon');
             bindToggle('togglePassword2', 'password_confirmation', 'eyeIcon2', 'eyeOffIcon2');
+
+            const roleRadios = document.querySelectorAll('input[name="role_slug"]');
+            const karyawanFields = document.getElementById('karyawanFields');
+
+            const jobCategory = document.getElementById('jobCategory');
+            const jobTitle = document.getElementById('jobTitle');
+
+            const perawatFields = document.getElementById('perawatFields');
+            const jabatan = document.getElementById('jabatan');
+            const unit = document.getElementById('unit');
+
+            function setRequired(el, required) {
+                if (!el) return;
+                el.required = required;
+            }
+
+            function clearValue(el) {
+                if (!el) return;
+                el.value = '';
+            }
+
+            function getSelectedRole() {
+                return document.querySelector('input[name="role_slug"]:checked')?.value ?? null;
+            }
+
+            function toggleKaryawanFields() {
+                const isKaryawan = getSelectedRole() === 'karyawan';
+
+                karyawanFields?.classList.toggle('hidden', !isKaryawan);
+
+                setRequired(jobCategory, isKaryawan);
+                setRequired(jobTitle, isKaryawan);
+
+                if (!isKaryawan) {
+                    perawatFields?.classList.add('hidden');
+
+                    setRequired(jabatan, false);
+                    setRequired(unit, false);
+
+                    clearValue(jobCategory);
+                    clearValue(jobTitle);
+                    clearValue(jabatan);
+                    clearValue(unit);
+                } else {
+                    togglePerawatFields();
+                }
+            }
+
+            function togglePerawatFields() {
+                if (!jobCategory) return;
+
+                const selectedText = jobCategory.options[jobCategory.selectedIndex]?.text?.trim().toLowerCase();
+                const isPerawat = selectedText === 'perawat';
+
+                perawatFields?.classList.toggle('hidden', !isPerawat);
+
+                setRequired(jabatan, isPerawat);
+                setRequired(unit, isPerawat);
+
+                if (!isPerawat) {
+                    clearValue(jabatan);
+                    clearValue(unit);
+                }
+            }
+
+            roleRadios.forEach(r => r.addEventListener('change', toggleKaryawanFields));
+            jobCategory?.addEventListener('change', togglePerawatFields);
+
+            toggleKaryawanFields();
         })();
     </script>
 </x-guest-layout>
