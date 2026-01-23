@@ -59,9 +59,14 @@ class QuizAttempt extends Model
 
     /* ================= DOMAIN HELPERS ================= */
 
-    public function isStarted(): bool
+    protected static function booted()
     {
-        return $this->status === 'started';
+        static::creating(function ($attempt) {
+            $quiz = ModuleQuiz::with('questions')->find($attempt->module_quiz_id);
+
+            $attempt->max_score = $quiz->questions->sum('score');
+            $attempt->status = 'started';
+        });
     }
 
     public function isSubmitted(): bool
@@ -80,13 +85,6 @@ class QuizAttempt extends Model
             'reviewed_passed',
             'reviewed_failed',
         ]);
-    }
-
-    protected static function booted()
-    {
-        static::creating(function ($attempt) {
-            $attempt->status = 'started';
-        });
     }
 
 
@@ -112,11 +110,12 @@ class QuizAttempt extends Model
             // ================= ESSAY =================
             if ($answer->question->type === 'essay') {
 
-                // WAJIB: nilai dari REVIEW
-                if (
-                    $answer->review &&
-                    $answer->review->is_correct === true
-                ) {
+                // WAJIB sudah direview
+                if (!$answer->review) {
+                    return; // SAFETY
+                }
+
+                if ($answer->review->is_correct === true) {
                     $total += $answer->question->score;
                 }
             }
@@ -134,9 +133,7 @@ class QuizAttempt extends Model
         $this->update([
             'score'       => $total,
             'is_passed'   => $passed,
-            'status'      => $passed
-                ? 'reviewed_passed'
-                : 'reviewed_failed',
+            'status'      => $passed ? 'reviewed_passed' : 'reviewed_failed',
             'reviewed_at' => now(),
             'reviewed_by' => auth()->id(),
         ]);

@@ -138,21 +138,31 @@
                                     class="rounded-lg border px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100">
                                     Buka Ulang
                                 </a>
+
+                            @elseif ($module->quiz_passed)
+                                <a href="{{ route('employee.courses.modules.show', [$course, $module]) }}"
+                                    class="rounded-lg bg-[#121293] px-4 py-2 text-sm font-semibold text-white">
+                                    Mulai
+                                </a>
+
                             @elseif ($module->is_locked)
                                 <span class="text-slate-400 text-sm flex items-center gap-1">
                                     🔒 Terkunci
                                 </span>
+
                             @elseif ($progressModule)
                                 <a href="{{ route('employee.courses.modules.show', [$course, $module]) }}"
                                     class="rounded-lg bg-[#121293] px-4 py-2 text-sm font-semibold text-white">
                                     Lanjutkan
                                 </a>
+
                             @else
                                 <a href="{{ route('employee.courses.modules.show', [$course, $module]) }}"
                                     class="rounded-lg border px-4 py-2 text-sm font-semibold text-slate-700">
                                     Mulai
                                 </a>
                             @endif
+
 
 
                         </div>
@@ -177,39 +187,38 @@
                                 <div class="flex items-center gap-2">
 
                                     {{-- ⏳ MENUNGGU REVIEW --}}
-                                    @if ($module->quiz_waiting_review)
-                                        <span
-                                            class="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-3 py-1 text-xs font-bold text-yellow-700">
-                                            ⏳ Menunggu Review
-                                        </span>
+                                        @if ($module->quiz_waiting_review)
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-3 py-1 text-xs font-bold text-yellow-700">
+                                                ⏳ Menunggu Review
+                                            </span>
 
-                                        {{-- ✅ SUDAH LULUS --}}
-                                    @elseif ($module->quiz_passed)
-                                        <span
-                                            class="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
-                                            ✔ Lulus
-                                        </span>
+                                        {{-- ✔ LULUS --}}
+                                        @elseif ($module->quiz_passed)
+                                            <span class="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
+                                                ✔ Lulus
+                                            </span>
 
                                         {{-- ❌ ATTEMPT HABIS --}}
-                                    @elseif ($module->quiz_attempts_exhausted)
-                                        <button @click="openQuizLimitModal = true"
-                                            class="inline-flex items-center rounded-xl bg-red-500 px-4 py-2 text-xs font-bold text-white hover:bg-red-600 transition">
-                                            Quiz Tidak Bisa Dikerjakan
-                                        </button>
+                                        @elseif ($module->quiz_attempts_exhausted)
+                                            <button @click="openQuizLimitModal = true"
+                                                class="inline-flex items-center rounded-xl bg-red-500 px-4 py-2 text-xs font-bold text-white">
+                                                Quiz Tidak Bisa Dikerjakan
+                                            </button>
 
-                                        {{-- 🔒 BELUM BOLEH QUIZ --}}
-                                    @elseif (!$module->can_start_quiz)
-                                        <span class="text-slate-400 text-sm">
-                                            🔒 Quiz Terkunci
-                                        </span>
+                                        {{-- 🔁 RETRY QUIZ --}}
+                                        @elseif ($module->can_start_quiz)
+                                            <a href="{{ route('employee.courses.modules.quiz.start', [$course, $module]) }}"
+                                                class="inline-flex items-center rounded-xl bg-yellow-500 px-4 py-2 text-xs font-bold text-white hover:bg-yellow-600">
+                                                Kerjakan Quiz
+                                            </a>
 
-                                        {{-- ▶️ BISA QUIZ --}}
-                                    @else
-                                        <a href="{{ route('employee.courses.modules.quiz.start', [$course, $module]) }}"
-                                            class="inline-flex items-center rounded-xl bg-yellow-500 px-4 py-2 text-xs font-bold text-white hover:bg-yellow-600 transition">
-                                            Kerjakan Quiz
-                                        </a>
-                                    @endif
+                                        {{-- 🔒 QUIZ TERKUNCI --}}
+                                        @else
+                                            <span class="text-slate-400 text-sm">
+                                                🔒 Quiz Terkunci
+                                            </span>
+                                        @endif
+
 
                                 </div>
                             </div>

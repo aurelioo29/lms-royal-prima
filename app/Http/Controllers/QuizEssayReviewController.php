@@ -21,13 +21,20 @@ class QuizEssayReviewController extends Controller
 
     private function finalizeAttempt(QuizAttempt $attempt): void
     {
+
+        if ($attempt->status !== 'submitted') {
+            return;
+        }
         $essayAnswers = $attempt->answers()
             ->whereHas('question', fn($q) => $q->where('type', 'essay'))
             ->with('review')
             ->get();
 
         // jika ADA essay tapi BELUM DIREVIEW → STOP
-        if ($essayAnswers->contains(fn($a) => $a->review === null)) {
+        if (
+            $essayAnswers->isNotEmpty() &&
+            $essayAnswers->contains(fn($a) => $a->review === null)
+        ) {
             return;
         }
 

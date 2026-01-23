@@ -101,15 +101,15 @@ class QuizAttemptController extends Controller
             $attempt->quiz->course_module_id === $module->id,
             404
         );
-        abort_if($attempt->status !== 'started', 403, 'Attempt tidak aktif');
-        abort_if($attempt->submitted_at, 403, 'Quiz sudah dikumpulkan');
 
-
-
-        // tidak boleh buka ulang setelah submit
-        abort_if($attempt->submitted_at, 403, 'Quiz sudah dikumpulkan');
+        abort_if(
+            $attempt->status !== 'started',
+            403,
+            'Quiz sudah dikumpulkan'
+        );
 
         $this->authorize('attempt', $attempt);
+
 
         $quiz = $attempt->quiz->load('questions.options');
 
@@ -158,22 +158,26 @@ class QuizAttemptController extends Controller
         abort_if($attempt->user_id !== auth()->id(), 403);
 
         // 🔐 Pastikan sudah submit
-        if ($attempt->status !== 'submitted') {
+        if (! in_array($attempt->status, [
+            'submitted',
+            'reviewed_passed',
+            'reviewed_failed',
+        ])) {
             return redirect()
-                ->route('employee.courses.modules.quiz.attempt', [$course, $module, $attempt])
+                ->route(
+                    'employee.courses.modules.quiz.attempt',
+                    [$course->id, $module->id, $attempt->id]
+                )
                 ->with('error', 'Quiz belum diselesaikan.');
         }
 
-        // ✅ Load relasi yang BENAR-BENAR dipakai
         $attempt->load([
             'answers.option',
+            'answers.question',
         ]);
 
-        $quiz = $attempt->quiz()
-            ->with([
-                'questions.options',
-            ])
-            ->firstOrFail();
+
+        $quiz = $attempt->quiz->load('questions.options');
 
         return view('quiz.result', compact(
             'course',

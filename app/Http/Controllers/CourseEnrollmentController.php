@@ -121,6 +121,13 @@ class CourseEnrollmentController extends Controller
                 $module->quiz_passed = $attempts
                     ->contains(fn($a) => $a->status === 'reviewed_passed');
 
+                //JIKA QUIZ SUDAH LULUS → JANGAN KUNCI
+                if ($module->quiz_passed) {
+                    $module->can_start_quiz = false;
+                    $flowBlocked = false;
+                    continue;
+                }
+
                 //menunggu review 
                 $module->quiz_waiting_review = $attempts
                     ->contains(fn($a) => $a->status === 'submitted');
@@ -145,14 +152,21 @@ class CourseEnrollmentController extends Controller
                     }
                 }
 
-                //masih menunggu review → tidak boleh quiz lagi
+                // menunggu review essay → LOCK TOTAL
                 if ($module->quiz_waiting_review) {
                     $module->can_start_quiz = false;
+                    $flowBlocked = true;
+                    continue;
                 }
 
-                //attempt habis → tidak bisa quiz
+                // attempt habis & belum lulus
                 if ($module->quiz_attempts_exhausted && ! $module->quiz_passed) {
                     $module->can_start_quiz = false;
+
+                    if ($quiz->is_mandatory) {
+                        $flowBlocked = true;
+                    }
+                    continue;
                 }
 
 
@@ -161,6 +175,18 @@ class CourseEnrollmentController extends Controller
                     $previousRequiredModuleCompleted =
                         $progressModule && $progressModule->status === 'completed';
                 }
+
+                // 🔁 QUIZ GAGAL TAPI MASIH ADA ATTEMPT → BOLEH RETRY
+                if (
+                    ! $module->quiz_passed &&
+                    ! $module->quiz_attempts_exhausted
+                ) {
+                    $module->can_start_quiz = true;
+                    $flowBlocked = false;
+                    continue;
+                }
+
+
                 //quiz mandatory → menentukan modul berikutnya
                 if ($quiz->is_mandatory && ! $module->quiz_passed) {
                     // $previousMandatoryQuizPassed = false;

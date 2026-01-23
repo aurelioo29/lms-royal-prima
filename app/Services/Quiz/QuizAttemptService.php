@@ -128,11 +128,19 @@ class QuizAttemptService
                 $totalScore += $score;
             }
 
+            // cek apakah quiz punya essay
+            $hasEssay = $attempt->quiz->questions
+                ->contains(fn($q) => $q->type === 'essay');
+
+            $isPassed = $totalScore >= $attempt->quiz->passing_score;
+
             $attempt->update([
                 'score'        => $totalScore,
-                'is_passed'    => $totalScore >= $attempt->quiz->passing_score,
+                'is_passed'    => $hasEssay ? null : $isPassed,
                 'submitted_at' => now(),
-                'status'       => 'submitted',
+                'status'       => $hasEssay
+                    ? 'submitted'
+                    : ($isPassed ? 'reviewed_passed' : 'reviewed_failed'),
             ]);
 
             return $attempt;
@@ -144,13 +152,13 @@ class QuizAttemptService
     {
         $quiz = $module->quiz;
 
-        if (!$quiz || !$quiz->is_mandatory) {
+        if (! $quiz || ! $quiz->is_mandatory) {
             return true;
         }
 
         return QuizAttempt::where('module_quiz_id', $quiz->id)
             ->where('user_id', $user->id)
-            ->where('is_passed', true)
+            ->whereIn('status', ['reviewed_passed'])
             ->exists();
     }
 }
