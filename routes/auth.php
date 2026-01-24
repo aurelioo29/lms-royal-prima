@@ -282,6 +282,12 @@ Route::middleware('auth')->group(function () {
 
                 Route::patch('/modules/{module}/reorder', [CourseModuleController::class, 'reorder'])
                     ->name('modules.reorder');
+
+                // ENROLLMENTS MANAGEMENT
+                Route::get('enrollments', [CourseModuleController::class, 'enrollments'])
+                    ->name('enrollments.index');
+                Route::delete('enrollments/{enrollment}', [CourseModuleController::class, 'destroyUser'])
+                    ->name('enrollments.destroy');
             });
     });
 
@@ -387,7 +393,7 @@ Route::middleware('auth')->group(function () {
                     Route::patch('/modules/{module}/reorder', [CourseModuleController::class, 'reorder'])
                         ->name('modules.reorder');
                 });
-    });
+        });
 
 
     /*

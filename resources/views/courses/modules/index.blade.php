@@ -40,6 +40,23 @@
                                         class="inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {{ $isPublished ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200' }}">
                                         {{ ucfirst($course->status ?? 'Draft') }}
                                     </span>
+
+                                    <span
+                                        class="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 20h5v-2a4 4 0 00-5-4m-4 6h4m-4 0v-2a4 4 0 014-4m-4 6H7m4 0v-2a4 4 0 00-4-4H2v2h5" />
+                                        </svg>
+                                        {{ $enrolledCount }} Peserta
+                                    </span>
+
+                                    <a href="{{ route('courses.enrollments.index', $course->id) }}"
+                                        class="inline-flex items-center gap-2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 text-xs font-semibold hover:bg-indigo-100 transition">
+                                        Kelola Peserta
+                                    </a>
+
+
                                 </div>
                             </div>
                         </div>

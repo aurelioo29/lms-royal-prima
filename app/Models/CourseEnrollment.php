@@ -14,6 +14,11 @@ class CourseEnrollment extends Model
         'completed_at',
     ];
 
+    protected $casts = [
+        'enrolled_at'  => 'datetime',
+        'completed_at' => 'datetime',
+    ];
+
     public function course()
     {
         return $this->belongsTo(Course::class);
@@ -28,6 +33,6 @@ class CourseEnrollment extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('status', 'enrolled');
+        return $query->whereIn('status', ['enrolled', 'completed']);
     }
 }
