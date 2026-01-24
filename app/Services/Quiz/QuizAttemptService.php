@@ -32,30 +32,28 @@ class QuizAttemptService
     // mulai kuis
     public function startQuiz(ModuleQuiz $quiz, User $user): QuizAttempt
     {
-        $existing = QuizAttempt::where('module_quiz_id', $quiz->id)
+        // attempt terakhir
+        $lastAttempt = QuizAttempt::where('module_quiz_id', $quiz->id)
             ->where('user_id', $user->id)
-            ->whereNull('submitted_at')
+            ->latest()
             ->first();
 
-        if ($existing) {
-            return $existing;
+        // jika ada attempt gagal → reset
+        if ($lastAttempt && $lastAttempt->status === 'reviewed_failed') {
+            return $this->resetForRetake($lastAttempt);
         }
 
-        // 2️⃣ Cek apakah sudah lulus (best practice)
-        $passed = QuizAttempt::where('module_quiz_id', $quiz->id)
-            ->where('user_id', $user->id)
-            ->where('is_passed', true)
-            ->exists();
-
-        if ($passed) {
+        // jika sudah lulus → STOP
+        if ($lastAttempt && $lastAttempt->is_passed === true) {
             throw new DomainException('Quiz sudah lulus dan tidak dapat dikerjakan ulang.');
         }
 
-        // 3️⃣ Cek batas percobaan
+        // cek max attempt
         if ($this->hasReachedMaxAttempts($quiz, $user)) {
             throw new DomainException('Jumlah percobaan quiz telah mencapai batas maksimum.');
         }
 
+        // attempt baru
         return QuizAttempt::create([
             'module_quiz_id' => $quiz->id,
             'user_id'        => $user->id,
@@ -67,6 +65,7 @@ class QuizAttemptService
             'max_score'      => $quiz->questions()->sum('score'),
         ]);
     }
+
 
 
     // submit jawaban kuis
