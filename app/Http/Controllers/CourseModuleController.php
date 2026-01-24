@@ -10,6 +10,9 @@ use Illuminate\Validation\ValidationException;
 use App\Services\Course\CourseInstructorService;
 use App\Http\Requests\CourseModule\StoreCourseModuleRequest;
 use App\Http\Requests\CourseModule\UpdateCourseModuleRequest;
+use App\Services\Course\CourseEnrollmentService;
+use App\Models\CourseEnrollment;
+use DomainException;
 
 class CourseModuleController extends Controller
 {
@@ -46,6 +49,11 @@ class CourseModuleController extends Controller
             ->orderBy('sort_order', 'asc')
             ->get();
 
+        $enrolledCount = $course->enrollments()
+            ->active()
+            ->count();
+
+
         $mentors = $service->getActiveInstructors($course);
 
         // menentukan route prefix sesuai dengan route yang diakses
@@ -53,7 +61,7 @@ class CourseModuleController extends Controller
             ? 'instructor.courses'
             : 'courses';
 
-        return view('courses.modules.index', compact('course', 'modules', 'mentors', 'routePrefix'));
+        return view('courses.modules.index', compact('course', 'modules', 'mentors', 'enrolledCount', 'routePrefix'));
     }
 
     public function show(Course $course, CourseModule $module)
@@ -275,5 +283,40 @@ class CourseModuleController extends Controller
         ]);
 
         return back()->with('success', 'Urutan module diperbarui');
+    }
+
+    // List enrollments for a course
+    public function enrollments(
+        Course $course,
+        CourseInstructorService $service,
+        CourseEnrollmentService $enrollmentService
+    ) {
+        $service->authorizeModuleManagement($course, auth()->id());
+
+        $enrollments = $enrollmentService->getEnrollments($course);
+
+        return view('courses.modules.enrollment.index', compact(
+            'course',
+            'enrollments',
+        ));
+    }
+
+
+    public function destroyUser(
+        Course $course,
+        CourseEnrollment $enrollment,
+        CourseEnrollmentService $service
+    ) {
+        abort_unless($enrollment->course_id === $course->id, 404);
+
+        try {
+            $service->removeParticipant($enrollment);
+        } catch (DomainException $e) {
+            return back()->withErrors([
+                'enrollment' => $e->getMessage(),
+            ]);
+        }
+
+        return back()->with('success', 'Peserta berhasil dikeluarkan dari course.');
     }
 }
