@@ -22,6 +22,18 @@
                     ← Kembali
                 </a>
             </div>
+             @php
+                $isFinal = in_array($attempt->status, ['reviewed_passed', 'reviewed_failed']);
+                $isSubmitted = $attempt->status === 'submitted';
+            @endphp
+
+            <!-- Status Attempt -->
+            <div class="rounded-xl border bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                Status Attempt:
+                <span class="font-semibold">
+                    {{ strtoupper(str_replace('_', ' ', $attempt->status)) }}
+                </span>
+            </div>
 
 
             @foreach ($attempt->answers as $answer)
@@ -44,62 +56,62 @@
                                 {{ $answer->answer_text }}
                             </div>
                         </div>
-                        @php
-                            $isFinal = in_array($attempt->status, ['reviewed_passed', 'reviewed_failed']);
-                        @endphp
-
-
+      
                         <form method="POST"
                             action="{{ route('courses.modules.quiz.review.store', [
                                 'course' => $course->id,
                                 'module' => $module->id,
                                 'answer' => $answer->id,
                             ]) }}"
-                            @if ($isFinal) class="opacity-60 pointer-events-none" @endif>
+                            @if (!$isSubmitted) class="opacity-60 pointer-events-none" @endif>
+
                             @csrf
 
-                            <!-- Penilaian Benar / Salah -->
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-2">
-                                    Penilaian
+                           <!-- Penilaian -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-slate-700 mb-2">
+                                Penilaian
+                            </label>
+
+                            <div class="flex items-center gap-6">
+                                <label class="flex items-center gap-2">
+                                    <input type="radio" name="is_correct" value="1" 
+                                        {{ optional($answer->review)->is_correct === true ? 'checked' : '' }}
+                                        required>
+                                    <span class="text-sm text-slate-700">
+                                        Benar (+{{ $answer->question->score }} poin)
+                                    </span>
                                 </label>
 
-                                <div class="flex items-center gap-6">
-                                    <label class="flex items-center gap-2">
-                                        <input type="radio" name="is_correct" value="1"
-                                            {{ optional($answer->review)->is_correct === true ? 'checked' : '' }}
-                                            required>
-                                        <span class="text-sm text-slate-700">
-                                            Benar (+{{ $answer->question->score }} poin)
-                                        </span>
-                                    </label>
-
-                                    <label class="flex items-center gap-2">
-                                        <input type="radio" name="is_correct" value="1"
-                                            {{ optional($answer->review)->is_correct === false ? 'checked' : '' }}>
-                                        <span class="text-sm text-slate-700">
-                                            Salah (0 poin)
-                                        </span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700">
-                                    Catatan (Opsional)
+                                <label class="flex items-center gap-2">
+                                    <input type="radio" name="is_correct" value="0"
+                                        {{ optional($answer->review)->is_correct === false ? 'checked' : '' }}>
+                                    <span class="text-sm text-slate-700">
+                                        Salah (0 poin)
+                                    </span>
                                 </label>
-                                <textarea name="note" rows="3"
-                                    class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2
-                                        text-sm focus:border-[#121293] focus:ring-[#121293]">{{ $answer->review->note ?? '' }}</textarea>
                             </div>
+                        </div>
 
-                            <div class="flex justify-end">
-                                <button type="submit" {{ $isFinal ? 'disabled' : '' }}
-                                    class="rounded-xl bg-green-600 px-6 py-2 text-sm font-semibold text-white">
-                                    Simpan Nilai
-                                </button>
+                            <!-- Catatan -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-slate-700">
+                                Catatan (Opsional)
+                            </label>
+                            <textarea name="note" rows="3"
+                                class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2
+                                text-sm focus:border-[#121293] focus:ring-[#121293]">{{ $answer->review->note ?? '' }}</textarea>
+                        </div>
 
-                            </div>
+                        <!-- Submit -->
+                        <div class="flex justify-end">
+                            <button type="submit"
+                                class="rounded-xl bg-green-600 px-6 py-2 text-sm font-semibold text-white
+                                disabled:opacity-50"
+                                {{ !$isSubmitted ? 'disabled' : '' }}>
+                                Simpan Nilai
+                            </button>
+                        </div>
                         </form>
                     </div>
                 @endif
