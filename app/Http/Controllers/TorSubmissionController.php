@@ -26,10 +26,11 @@ class TorSubmissionController extends Controller
     {
         abort_unless(auth()->user()->canCreateTOR(), 403);
 
-        // TOR hanya boleh dibuat kalau event sudah APPROVED (sesuai UI kamu)
-        abort_unless($planEvent->status === 'approved', 403);
+        $planEvent->load('annualPlan');
 
-        // kalau sudah ada TOR, lempar ke edit
+        // Kunci hanya saat plan sedang diajukan (pending)
+        abort_unless($planEvent->annualPlan->status !== 'pending', 403);
+
         if ($planEvent->torSubmission) {
             return redirect()->route('tor-submissions.edit', $planEvent->torSubmission);
         }

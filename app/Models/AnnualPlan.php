@@ -69,4 +69,15 @@ class AnnualPlan extends Model
     {
         return $this->status === 'rejected';
     }
+    /**
+     * Event yang belum punya TOR (atau TOR belum submitted/approved kalau pakai versi ketat)
+     */
+    public function missingTorEvents()
+    {
+        return $this->events()
+            ->whereDoesntHave('torSubmission', function ($q) {
+                $q->whereIn('status', ['submitted', 'approved']);
+            })
+            ->get();
+    }
 }

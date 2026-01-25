@@ -15,7 +15,7 @@
             @endif
 
             {{-- HEADER --}}
-            <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                 <div class="p-5 sm:p-6">
                     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
 
@@ -164,7 +164,6 @@
 
                             $tor = $event->torSubmission;
                             $torStatus = $tor?->status;
-                            $canTor = $annualPlan->isApproved() && $event->isApproved();
 
                             $torChip = match ($torStatus) {
                                 'approved' => 'bg-green-50 text-green-800 border-green-200',
@@ -173,11 +172,44 @@
                                 'draft' => 'bg-slate-50 text-slate-700 border-slate-200',
                                 default => 'bg-slate-50 text-slate-600 border-slate-200',
                             };
+
+                            $hasTorReady = $tor && in_array($tor->status, ['submitted', 'approved'], true);
+
+                            $canSubmitEvent =
+                                $user->canCreatePlans() &&
+                                in_array($eventStatus, ['draft', 'rejected'], true) &&
+                                $annualPlan->isApproved();
+
+                            $torCreateUrl = route('tor-submissions.create', $event);
+                            $torEditUrl = $tor ? route('tor-submissions.edit', ['torSubmission' => $tor->id]) : null;
+
+                            if (!$tor) {
+                                $popupTitle = 'TOR belum dibuat';
+                                $popupText = 'Buat TOR dulu sebelum ajukan event.';
+                                $popupActionUrl = $torCreateUrl;
+                                $popupActionLabel = 'Buat TOR';
+                            } elseif (!in_array($tor->status, ['submitted', 'approved'], true)) {
+                                $popupTitle = 'TOR belum disubmit';
+                                $popupText =
+                                    'TOR masih ' . strtoupper($tor->status) . '. Submit TOR dulu sebelum ajukan event.';
+                                $popupActionUrl = $torEditUrl;
+                                $popupActionLabel = 'Kelola TOR';
+                            } else {
+                                $popupTitle = '';
+                                $popupText = '';
+                                $popupActionUrl = null;
+                                $popupActionLabel = null;
+                            }
+
+                            $torLocked =
+                                in_array($eventStatus, ['pending', 'approved'], true) ||
+                                $annualPlan->status === 'pending';
                         @endphp
 
                         <div class="rounded-xl border border-slate-200 bg-white">
                             <div class="p-4 sm:p-5">
                                 <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+
                                     <div class="min-w-0">
                                         <div class="flex flex-wrap items-center gap-2">
                                             <h3 class="font-semibold text-slate-900 truncate">{{ $event->title }}</h3>
@@ -205,9 +237,21 @@
                                         </p>
 
                                         @if ($event->description)
-                                            <p class="mt-2 text-sm text-slate-700">
-                                                {{ $event->description }}
-                                            </p>
+                                            <p class="mt-2 text-sm text-slate-700">{{ $event->description }}</p>
+                                        @endif
+
+                                        {{-- OPTIONAL: inline warning --}}
+                                        @if (!$tor)
+                                            <div
+                                                class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                                TOR belum dibuat. Buat TOR dulu sebelum Ajukan Event.
+                                            </div>
+                                        @elseif (!in_array($tor->status, ['submitted', 'approved'], true))
+                                            <div
+                                                class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                                TOR masih <b>{{ strtoupper($tor->status) }}</b>. Submit TOR dulu
+                                                sebelum Ajukan Event.
+                                            </div>
                                         @endif
 
                                         @if ($event->isRejected() && $event->rejected_reason)
@@ -217,17 +261,9 @@
                                                 <div class="mt-1">{{ $event->rejected_reason }}</div>
                                             </div>
                                         @endif
-
-                                        @if (!$canTor)
-                                            <div
-                                                class="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                                                TOR belum dapat diproses karena Annual Plan dan/atau Event belum
-                                                berstatus <span class="font-semibold">APPROVED</span>.
-                                            </div>
-                                        @endif
                                     </div>
 
-                                    {{-- ACTIONS (Event / TOR / Course) --}}
+                                    {{-- ACTIONS --}}
                                     <div class="flex flex-wrap items-center gap-2 lg:justify-end">
                                         @if ($user->canCreatePlans())
                                             @php
@@ -240,12 +276,12 @@
 
                                             <a href="{{ route('annual-plans.events.edit', [$annualPlan, $event]) }}"
                                                 class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold
-                                                {{ $kabidCanEditEvent ? 'text-slate-700 hover:bg-slate-50' : 'text-slate-400 pointer-events-none bg-slate-50' }}">
+                                               {{ $kabidCanEditEvent ? 'text-slate-700 hover:bg-slate-50' : 'text-slate-400 pointer-events-none bg-slate-50' }}">
                                                 Edit Event
                                             </a>
 
-                                            @if (in_array($eventStatus, ['draft', 'rejected'], true))
-                                                @if ($annualPlan->isApproved())
+                                            @if ($canSubmitEvent)
+                                                @if ($hasTorReady)
                                                     <form method="POST"
                                                         action="{{ route('annual-plans.events.submit', [$annualPlan, $event]) }}">
                                                         @csrf
@@ -256,14 +292,23 @@
                                                         </button>
                                                     </form>
                                                 @else
-                                                    <span
-                                                        class="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-500">
-                                                        Ajukan Event (Terkunci)
-                                                    </span>
+                                                    {{-- ✅ tombol tetap bisa diklik, tapi munculin SweetAlert --}}
+                                                    <button type="button"
+                                                        class="inline-flex items-center rounded-lg bg-slate-200 px-3 py-2 text-sm font-semibold text-slate-700
+                                                               hover:bg-slate-300 cursor-pointer pointer-events-auto relative z-10"
+                                                        onclick="showTorGuard(
+                                                            @json($popupTitle),
+                                                            @json($popupText),
+                                                            @json($popupActionUrl),
+                                                            @json($popupActionLabel)
+                                                        )">
+                                                        Ajukan Event
+                                                    </button>
                                                 @endif
                                             @endif
                                         @endif
 
+                                        {{-- ✅ Direktur: Approve / Reject Event --}}
                                         @if ($user->canApprovePlans())
                                             @if (in_array($eventStatus, ['pending', 'rejected'], true))
                                                 <form method="POST"
@@ -283,8 +328,10 @@
                                                     class="flex items-center gap-2">
                                                     @csrf
                                                     @method('PATCH')
+
                                                     <input name="rejected_reason" placeholder="Alasan (opsional)"
                                                         class="hidden xl:block w-56 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/10" />
+
                                                     <button
                                                         class="inline-flex items-center rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100">
                                                         Reject Event
@@ -295,6 +342,7 @@
                                             <form method="POST"
                                                 action="{{ route('annual-plans.events.reopen', [$annualPlan, $event]) }}">
                                                 @csrf
+                                                @method('PATCH')
                                                 <button
                                                     class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                                                     Reopen
@@ -304,34 +352,28 @@
 
                                         {{-- TOR (Kabid) --}}
                                         @if ($user->canCreatePlans())
-                                            @if ($canTor)
+                                            @if ($torLocked)
+                                                <span
+                                                    class="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-400 cursor-not-allowed">
+                                                    {{ $tor ? 'Kelola TOR (Terkunci)' : 'Buat TOR (Terkunci)' }}
+                                                </span>
+                                            @else
                                                 @if (!$tor)
                                                     <a href="{{ route('tor-submissions.create', $event) }}"
                                                         class="inline-flex items-center rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:opacity-90">
                                                         Buat TOR
                                                     </a>
                                                 @else
-                                                    <a href="{{ route('tor-submissions.edit', ['torSubmission' => $event->torSubmission->id]) }}"
+                                                    <a href="{{ route('tor-submissions.edit', ['torSubmission' => $tor->id]) }}"
                                                         class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
                                                         Kelola TOR
                                                     </a>
                                                 @endif
-                                            @else
-                                                <span
-                                                    class="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-500">
-                                                    TOR terkunci
-                                                </span>
                                             @endif
                                         @endif
 
-                                        {{-- Course (Admin) --}}
-                                        @if (auth()->user()->canCreateCourses() && $tor && $tor->status === 'approved')
-                                            <a href="{{ route('courses.create', ['tor_submission_id' => $tor->id]) }}"
-                                                class="inline-flex items-center rounded-lg bg-[#121293] px-3 py-2 text-sm font-semibold text-white hover:opacity-90">
-                                                Buat Course
-                                            </a>
-                                        @endif
                                     </div>
+
                                 </div>
                             </div>
                         </div>
@@ -346,4 +388,33 @@
 
         </div>
     </div>
+
+    {{-- ✅ SweetAlert Guard --}}
+    <script>
+        function showTorGuard(title, text, actionUrl, actionLabel) {
+            // fallback kalau sweetalert belum ke-load
+            if (typeof Swal === 'undefined') {
+                alert((title ? title + "\n" : "") + (text || 'Lengkapi TOR dulu.'));
+                if (actionUrl) window.location.href = actionUrl;
+                return;
+            }
+
+            const hasAction = !!actionUrl;
+
+            Swal.fire({
+                icon: 'warning',
+                title: title || 'Tidak bisa lanjut',
+                text: text || 'Lengkapi TOR dulu.',
+                showCancelButton: hasAction, // kalau ada aksi, tampilkan tombol cancel
+                confirmButtonText: hasAction ? (actionLabel || 'Buka TOR') : 'Oke',
+                cancelButtonText: 'Tutup',
+                reverseButtons: true,
+                focusConfirm: false,
+            }).then((result) => {
+                if (result.isConfirmed && hasAction) {
+                    window.location.href = actionUrl;
+                }
+            });
+        }
+    </script>
 </x-app-layout>

@@ -31,7 +31,7 @@ class PlanEventController extends Controller
         abort_unless($user->canCreatePlans(), 403);
 
         // Plan pending = lagi diajukan, jangan diutak-atik dulu
-        abort_unless(in_array($plan->status, ['draft', 'rejected', 'pending', 'approved'], true), 403);
+        abort_unless($plan->status !== 'pending', 403);
     }
 
     /**
@@ -139,10 +139,22 @@ class PlanEventController extends Controller
     {
         abort_unless(auth()->user()->canCreatePlans(), 403);
 
-        // event diajukan hanya kalau annual plan approved
+        // (kalau kamu masih pakai rule ini)
         abort_unless($annualPlan->isApproved(), 403);
 
         abort_unless(in_array($planEvent->status, ['draft', 'rejected'], true), 403);
+
+        // ✅ NEW: wajib punya TOR dulu
+        $planEvent->load('torSubmission');
+
+        if (!$planEvent->torSubmission) {
+            return back()->with('error', 'Tidak bisa ajukan event: TOR belum dibuat. Silakan buat TOR dulu.');
+        }
+
+        // ✅ NEW: kalau kamu mau lebih ketat, TOR minimal submitted/approved
+        if (!in_array($planEvent->torSubmission->status, ['submitted', 'approved'], true)) {
+            return back()->with('error', 'Tidak bisa ajukan event: TOR masih draft. Silakan submit TOR dulu.');
+        }
 
         $planEvent->update([
             'status' => 'pending',

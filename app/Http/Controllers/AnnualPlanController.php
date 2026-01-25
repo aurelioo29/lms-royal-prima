@@ -6,6 +6,7 @@ use App\Http\Requests\AnnualPlan\AnnualPlanDecisionRequest;
 use App\Http\Requests\AnnualPlan\AnnualPlanStoreRequest;
 use App\Http\Requests\AnnualPlan\AnnualPlanUpdateRequest;
 use App\Models\AnnualPlan;
+use Illuminate\Container\Attributes\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -109,44 +110,107 @@ class AnnualPlanController extends Controller
     public function submit(AnnualPlan $annualPlan): RedirectResponse
     {
         abort_unless(auth()->user()->canCreatePlans(), 403);
-        abort_unless($annualPlan->isDraft() || $annualPlan->isRejected(), 403);
+        abort_unless(in_array($annualPlan->status, ['draft', 'rejected'], true), 403);
 
-        $annualPlan->update([
-            'status' => 'pending',
-            'submitted_at' => now(),
-            'rejected_reason' => null,
-            'rejected_at' => null,
-            'approved_by' => null,
-            'approved_at' => null,
-        ]);
+        $annualPlan->load(['events.torSubmission']);
 
-        return redirect()->route('annual-plans.show', $annualPlan)->with('success', 'Annual Plan dikirim untuk approval.');
+        if ($annualPlan->events->count() === 0) {
+            return back()->with('error', 'Tidak bisa diajukan: event masih kosong.');
+        }
+
+        $missing = $annualPlan->missingTorEvents();
+        if ($missing->count() > 0) {
+            $names = $missing->pluck('title')->take(5)->implode(', ');
+            return back()->with('error', 'Tidak bisa diajukan: ada event belum punya TOR (submitted). Contoh: ' . $names);
+        }
+
+        DB::transaction(function () use ($annualPlan) {
+            $annualPlan->update([
+                'status' => 'pending',
+                'submitted_at' => now(),
+                'rejected_reason' => null,
+                'rejected_at' => null,
+                'approved_by' => null,
+                'approved_at' => null,
+            ]);
+
+            // Optional: kalau ada TOR yang masih draft, paksa jadi submitted
+            foreach ($annualPlan->events as $event) {
+                if ($event->torSubmission && $event->torSubmission->status === 'draft') {
+                    $event->torSubmission->update([
+                        'status' => 'submitted',
+                        'submitted_at' => now(),
+                    ]);
+                }
+            }
+        });
+
+        return redirect()
+            ->route('annual-plans.show', $annualPlan)
+            ->with('success', 'Annual Plan diajukan ke Direktur (sekali, lengkap dengan TOR).');
     }
 
     public function approve(AnnualPlanDecisionRequest $request, AnnualPlan $annualPlan): RedirectResponse
     {
         abort_unless(auth()->user()->canApprovePlans(), 403);
 
-        // allow approve from pending OR rejected
-        abort_unless(in_array($annualPlan->status, ['pending', 'rejected']), 403);
+        // Direktur approve hanya dari pending
+        abort_unless($annualPlan->status === 'pending', 403);
 
-        $annualPlan->update([
-            'status' => 'approved',
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
-            'rejected_reason' => null,
-            'rejected_at' => null,
-        ]);
+        $annualPlan->load(['events.torSubmission']);
 
-        return redirect()->route('annual-plans.show', $annualPlan)->with('success', 'Annual Plan disetujui.');
+        if ($annualPlan->events->count() === 0) {
+            return back()->with('error', 'Gagal approve: event masih kosong.');
+        }
+
+        $missing = $annualPlan->missingTorEvents();
+        if ($missing->count() > 0) {
+            $names = $missing->pluck('title')->take(5)->implode(', ');
+            return back()->with('error', 'Gagal approve: ada event belum punya TOR (submitted). Contoh: ' . $names);
+        }
+
+        DB::transaction(function () use ($annualPlan) {
+            $annualPlan->update([
+                'status' => 'approved',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+                'rejected_reason' => null,
+                'rejected_at' => null,
+            ]);
+
+            // OPTIONAL: kalau kamu masih pakai status event, set semua jadi approved
+            foreach ($annualPlan->events as $event) {
+                $event->update([
+                    'status' => 'approved',
+                    'approved_by' => auth()->id(),
+                    'approved_at' => now(),
+                    'rejected_reason' => null,
+                    'rejected_at' => null,
+                    'submitted_at' => $event->submitted_at ?? now(),
+                ]);
+
+                if ($event->torSubmission) {
+                    $event->torSubmission->update([
+                        'status' => 'approved',
+                        'reviewed_by' => auth()->id(),
+                        'reviewed_at' => now(),
+                        'review_notes' => null,
+                    ]);
+                }
+            }
+        });
+
+        return redirect()
+            ->route('annual-plans.show', $annualPlan)
+            ->with('success', 'Annual Plan disetujui. Event & TOR ikut approved otomatis.');
     }
 
     public function reject(AnnualPlanDecisionRequest $request, AnnualPlan $annualPlan): RedirectResponse
     {
         abort_unless(auth()->user()->canApprovePlans(), 403);
 
-        // allow reject from pending OR approved
-        abort_unless(in_array($annualPlan->status, ['pending', 'approved']), 403);
+        // Reject hanya saat pending
+        abort_unless($annualPlan->status === 'pending', 403);
 
         $annualPlan->update([
             'status' => 'rejected',
@@ -156,7 +220,9 @@ class AnnualPlanController extends Controller
             'rejected_reason' => $request->rejected_reason ?: 'Perlu revisi.',
         ]);
 
-        return redirect()->route('annual-plans.show', $annualPlan)->with('success', 'Annual Plan ditolak.');
+        return redirect()
+            ->route('annual-plans.show', $annualPlan)
+            ->with('success', 'Annual Plan ditolak. Kabid bisa revisi event & TOR.');
     }
 
     public function approvals(): View
