@@ -55,133 +55,97 @@ class CourseEnrollmentController extends Controller
         $user = auth()->user();
 
         $course->load([
-            'instructors' => function ($q) {
-                $q->wherePivot('status', 'active');
-            }
+            'instructors' => fn($q) => $q->wherePivot('status', 'active'),
         ]);
 
         $modules = $course->modules()
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->with([
-                'progresses' => fn($q) =>
-                $q->where('user_id', $user->id),
-
-                'quiz.attempts' => fn($q) =>
-                $q->where('user_id', $user->id)
+                'progresses' => fn($q) => $q->where('user_id', $user->id),
+                'quiz.attempts' => fn($q) => $q
+                    ->where('user_id', $user->id)
                     ->whereNotNull('submitted_at'),
             ])
             ->get();
 
-        // ================= MODULES LOGIC =================
-        $previousMandatoryQuizPassed = true;
-        $previousRequiredModuleCompleted = true;
-
-        // flow blokir modul berikutnya
         $flowBlocked = false;
-
 
         foreach ($modules as $module) {
 
-            // ================= DEFAULT FLAGS =================
+            // DEFAULT FLAGS (WAJIB ADA)
             $module->is_locked = false;
-            $module->can_start_quiz = true;
+            $module->can_start_quiz = false;
             $module->quiz_passed = false;
-            $module->quiz_attempts_exhausted = false;
             $module->quiz_waiting_review = false;
+            $module->quiz_attempts_exhausted = false;
 
+            $progress = $module->progresses->first();
+            $isCompleted = $progress && $progress->status === 'completed';
 
-            $progressModule = $module->progresses->first();
             $quiz = $module->quiz;
+            $attempts = $quiz?->attempts ?? collect();
 
-            // ================= MODULE LOCK FLOW =================
+            //HITUNG STATUS QUIZ
+            if ($quiz) {
+                $module->quiz_passed = $attempts->contains(
+                    fn($a) => $a->status === 'reviewed_passed'
+                );
 
+                $module->quiz_waiting_review = $attempts->contains(
+                    fn($a) => $a->status === 'submitted'
+                );
+
+                if (!is_null($quiz->max_attempts)) {
+                    $module->quiz_attempts_exhausted =
+                        $attempts->count() >= $quiz->max_attempts;
+                }
+            }
+
+
+            // FLOW GLOBAL SUDAH TERBLOKIR
             if ($flowBlocked) {
                 $module->is_locked = true;
-                $module->can_start_quiz = false;
                 continue;
             }
 
-            if ($module->is_required) {
-                if (! $progressModule || $progressModule->status !== 'completed') {
-                    $module->is_locked = true;
-                    $module->can_start_quiz = false;
-
-                    // 🔒 BLOK SEMUA SETELAHNYA
-                    $flowBlocked = true;
-                    continue;
+            // BOLEH MULAI QUIZ?
+            if ($quiz && $isCompleted) {
+                if (
+                    !$module->quiz_passed &&
+                    !$module->quiz_waiting_review &&
+                    !$module->quiz_attempts_exhausted
+                ) {
+                    $module->can_start_quiz = true;
                 }
             }
-            // ================= QUIZ LOGIC =================
-            if ($quiz) {
 
-                $attempts = $quiz->attempts;
+            // MODUL WAJIB → CEK SYARAT FLOW
+            if ($module->is_required) {
+                $quizRequirementMet =
+                    ($quiz && $quiz->is_mandatory)
+                    ? $module->quiz_passed
+                    : true;
 
-                //quiz lulus = ADA attempt is_passed
-                $module->quiz_passed = $attempts
-                    ->contains(fn($a) => $a->status === 'reviewed_passed');
-
-                //menunggu review 
-                $module->quiz_waiting_review = $attempts
-                    ->contains(fn($a) => $a->status === 'submitted');
-
-                //attempt habis
-                if (! is_null($quiz->max_attempts)) {
-                    $usedAttempts = $attempts->count();
-                    $module->quiz_attempts_exhausted =
-                        $usedAttempts >= $quiz->max_attempts;
-                }
-
-                // atur akses quiz
-                // modul WAJIB → harus selesai dulu
-                if ($module->is_required) {
-                    if (! $progressModule || $progressModule->status !== 'completed') {
-                        $module->is_locked = true;
-                        $module->can_start_quiz = false;
-
-                        // 🔒 BLOK SEMUA SETELAHNYA
-                        $flowBlocked = true;
-                        continue;
-                    }
-                }
-
-                //masih menunggu review → tidak boleh quiz lagi
-                if ($module->quiz_waiting_review) {
-                    $module->can_start_quiz = false;
-                }
-
-                //attempt habis → tidak bisa quiz
-                if ($module->quiz_attempts_exhausted && ! $module->quiz_passed) {
-                    $module->can_start_quiz = false;
-                }
-
-
-                // modul WAJIB → menentukan akses modul berikutnya
-                if ($module->is_required) {
-                    $previousRequiredModuleCompleted =
-                        $progressModule && $progressModule->status === 'completed';
-                }
-                //quiz mandatory → menentukan modul berikutnya
-                if ($quiz->is_mandatory && ! $module->quiz_passed) {
-                    // $previousMandatoryQuizPassed = false;
+                if (!$isCompleted || !$quizRequirementMet) {
                     $flowBlocked = true;
                 }
+            }
+
+            //  MENUNGGU REVIEW → BLOKIR FLOW BERIKUTNYA
+            if ($module->quiz_waiting_review) {
+                $flowBlocked = true;
             }
         }
 
-        // ================= COURSE SUMMARY =================
-        $progress = CourseProgressService::summary(
-            $course,
-            $user->id
-        );
+        $progress = CourseProgressService::summary($course, $user->id);
 
-        return view(
-            'course-enrollment.show',
-            compact('course', 'modules', 'progress')
-        );
+        return view('course-enrollment.show', compact(
+            'course',
+            'modules',
+            'progress'
+        ));
     }
-
-
 
 
 
