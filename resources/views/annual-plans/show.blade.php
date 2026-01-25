@@ -350,6 +350,39 @@
                                             </form>
                                         @endif
 
+                                        @if ($user->canApprovePlans())
+                                            @php
+                                                $tor = $event->torSubmission;
+                                                $torOkForApprove =
+                                                    $tor && in_array($tor->status, ['submitted', 'rejected'], true);
+
+                                                $eventOkForApprove = in_array(
+                                                    $eventStatus,
+                                                    ['pending', 'rejected'],
+                                                    true,
+                                                );
+
+                                                // tombol aktif kalau minimal salah satu belum approved dan statusnya memungkinkan
+                                                $canApproveAll =
+                                                    $annualPlan->isApproved() &&
+                                                    (($tor && $tor->status !== 'approved' && $torOkForApprove) ||
+                                                        ($eventStatus !== 'approved' && $eventOkForApprove));
+                                            @endphp
+
+                                            <form method="POST"
+                                                action="{{ route('annual-plans.events.approve-all', [$annualPlan, $event]) }}">
+                                                @csrf
+                                                @method('PATCH')
+
+                                                <button type="submit"
+                                                    class="inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold text-white
+            {{ $canApproveAll ? 'bg-green-600 hover:opacity-90' : 'bg-slate-200 text-slate-500 cursor-not-allowed' }}"
+                                                    {{ $canApproveAll ? '' : 'disabled' }}>
+                                                    Approve Semua
+                                                </button>
+                                            </form>
+                                        @endif
+
                                         {{-- TOR (Kabid) --}}
                                         @if ($user->canCreatePlans())
                                             @if ($torLocked)

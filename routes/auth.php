@@ -193,6 +193,9 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/annual-plans/{annualPlan}/events/{planEvent}/reopen', [PlanEventController::class, 'reopen'])
             ->name('annual-plans.events.reopen');
+
+        Route::patch('/annual-plans/{annualPlan}/events/{planEvent}/approve-all', [PlanEventController::class, 'approveAll'])
+            ->name('annual-plans.events.approve-all');
     });
 
     /*
