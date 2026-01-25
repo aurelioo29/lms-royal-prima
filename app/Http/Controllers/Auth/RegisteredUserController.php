@@ -61,9 +61,9 @@ class RegisteredUserController extends Controller
 
         // Kalau role = karyawan, cek apakah category = Perawat
         $isPerawat = false;
-        if ($request->role_slug === 'karyawan' && $request->job_category_id) {
-            $catName = DB::table('job_categories')->where('id', $request->job_category_id)->value('name');
-            $isPerawat = strtolower(trim($catName ?? '')) === 'perawat';
+        if ($request->role_slug === 'karyawan' && $request->job_title_id) {
+            $titleName = DB::table('job_titles')->where('id', $request->job_title_id)->value('name');
+            $isPerawat = strtolower(trim($titleName ?? '')) === 'perawat';
         }
 
         // Enforce wajib jabatan & unit kalau perawat
