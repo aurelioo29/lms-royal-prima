@@ -274,6 +274,20 @@
                                                 );
                                             @endphp
 
+                                            {{-- tombol delete hanya muncul kalau event masih draft/rejected --}}
+                                            @if ($kabidCanEditEvent)
+                                                <form method="POST"
+                                                    action="{{ route('annual-plans.events.destroy', [$annualPlan, $event]) }}"
+                                                    onsubmit="return confirm('Yakin hapus event ini? Data TOR terkait juga akan ikut terdampak kalau ada.');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        class="inline-flex items-center rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100">
+                                                        Hapus Event
+                                                    </button>
+                                                </form>
+                                            @endif
+
                                             <a href="{{ route('annual-plans.events.edit', [$annualPlan, $event]) }}"
                                                 class="inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold
                                                {{ $kabidCanEditEvent ? 'text-slate-700 hover:bg-slate-50' : 'text-slate-400 pointer-events-none bg-slate-50' }}">
@@ -376,7 +390,7 @@
 
                                                 <button type="submit"
                                                     class="inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold text-white
-            {{ $canApproveAll ? 'bg-green-600 hover:opacity-90' : 'bg-slate-200 text-slate-500 cursor-not-allowed' }}"
+                                                    {{ $canApproveAll ? 'bg-green-600 hover:opacity-90' : 'bg-slate-200 text-slate-500 cursor-not-allowed' }}"
                                                     {{ $canApproveAll ? '' : 'disabled' }}>
                                                     Approve Semua
                                                 </button>
