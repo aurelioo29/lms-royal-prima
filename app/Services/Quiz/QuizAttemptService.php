@@ -160,4 +160,28 @@ class QuizAttemptService
             ->whereIn('status', ['reviewed_passed'])
             ->exists();
     }
+
+    public function resetForRetake(QuizAttempt $attempt): QuizAttempt
+    {
+        return DB::transaction(function () use ($attempt) {
+
+            QuizAnswer::where('quiz_attempt_id', $attempt->id)->forceDelete();
+
+            $quiz = $attempt->quiz;
+
+            $attempt->update([
+                'score'        => 0,
+                'is_passed'    => null,
+                'submitted_at' => null,
+                'reviewed_at'  => null,
+                'started_at'   => now(),
+                'expired_at'   => $quiz->time_limit
+                    ? now()->addMinutes($quiz->time_limit)
+                    : null,
+                'status'       => 'started',
+            ]);
+
+            return $attempt;
+        });
+    }
 }
