@@ -108,7 +108,7 @@
                                             {{-- STATUS AKTIF --}}
                                         @else
                                             <form
-                                                action="{{ route('courses.enrollments.destroy', [$course->id, $enrollment->id]) }}"
+                                                action="{{ route($routePrefix . '.enrollments.destroy', [$course->id, $enrollment->id]) }}"
                                                 method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')

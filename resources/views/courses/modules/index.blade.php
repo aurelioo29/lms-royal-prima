@@ -51,7 +51,7 @@
                                         {{ $enrolledCount }} Peserta
                                     </span>
 
-                                    <a href="{{ route('courses.enrollments.index', $course->id) }}"
+                                    <a href="{{ route($routePrefix . '.enrollments.index', $course->id) }}"
                                         class="inline-flex items-center gap-2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 text-xs font-semibold hover:bg-indigo-100 transition">
                                         Kelola Peserta
                                     </a>
