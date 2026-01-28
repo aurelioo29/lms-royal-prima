@@ -256,7 +256,7 @@
 
                 <a href="{{ route('employees.index') }}"
                     class="{{ $navChildBase }} {{ request()->routeIs('employees.*') ? $navChildActive : $navChildInactive }}">
-                    Tambah Akun Karyawan
+                    Akun Karyawan
                 </a>
 
                 <a href="{{ route('job-titles.index') }}"

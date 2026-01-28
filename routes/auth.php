@@ -74,9 +74,20 @@ Route::middleware('auth')->group(function () {
         Route::resource('job-titles', JobTitleController::class);
         Route::resource('employees', EmployeeController::class)->except(['show']);
 
-        Route::get('/admin/mot', [AdminMotReviewController::class, 'index'])->name('admin.mot.index');
-        Route::get('/admin/mot/{doc}', [AdminMotReviewController::class, 'show'])->name('admin.mot.show');
-        Route::put('/admin/mot/{doc}', [AdminMotReviewController::class, 'update'])->name('admin.mot.update');
+        // =======================
+        // ADMIN/KABID - MOT
+        // =======================
+        Route::prefix('admin/mot')->name('admin.mot.')->group(function () {
+            Route::get('/', [AdminMotReviewController::class, 'index'])->name('index');
+
+            // admin upload MOT untuk narasumber (auto approved)
+            Route::get('/{user}/upload', [AdminMotReviewController::class, 'create'])->name('create');
+            Route::post('/{user}/upload', [AdminMotReviewController::class, 'store'])->name('store');
+
+            // review/update dokumen MOT
+            Route::get('/doc/{doc}', [AdminMotReviewController::class, 'show'])->name('show');
+            Route::put('/doc/{doc}', [AdminMotReviewController::class, 'update'])->name('update');
+        });
     });
 
     /*

@@ -181,4 +181,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(QuizAttempt::class);
     }
+
+    public function latestMot()
+    {
+        return $this->hasOne(\App\Models\InstructorDocument::class)
+            ->where('type', 'mot')
+            ->latestOfMany(); // ambil MOT terbaru
+    }
 }
