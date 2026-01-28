@@ -295,9 +295,15 @@ class CourseModuleController extends Controller
 
         $enrollments = $enrollmentService->getEnrollments($course);
 
+        // menentukan route prefix sesuai dengan route yang diakses
+        $routePrefix = request()->routeIs('instructor.*')
+            ? 'instructor.courses'
+            : 'courses';
+
         return view('courses.modules.enrollment.index', compact(
             'course',
             'enrollments',
+            'routePrefix',
         ));
     }
 
@@ -305,9 +311,12 @@ class CourseModuleController extends Controller
     public function destroyUser(
         Course $course,
         CourseEnrollment $enrollment,
-        CourseEnrollmentService $service
+        CourseEnrollmentService $service,
+        CourseInstructorService $instructorService
     ) {
         abort_unless($enrollment->course_id === $course->id, 404);
+
+        $instructorService->authorizeModuleManagement($course, auth()->id());
 
         try {
             $service->removeParticipant($enrollment);
