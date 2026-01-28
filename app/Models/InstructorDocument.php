@@ -20,6 +20,7 @@ class InstructorDocument extends Model
         'verified_by',
         'verified_at',
         'rejected_reason',
+        'uploaded_by'
     ];
 
     protected $casts = [
@@ -41,5 +42,10 @@ class InstructorDocument extends Model
     public function scopeMot($q)
     {
         return $q->where('type', 'mot');
+    }
+
+    public function uploader()
+    {
+        return $this->belongsTo(User::class, 'uploaded_by');
     }
 }
