@@ -33,7 +33,8 @@
             <form action="{{ route($routePrefix . '.modules.update', [$course->id, $module->id]) }}" method="POST"
                 enctype="multipart/form-data" x-data="{
                     type: '{{ old('type', $module->type) }}',
-                    has_quiz: {{ old('has_quiz', $module->quiz ? 'true' : 'false') }},
+                    video_mode: '{{ old('video_mode', $module->type === 'video' && $module->file_path ? 'upload' : 'link') }}',
+                    has_quiz: {{ old('has_quiz', $module->quiz ? 1 : 0) ? 'true' : 'false' }},
                     quill: null,
                     initQuill() {
                         this.quill = new Quill('#editor', {
@@ -102,7 +103,6 @@
                                         <option value="pdf">Dokumen (PDF)</option>
                                         <option value="video">Video (URL/Embed)</option>
                                         <option value="link">Tautan Luar (Link)</option>
-                                        <option value="quiz">Kuis Interaktif</option>
                                     </select>
                                 </div>
 
@@ -118,7 +118,29 @@
 
                             {{-- Dynamic Content --}}
                             <div class="space-y-6">
-                                <div x-show="type !== 'pdf'" x-transition>
+
+                                {{-- Opsi Video Mode --}}
+                                <div x-show="type === 'video'" class="space-y-3">
+                                    <label class="block text-sm font-semibold text-slate-700">
+                                        Sumber Video <span class="text-red-500">*</span>
+                                    </label>
+
+                                    <div class="flex gap-6">
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="video_mode" value="link" x-model="video_mode">
+                                            <span class="text-sm text-slate-700">Link / Embed</span>
+                                        </label>
+
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="video_mode" value="upload" x-model="video_mode">
+                                            <span class="text-sm text-slate-700">Upload Video</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+
+                                <div x-show="type === 'link' || (type === 'video' && video_mode === 'link')"
+                                    x-transition>
                                     <label for="content" class="block text-sm font-semibold text-slate-700 mb-1.5">
                                         <span
                                             x-text="type === 'video' ? 'Link Video / Embed Code' : (type === 'quiz' ? 'Instruksi Kuis' : 'Alamat URL Link')"></span>
@@ -128,7 +150,8 @@
                                 </div>
 
                                 {{-- File Upload & Preview --}}
-                                <div class="p-5 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200">
+                                <div x-show="type === 'pdf' || (type === 'video' && video_mode === 'upload')"
+                                    class="p-5 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200">
                                     @if ($module->file_path)
                                         <div
                                             class="mb-4 p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
@@ -164,6 +187,9 @@
                                         <p class="text-[11px] text-slate-500 mt-1 mb-4">Kosongkan jika tidak ingin
                                             mengubah file.</p>
                                         <input type="file" name="file" id="file"
+                                            :accept="type === 'video' && video_mode === 'upload' ?
+                                                'video/mp4,video/mov,video/avi' :
+                                                'application/pdf'"
                                             class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-6 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-white hover:file:opacity-90 transition-all cursor-pointer">
                                     </div>
                                     @error('file')

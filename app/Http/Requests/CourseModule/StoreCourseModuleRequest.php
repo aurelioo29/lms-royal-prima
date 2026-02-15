@@ -27,14 +27,40 @@ class StoreCourseModuleRequest extends FormRequest
 
             'type' => ['required', 'in:pdf,video,link'],
 
+            'video_mode' => ['nullable', 'in:link,upload'],
+
             'file' => [
                 'nullable',
                 'file',
-                'mimes:pdf,mp4',
-                'max:20480',
+                'mimes:pdf,mp4,mov,avi',
                 function ($attr, $value, $fail) {
-                    if ($this->type === 'pdf' && ! $this->hasFile('file')) {
-                        $fail('File PDF wajib diunggah.');
+
+                    // ================= PDF =================
+                    if ($this->type === 'pdf') {
+
+                        if (! $this->hasFile('file')) {
+                            $fail('File PDF wajib diunggah.');
+                            return;
+                        }
+
+                        // 20MB untuk PDF
+                        if ($value->getSize() > 20 * 1024 * 1024) {
+                            $fail('Ukuran PDF maksimal 20MB.');
+                        }
+                    }
+
+                    // ================= VIDEO UPLOAD =================
+                    if ($this->type === 'video' && $this->video_mode === 'upload') {
+
+                        if (! $this->hasFile('file')) {
+                            $fail('File video wajib diunggah.');
+                            return;
+                        }
+
+                        // 100MB untuk Video
+                        if ($value->getSize() > 100 * 1024 * 1024) {
+                            $fail('Ukuran video maksimal 100MB.');
+                        }
                     }
                 }
             ],
@@ -43,8 +69,12 @@ class StoreCourseModuleRequest extends FormRequest
                 'nullable',
                 'string',
                 function ($attr, $value, $fail) {
-                    if (in_array($this->type, ['video', 'link']) && empty($value)) {
-                        $fail('Konten wajib diisi untuk tipe video atau link.');
+                    if ($this->type === 'link' && empty($value)) {
+                        $fail('URL wajib diisi untuk tipe link.');
+                    }
+
+                    if ($this->type === 'video' && $this->video_mode === 'link' && empty($value)) {
+                        $fail('Link video wajib diisi.');
                     }
                 }
             ],

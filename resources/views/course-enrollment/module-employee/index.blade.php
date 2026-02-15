@@ -79,19 +79,34 @@
                         {{-- MODULE CONTENT VIEWER --}}
                         <div class="bg-slate-50 border-b border-slate-200 p-4 min-h-[400px] flex flex-col">
 
+
                             @if ($module->type === 'video')
                                 <div
                                     class="aspect-video w-full max-w-4xl mx-auto overflow-hidden rounded-xl shadow-lg bg-black">
-                                    {{-- Mengasumsikan content berisi URL embed YouTube/Vimeo atau Iframe --}}
-                                    @if (str_contains($module->content, '<iframe'))
-                                        {!! $module->content !!}
-                                    @else
-                                        <iframe src="{{ youtube_embed_url($module->content) }}" class="w-full h-full"
-                                            frameborder="0"
+
+                                    {{-- ================= VIDEO UPLOAD ================= --}}
+                                    @if ($module->file_path)
+                                        <video controls class="w-full h-full rounded-xl">
+                                            <source src="{{ asset('storage/' . $module->file_path) }}" type="video/mp4">
+                                            Browser Anda tidak mendukung video.
+                                        </video>
+
+                                        {{-- ================= VIDEO LINK ================= --}}
+                                    @elseif ($module->content)
+                                        @php
+                                            $embedUrl = youtube_embed_url($module->content);
+                                        @endphp
+
+                                        <iframe src="{{ $embedUrl }}" class="w-full h-full" frameborder="0"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                             allowfullscreen>
                                         </iframe>
+                                    @else
+                                        <div class="flex items-center justify-center h-full text-white">
+                                            Video tidak tersedia.
+                                        </div>
                                     @endif
+
                                 </div>
                             @elseif($module->type === 'pdf')
                                 <div
@@ -156,7 +171,8 @@
                         <div class="p-5 sm:p-6 bg-white">
                             <div class="flex flex-col md:flex-row gap-8">
                                 <div class="flex-1">
-                                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Deskripsi
+                                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+                                        Deskripsi
                                         Modul</h2>
                                     <div class="prose prose-slate max-w-none text-slate-600 leading-relaxed">
                                         {!! $module->description ?? '<span class="italic text-slate-400">Tidak ada deskripsi untuk modul ini.</span>' !!}

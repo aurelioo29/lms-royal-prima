@@ -35,6 +35,7 @@
             <form action="{{ route($routePrefix . '.modules.store', $course->id) }}" method="POST"
                 enctype="multipart/form-data" x-data="{
                     type: '{{ old('type', 'pdf') }}',
+                    video_mode: '{{ old('video_mode', 'link') }}',
                     has_quiz: {{ old('has_quiz') ? 'true' : 'false' }},
                     initQuill() {
                         const quill = new Quill('#editor', {
@@ -118,14 +119,35 @@
 
                             {{-- Input Dinamis (Content Area) --}}
                             <div class="space-y-6">
+                                {{-- Opsi Video Mode --}}
+                                <div x-show="type === 'video'" class="space-y-3">
+                                    <label class="block text-sm font-semibold text-slate-700">
+                                        Sumber Video <span class="text-red-500">*</span>
+                                    </label>
+
+                                    <div class="flex gap-6">
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="video_mode" value="link" x-model="video_mode">
+                                            <span class="text-sm text-slate-700">Link / Embed</span>
+                                        </label>
+
+                                        <label class="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="video_mode" value="upload" x-model="video_mode">
+                                            <span class="text-sm text-slate-700">Upload Video</span>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 {{-- Textarea untuk Video/Link/Quiz --}}
-                                <div x-show="type !== 'pdf'" x-transition:enter="transition ease-out duration-300"
+                                <div x-show="type === 'link' || (type === 'video' && video_mode === 'link')"
+                                    x-transition:enter="transition ease-out duration-300"
                                     x-transition:enter-start="opacity-0 transform -translate-y-2">
                                     <label for="content" class="block text-sm font-semibold text-slate-700 mb-1.5">
                                         <span
                                             x-text="type === 'video' ? 'Link Video / Embed Code' : (type === 'quiz' ? 'Instruksi Kuis' : 'Alamat URL Link')"></span>
                                         <span class="text-red-500">*</span>
                                     </label>
+
                                     <textarea name="content" id="content" rows="3"
                                         class="w-full rounded-xl border-slate-200 focus:border-[#121293] focus:ring focus:ring-[#121293]/10 transition-all shadow-sm"
                                         placeholder="Tempelkan konten atau tautan di sini...">{{ old('content') }}</textarea>
@@ -135,7 +157,7 @@
                                 </div>
 
                                 {{-- File Upload Area --}}
-                                <div
+                                <div x-show="type === 'pdf' || (type === 'video' && video_mode === 'upload')"
                                     class="p-5 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 transition-colors hover:border-[#121293]/30 group">
                                     <div class="flex flex-col items-center justify-center text-center">
                                         <div
@@ -157,6 +179,9 @@
                                         </p>
 
                                         <input type="file" name="file" id="file"
+                                            :accept="type === 'video' && video_mode === 'upload' ?
+                                                'video/mp4,video/mov,video/avi' :
+                                                'application/pdf'"
                                             class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-6 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#121293] file:text-white hover:file:opacity-90 transition-all cursor-pointer">
                                     </div>
                                     @error('file')

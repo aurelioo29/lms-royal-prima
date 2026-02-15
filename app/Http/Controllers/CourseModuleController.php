@@ -88,11 +88,18 @@ class CourseModuleController extends Controller
             ? 'instructor.courses'
             : 'courses';
 
+        $embedUrl = null;
+
+        if ($module->type === 'video' && $module->content) {
+            $embedUrl = youtube_embed_url($module->content);
+        }
+
         return view('courses.modules.preview', [
             'course' => $course,
             'module' => $module,
             'allModules' => $allModules,
             'routePrefix' => $routePrefix,
+            'embedUrl' => $embedUrl,
 
         ]);
     }
@@ -118,10 +125,33 @@ class CourseModuleController extends Controller
         $data = $request->validated();
         $data['course_id'] = $course->id;
 
-        // handle upload file
-        if ($request->hasFile('file')) {
-            $data['file_path'] = $request->file('file')
-                ->store('course-modules', 'public');
+        if ($data['type'] === 'video') {
+
+            if ($request->video_mode === 'upload') {
+
+                // kosongkan content jika upload
+                $data['content'] = null;
+
+                if ($request->hasFile('file')) {
+                    $data['file_path'] = $request->file('file')
+                        ->store('course-modules/videos', 'public');
+                }
+            } elseif ($request->video_mode === 'link') {
+
+                // kosongkan file jika link
+                $data['file_path'] = null;
+            }
+        }
+
+        // handle upload file pdf
+        if ($data['type'] === 'pdf') {
+
+            if ($request->hasFile('file')) {
+                $data['file_path'] = $request->file('file')
+                    ->store('course-modules/pdf', 'public');
+            }
+
+            $data['content'] = null;
         }
 
         // default sorting (auto append)
