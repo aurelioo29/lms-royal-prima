@@ -1,6 +1,6 @@
 {{-- SECTION FORM QUIZ (TAMBAHAN) --}}
-<div x-show="has_quiz" x-transition:enter="transition ease-out duration-300"
-    x-transition:enter-start="opacity-0 transform translate-y-4"
+<div x-show="has_quiz || {{ $errors->has('quiz.*') ? 'true' : 'false' }}"
+    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-4"
     x-transition:enter-end="opacity-100 transform translate-y-0"
     class="mt-6 rounded-2xl border-2 border-orange-100 bg-orange-50/30 shadow-sm overflow-hidden">
 
@@ -25,10 +25,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             {{-- Max Attempts --}}
-            <div class="md:col-span-2"
-                x-data="{
-                    unlimited: {{ old('quiz.max_attempts', $module->quiz->max_attempts ?? null) === null ? 'true' : 'false' }}
-                }">
+            <div class="md:col-span-2" x-data="{
+                unlimited: {{ old('quiz.max_attempts', $module->quiz->max_attempts ?? null) === null ? 'true' : 'false' }}
+            }">
 
                 <label class="block text-sm font-semibold text-slate-700 mb-2">
                     Batas Percobaan Pengerjaan Quiz
@@ -36,31 +35,27 @@
 
                 <div class="flex items-center gap-6 mb-3">
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio"
-                            name="quiz_attempt_type"
-                            value="unlimited"
-                            @change="unlimited = true"
+                        <input type="radio" name="quiz_attempt_type" value="unlimited" @change="unlimited = true"
                             :checked="unlimited">
                         <span class="text-sm">Tanpa Batas</span>
                     </label>
 
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="radio"
-                            name="quiz_attempt_type"
-                            value="limited"
-                            @change="unlimited = false"
+                        <input type="radio" name="quiz_attempt_type" value="limited" @change="unlimited = false"
                             :checked="!unlimited">
                         <span class="text-sm">Batasi Percobaan</span>
                     </label>
                 </div>
 
                 <div x-show="!unlimited" x-transition>
-                    <input type="number"
-                        name="quiz[max_attempts]"
-                        min="1"
-                        :disabled="unlimited"
+                    <input type="number" name="quiz[max_attempts]" min="1" :disabled="unlimited"
                         value="{{ old('quiz.max_attempts', $module->quiz->max_attempts ?? 3) }}"
                         class="w-40 rounded-xl border-slate-200">
+                    @error('quiz.max_attempts')
+                        <p class="mt-1 text-xs text-red-600 font-medium">
+                            {{ $message }}
+                        </p>
+                    @enderror
                 </div>
 
             </div>
@@ -76,6 +71,11 @@
                 <input type="text" name="quiz[title]" value="{{ old('quiz.title', $module->quiz->title ?? '') }}"
                     class="w-full rounded-xl border-slate-200 focus:border-orange-500 focus:ring focus:ring-orange-500/10"
                     placeholder="Contoh: Quiz Evaluasi Modul 1">
+                @error('quiz.title')
+                    <p class="mt-1 text-xs text-red-600 font-medium">
+                        {{ $message }}
+                    </p>
+                @enderror
             </div>
 
             {{-- Deskripsi Quiz --}}
@@ -98,7 +98,12 @@
                     value="{{ old('quiz.passing_score', $module->quiz->passing_score ?? 70) }}"
                     class="w-full rounded-xl border-slate-200 focus:border-orange-500 focus:ring focus:ring-orange-500/10">
                 <p class="text-[11px] text-slate-500 mt-1">
-                    Nilai minimum untuk lulus quiz
+                    @error('quiz.passing_score')
+                    <p class="mt-1 text-xs text-red-600 font-medium">
+                        {{ $message }}
+                    </p>
+                @enderror
+                Nilai minimum untuk lulus quiz
                 </p>
             </div>
 

@@ -160,22 +160,24 @@ class CourseModuleController extends Controller
             $data['sort_order'] = $maxOrder + 1;
         }
 
+
         $module = CourseModule::create($data);
 
         // Cek apakah quiz harus dibuat
         $shouldCreateQuiz =
-            $request->boolean('has_quiz') ||
-            $data['type'] === 'quiz';
+            $request->boolean('has_quiz') &&
+            filled(data_get($data, 'quiz.title'));
 
         //JIKA MODUL BERTIPE QUIZ
-        if ($shouldCreateQuiz && !empty($data['quiz'])) {
-            // normalize max_attempts
+        if ($shouldCreateQuiz) {
+
             if (empty($data['quiz']['max_attempts'])) {
                 $data['quiz']['max_attempts'] = null;
             }
 
             $module->quiz()->create($data['quiz']);
         }
+
 
         return redirect()
             ->route($this->moduleRoutePrefix() . '.modules.index', $data['course_id'])
@@ -223,33 +225,26 @@ class CourseModuleController extends Controller
 
         // Tentukan apakah quiz harus ada
         $shouldHaveQuiz =
-            $request->boolean('has_quiz') ||
-            $data['type'] === 'quiz';
+            $request->boolean('has_quiz') &&
+            filled(data_get($quizData, 'title'));
 
-        // 🚨 Modul tipe quiz WAJIB punya quiz
-        if ($data['type'] === 'quiz' && empty($quizData)) {
-            throw ValidationException::withMessages([
-                'quiz' => 'Data quiz wajib diisi untuk modul bertipe quiz.'
-            ]);
-        }
 
         // Handle quiz
-        if ($shouldHaveQuiz && $quizData) {
-            // normalize max_attempts
+        if ($shouldHaveQuiz) {
+
             if (empty($quizData['max_attempts'])) {
                 $quizData['max_attempts'] = null;
             }
 
-            // update or create
-            $module->quiz()
-                ->updateOrCreate(
-                    ['course_module_id' => $module->id],
-                    $quizData
-                );
+            $module->quiz()->updateOrCreate(
+                ['course_module_id' => $module->id],
+                $quizData
+            );
         } else {
             // hapus quiz jika user uncheck
             $module->quiz()?->delete();
         }
+
 
         return redirect()
             ->route($this->moduleRoutePrefix() . '.modules.index', $module->course_id)

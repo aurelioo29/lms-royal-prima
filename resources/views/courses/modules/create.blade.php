@@ -170,13 +170,13 @@
                                         </div>
                                         <label for="file"
                                             class="block text-sm font-semibold text-slate-700 cursor-pointer">
-                                            Pilih File Modul
+                                            Upload File Modul
                                         </label>
-                                        <p class="text-[11px] text-slate-500 mt-1 mb-4">
+                                        {{-- <p class="text-[11px] text-slate-500 mt-1 mb-4">
                                             <span
                                                 x-text="type === 'pdf' ? 'Wajib untuk PDF.' : 'Opsional sebagai lampiran.'"></span>
                                             Maksimal 20MB.
-                                        </p>
+                                        </p> --}}
 
                                         <input type="file" name="file" id="file"
                                             :accept="type === 'video' && video_mode === 'upload' ?
@@ -240,7 +240,7 @@
                                     </div>
                                 </label>
 
-                                <label class="flex items-center cursor-pointer group">
+                                <label class="flex items-center cursor-pointer group hidden">
                                     <div class="relative">
                                         <input type="checkbox" name="is_active" class="sr-only peer"
                                             {{ old('is_active', true) ? 'checked' : '' }}>
