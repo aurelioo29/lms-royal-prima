@@ -17,7 +17,6 @@ class QuizQuestionService
                 $question = $quiz->questions()->create([
                     'question'   => $q['question'],
                     'type'       => $q['type'], // mcq | true_false | essay
-                    'score'      => $q['score'] ?? 10,
                     'sort_order' => $index + 1,
                     'is_active'  => true,
                 ]);
@@ -27,6 +26,8 @@ class QuizQuestionService
                     $this->storeOptions($question, $q);
                 }
             }
+            // otomatis hitung skor per soal
+            $this->recalculateScores($quiz);
         });
     }
 
@@ -37,7 +38,6 @@ class QuizQuestionService
             // Update basic fields
             $question->update([
                 'question' => $data['question'],
-                'score'    => $data['score'],
             ]);
 
             // Jika tipe berubah → reset opsi
@@ -62,6 +62,9 @@ class QuizQuestionService
                 $question->options()->delete();
             }
 
+            // hitung ulang skor soal setelah update
+            $this->recalculateScores($question->quiz);
+
             return $question;
         });
     }
@@ -69,8 +72,13 @@ class QuizQuestionService
     public function delete(QuizQuestion $question): void
     {
         DB::transaction(function () use ($question) {
+            $quiz = $question->quiz;
+
             $question->options()->delete();
             $question->delete();
+
+            //hitung ulang skor soal setelah penghapusan
+            $this->recalculateScores($quiz);
         });
     }
 
@@ -107,7 +115,6 @@ class QuizQuestionService
                     [
                         'question'   => $q['question'],
                         'type'       => $q['type'],
-                        'score'      => $q['score'] ?? 10,
                         'sort_order' => $index + 1,
                         'is_active'  => true,
                     ]
@@ -127,6 +134,32 @@ class QuizQuestionService
             $quiz->questions()
                 ->whereNotIn('id', $incomingIds)
                 ->delete();
+
+            // otomatis hitung skor per soal setelah sinkronisasi
+            $this->recalculateScores($quiz);
         });
+    }
+
+    protected function recalculateScores(ModuleQuiz $quiz): void
+    {
+        $questions = $quiz->questions()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get();
+
+        $count = $questions->count();
+
+        if ($count === 0) {
+            return;
+        }
+
+        $baseScore = intdiv(100, $count);
+        $remainder = 100 % $count;
+
+        foreach ($questions as $index => $question) {
+            $question->update([
+                'score' => $baseScore + ($index < $remainder ? 1 : 0),
+            ]);
+        }
     }
 }
