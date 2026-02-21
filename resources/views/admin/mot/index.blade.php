@@ -139,6 +139,19 @@
                                                     Re-Upload
                                                 </a>
                                             @endif
+
+                                            <form method="POST"
+                                                action="{{ route('admin.mot.instructors.destroy', $u) }}"
+                                                class="js-delete-instructor">
+                                                @csrf
+                                                @method('DELETE')
+
+                                                <button type="button"
+                                                    class="inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-100"
+                                                    data-name="{{ $u->name }}">
+                                                    Delete Account
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -160,3 +173,28 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+    document.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.js-delete-instructor button[type="button"]');
+        if (!btn) return;
+
+        const form = btn.closest('form');
+        const name = btn.dataset.name || 'user ini';
+
+        const result = await Swal.fire({
+            title: 'Hapus akun?',
+            html: `Akun <b>${name}</b> akan dihapus permanen.<br/>Data terkait bisa ikut hilang.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            focusCancel: true,
+        });
+
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+</script>

@@ -88,6 +88,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/doc/{doc}', [AdminMotReviewController::class, 'show'])->name('show');
             Route::put('/doc/{doc}', [AdminMotReviewController::class, 'update'])->name('update');
         });
+
+        Route::delete('/admin/mot/instructors/{user}', [AdminMotReviewController::class, 'destroyInstructor'])->name('admin.mot.instructors.destroy');
     });
 
     /*

@@ -9,6 +9,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class AdminMotReviewController extends Controller
 {
@@ -97,5 +99,38 @@ class AdminMotReviewController extends Controller
         return redirect()
             ->route('admin.mot.index')
             ->with('success', "MOT untuk {$user->name} berhasil diupload dan langsung APPROVED.");
+    }
+
+    public function destroyInstructor(User $user): RedirectResponse
+    {
+        abort_unless(auth()->user()->role?->can_manage_users, 403);
+
+        // pastikan yang dihapus memang Narasumber (biar gak salah bunuh)
+        abort_unless($user->role?->name === 'Narasumber', 403);
+
+        DB::transaction(function () use ($user) {
+
+            // 1) Hapus dokumen-dokumen instructor (termasuk MOT) + file fisiknya
+            $docs = $user->instructorDocuments()->get(); // pastikan relasi ini ada
+            foreach ($docs as $doc) {
+                if ($doc->file_path && Storage::disk('public')->exists($doc->file_path)) {
+                    Storage::disk('public')->delete($doc->file_path);
+                }
+                $doc->delete();
+            }
+
+            // 2) Hapus relasi lain kalau ada (pilih sesuai struktur projectmu)
+            // Contoh umum:
+            // $user->courseInstructors()->delete();
+            // $user->notifications()->delete();
+            // dst...
+
+            // 3) Hapus usernya
+            $user->delete();
+        });
+
+        return redirect()
+            ->route('admin.mot.index')
+            ->with('success', "Akun narasumber {$user->name} berhasil dihapus.");
     }
 }

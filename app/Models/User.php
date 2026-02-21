@@ -117,7 +117,7 @@ class User extends Authenticatable
     // Manage MOT Narasumber
     public function instructorDocuments(): HasMany
     {
-        return $this->hasMany(InstructorDocument::class);
+        return $this->hasMany(InstructorDocument::class, 'user_id');
     }
 
     public function motDocument(): HasOne
