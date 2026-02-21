@@ -78,8 +78,8 @@
             @include('layouts.sidebar-content')
         </aside>
 
-        {{-- TOPBAR (FIXED, ALWAYS CLICKABLE) --}}
-        <div :class="collapsed ? 'lg:left-16' : 'lg:left-64'" class="fixed top-0 right-0 left-0 lg:left-64 z-[60]">
+        {{-- TOPBAR (FIXED) --}}
+        <div class="fixed top-0 right-0 left-0 z-[60]" :class="collapsed ? 'lg:left-16' : 'lg:left-64'">
             @include('layouts.topbar')
         </div>
 

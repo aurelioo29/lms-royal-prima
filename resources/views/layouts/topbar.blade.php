@@ -6,9 +6,9 @@
            relative isolate">
 
     <div class="flex items-center gap-3">
-        <button @click="collapsed = !collapsed"
+        <button type="button" @click="(window.innerWidth < 1024) ? (sidebarOpen = true) : (collapsed = !collapsed)"
             class="p-2 rounded-lg hover:bg-white/60 transition
-                   focus:outline-none focus:ring-2 focus:ring-[#121293]/20"
+           focus:outline-none focus:ring-2 focus:ring-[#121293]/20"
             aria-label="Toggle Sidebar">
             <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M4 6h16M4 12h16M4 18h16" />
