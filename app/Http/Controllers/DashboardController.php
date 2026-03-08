@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\View\View;
+use App\Services\Dashboard\DashboardService;
 use App\Support\RoleMapper;
 use Illuminate\Http\JsonResponse;
-use App\Services\Dashboard\DashboardService;
+use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
@@ -20,18 +20,17 @@ class DashboardController extends Controller
         $service = DashboardService::resolve($user);
 
         $dashboardData = [
-            'stats'      => $service->getStats($user),
-            'summary'    => $service->getSummary($user),
+            'stats' => $service->getStats($user),
+            'summary' => $service->getSummary($user),
             'activities' => $service->getActivities($user),
-            'view'       => 'dashboard.' . $roleKey,
+            'view' => 'dashboard.'.$roleKey,
         ];
 
-        return view($dashboardData['view'], array_merge($dashboardData,  [
+        return view($dashboardData['view'], array_merge($dashboardData, [
             'onlineCount' => $count,
             'onlineUsers' => $users,
         ]));
     }
-
 
     // ONLINE USERS
     public function online(): JsonResponse
@@ -40,7 +39,7 @@ class DashboardController extends Controller
 
         return response()->json([
             'count' => $count,
-            'users' => $users->map(fn($u) => [
+            'users' => $users->map(fn ($u) => [
                 'id' => $u->id,
                 'name' => $u->name,
                 'last_seen_at' => optional($u->last_seen_at)->toIso8601String(),
@@ -53,9 +52,13 @@ class DashboardController extends Controller
         $cutoff = now()->subMinutes(5);
 
         $users = User::query()
-            ->select(['id', 'name', 'last_seen_at'])
+            ->select(['id', 'name', 'last_seen_at', 'role_id'])
+            ->with('role:id,slug')
             ->whereNotNull('last_seen_at')
             ->where('last_seen_at', '>=', $cutoff)
+            ->whereHas('role', function ($q) {
+                $q->where('slug', '!=', 'developer');
+            })
             ->orderByDesc('last_seen_at')
             ->limit(30)
             ->get();
