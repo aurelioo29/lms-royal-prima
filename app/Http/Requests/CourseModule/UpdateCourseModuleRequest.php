@@ -27,14 +27,57 @@ class UpdateCourseModuleRequest extends FormRequest
 
             'type' => ['required', 'in:pdf,video,link'],
 
-            'content' => ['nullable', 'string'],
+            'video_mode' => ['nullable', 'in:link,upload'],
 
-            // update → file optional (replace)
-            'file' => ['nullable', 'file', 'mimes:pdf,mp4', 'max:20480'],
+            'file' => [
+                'nullable',
+                'file',
+                'mimes:pdf,mp4,mov,avi',
+                function ($attr, $value, $fail) {
 
-            'sort_order' => ['nullable', 'integer', 'min:1'],
-            'is_required' => ['nullable', 'boolean'],
-            'is_active'   => ['nullable', 'boolean'],
+                    // ================= PDF =================
+                    if ($this->type === 'pdf' && $this->hasFile('file')) {
+
+                        if ($value->getSize() > 20 * 1024 * 1024) {
+                            $fail('Ukuran PDF maksimal 20MB.');
+                        }
+                    }
+
+                    // ================= VIDEO UPLOAD =================
+                    if ($this->type === 'video' && $this->video_mode === 'upload' && $this->hasFile('file')) {
+
+                        if ($value->getSize() > 100 * 1024 * 1024) {
+                            $fail('Ukuran video maksimal 100MB.');
+                        }
+                    }
+                }
+            ],
+
+            'content' => [
+                'nullable',
+                'string',
+                function ($attr, $value, $fail) {
+
+                    if ($this->type === 'link' && empty($value)) {
+                        $fail('URL wajib diisi untuk tipe link.');
+                    }
+
+                    if ($this->type === 'video' && $this->video_mode === 'link' && empty($value)) {
+                        $fail('Link video wajib diisi.');
+                    }
+                }
+            ],
+
+            'is_active' => [
+                'nullable',
+                'boolean',
+                function ($attr, $value, $fail) {
+                    if ($this->boolean('has_quiz') && $value === true) {
+                        $fail('Modul dengan quiz tidak boleh diaktifkan sebelum quiz siap.');
+                    }
+                }
+            ],
+
 
 
             // ================= QUIZ =================
@@ -42,28 +85,19 @@ class UpdateCourseModuleRequest extends FormRequest
             'has_quiz' => ['nullable', 'boolean'],
 
             'quiz.title' => [
-                'nullable',
+                'required_if:has_quiz,true',
                 'string',
                 'max:255',
-                function ($attr, $value, $fail) {
-                    if ($this->boolean('has_quiz') && empty($value)) {
-                        $fail('Judul kuis wajib diisi.');
-                    }
-                }
             ],
 
             'quiz.description' => ['nullable', 'string'],
 
+
             'quiz.passing_score' => [
-                'nullable',
+                'required_if:has_quiz,true',
                 'integer',
                 'min:0',
                 'max:100',
-                function ($attr, $value, $fail) {
-                    if ($this->boolean('has_quiz') && empty($value)) {
-                        $fail('Passing score wajib diisi.');
-                    }
-                }
             ],
 
             'quiz.time_limit' => ['nullable', 'integer', 'min:1'],
@@ -85,10 +119,13 @@ class UpdateCourseModuleRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $hasQuiz = $this->boolean('has_quiz');
         $this->merge([
-            'has_quiz' => $this->boolean('has_quiz'),
+            'has_quiz' => $hasQuiz,
             'is_required' => $this->boolean('is_required'),
-            'is_active'   => $this->boolean('is_active'),
+            'is_active'   => $hasQuiz
+                ? false
+                : $this->boolean('is_active'),
 
             // quiz normalization
             'quiz' => array_merge($this->input('quiz', []), [

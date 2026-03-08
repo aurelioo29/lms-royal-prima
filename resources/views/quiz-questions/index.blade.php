@@ -24,10 +24,22 @@
             <!-- Main Card -->
             <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                 <!-- Header Branding -->
-                <div class="h-1 w-full bg-[#121293]"></div>
+                <div class="h-1 w-full bg-[#121293]">
+
+                </div>
 
                 <!-- Page Header & Actions -->
                 <div class="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+                    {{-- Back Button --}}
+                    <a href="{{ route($routePrefix . '.modules.index', $course->id) }}"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 transition-colors shadow-sm"
+                        title="Kembali ke Daftar Modul">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </a>
+
                     <div>
                         <h1 class="text-xl font-semibold text-slate-900">Quiz Management</h1>
                         <p class="text-sm text-slate-600 mt-1">
@@ -36,6 +48,7 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-3">
+
                         <!-- Search & Filter Form -->
                         <form method="GET" action="" class="flex flex-wrap items-center gap-2">
                             <div class="relative">
@@ -59,9 +72,9 @@
                         </form>
 
                         <a href="{{ route($routePrefix . '.modules.quiz.questions.create', [
-                                'course' => $course->id,
-                                'module' => $module->id
-                            ]) }}"
+                            'course' => $course->id,
+                            'module' => $module->id,
+                        ]) }}"
                             class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 transition-colors flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -96,7 +109,8 @@
 
                                     {{-- Type --}}
                                     <td class="px-4 py-4">
-                                        <span class="inline-flex rounded-lg bg-slate-100 px-2 py-1 text-xs font-semibold">
+                                        <span
+                                            class="inline-flex rounded-lg bg-slate-100 px-2 py-1 text-xs font-semibold">
                                             {{ strtoupper($question->type) }}
                                         </span>
                                     </td>
@@ -131,8 +145,7 @@
                                         <div class="flex items-center justify-end gap-2">
 
                                             <!-- EDIT -->
-                                            <a href="{{ route($routePrefix . '.modules.quiz.questions.edit',
-                                                [$course->id, $module->id, $question->id]) }}"
+                                            <a href="{{ route($routePrefix . '.modules.quiz.questions.edit', [$course->id, $module->id, $question->id]) }}"
                                                 title="Edit Soal"
                                                 class="inline-flex items-center justify-center
                                                     w-9 h-9 rounded-lg
@@ -148,8 +161,7 @@
                                             </a>
 
                                             <!-- DELETE -->
-                                            <button type="button"
-                                                title="Hapus Soal"
+                                            <button type="button" title="Hapus Soal"
                                                 x-on:click="
                                                     document.getElementById('deleteForm').action =
                                                     '{{ route($routePrefix . '.modules.quiz.questions.destroy', [$course->id, $module->id, '__id__']) }}'

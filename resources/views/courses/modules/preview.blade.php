@@ -57,20 +57,35 @@
                     {{-- Content Display --}}
                     <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden min-h-[400px]">
                         @if ($module->type === 'video')
-                            {{-- Case Video --}}
-                            <div class="aspect-video bg-black w-full">
-                                @if ($module->content)
-                                    <iframe src="{{ youtube_embed_url($module->content) }}" class="w-full h-full"
-                                        frameborder="0"
+
+                            {{-- PRIORITAS 1: VIDEO UPLOAD --}}
+                            @if ($module->file_path)
+                                <div class="aspect-video w-full bg-black rounded-2xl overflow-hidden">
+                                    <video controls class="w-full h-full object-contain">
+                                        <source src="{{ asset('storage/' . $module->file_path) }}" type="video/mp4">
+                                        Browser tidak mendukung video.
+                                    </video>
+                                </div>
+
+                                {{-- PRIORITAS 2: YOUTUBE / LINK --}}
+                            @elseif ($embedUrl)
+                                <div class="aspect-video w-full bg-black rounded-2xl overflow-hidden">
+                                    <iframe class="w-full h-full" src="{{ $embedUrl }}" frameborder="0"
                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                         allowfullscreen>
                                     </iframe>
-                                @else
-                                    <div class="flex h-full items-center justify-center text-slate-500 text-sm italic">
-                                        URL Video belum diset.
-                                    </div>
-                                @endif
-                            </div>
+                                </div>
+
+                                {{-- PRIORITAS 3: IFRAME MENTAH --}}
+                            @elseif (str_contains($module->content, '<iframe'))
+                                <div class="aspect-video w-full bg-black rounded-2xl overflow-hidden">
+                                    {!! $module->content !!}
+                                </div>
+                            @else
+                                <div class="text-red-500 font-semibold p-6">
+                                    URL video tidak valid atau belum diisi.
+                                </div>
+                            @endif
                         @elseif($module->type === 'pdf')
                             {{-- Case PDF --}}
                             <div class="p-12 flex flex-col items-center justify-center text-center">

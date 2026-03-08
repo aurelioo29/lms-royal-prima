@@ -262,8 +262,7 @@
                                                 document.getElementById('deleteForm').action =
                                                 '{{ route($routePrefix . '.modules.destroy', [$course->id, ':id']) }}'
                                                     .replace(':id', {{ $module->id }});
-                                                $dispatch('open-modal', 'confirm-delete-module');
-    "
+                                                $dispatch('open-modal', 'confirm-delete-module');"
                                                 class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                                                 <svg class="h-5 w-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -295,35 +294,6 @@
                                 </tr>
                             @endforelse
 
-
-                            <x-modal name="confirm-delete-module" maxWidth="md">
-                                <div class="p-6">
-                                    <h2 class="text-lg font-semibold text-gray-900">
-                                        Hapus Modul
-                                    </h2>
-
-                                    <p class="mt-2 text-sm text-gray-600">
-                                        Apakah kamu yakin ingin menghapus modul ini?
-                                        Tindakan ini tidak dapat dibatalkan.
-                                    </p>
-
-                                    <div class="mt-6 flex justify-end gap-3">
-                                        <x-secondary-button
-                                            x-on:click="$dispatch('close-modal', 'confirm-delete-module')">
-                                            Batal
-                                        </x-secondary-button>
-
-                                        <form id="deleteForm" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-
-                                            <x-danger-button type="submit">
-                                                Ya, Hapus
-                                            </x-danger-button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </x-modal>
                         </tbody>
                     </table>
                 </div>
@@ -332,5 +302,34 @@
         </div>
     </div>
 
+    <div class="relative z-[9999]">
+        <x-modal name="confirm-delete-module" maxWidth="md">
+            <div class="p-6">
+                <h2 class="text-lg font-semibold text-gray-900">
+                    Hapus Modul
+                </h2>
+
+                <p class="mt-2 text-sm text-gray-600">
+                    Apakah kamu yakin ingin menghapus modul ini?
+                    Tindakan ini tidak dapat dibatalkan.
+                </p>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <x-secondary-button x-on:click="$dispatch('close-modal', 'confirm-delete-module')">
+                        Batal
+                    </x-secondary-button>
+
+                    <form id="deleteForm" method="POST">
+                        @csrf
+                        @method('DELETE')
+
+                        <x-danger-button type="submit">
+                            Ya, Hapus
+                        </x-danger-button>
+                    </form>
+                </div>
+            </div>
+        </x-modal>
+    </div>
 
 </x-app-layout>
