@@ -85,7 +85,7 @@
                                 {{ $course->title }}
                             </h3>
 
-                            {{-- Narasumber --}}
+                            {{-- Trainer --}}
                             <div class="flex items-start text-sm text-slate-600 mb-3">
                                 <svg class="w-4 h-4 mr-1.5 mt-0.5 text-slate-400" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
@@ -94,7 +94,7 @@
                                 </svg>
 
                                 <span class="truncate">
-                                    <strong>Narasumber:</strong>
+                                    <strong>Trainer :</strong>
                                     @if ($course->instructors->count())
                                         {{ $course->instructors->pluck('name')->join(', ') }}
                                     @else
@@ -185,7 +185,7 @@
                                                 <h1 class="text-3xl font-extrabold text-[#121293] leading-tight mb-2">
                                                     {{ $course->title }}</h1>
                                                 <div class="text-sm text-slate-600 mt-2">
-                                                    <strong>Narasumber:</strong>
+                                                    <strong>Trainer :</strong>
                                                     @if ($course->instructors->count())
                                                         {{ $course->instructors->pluck('name')->join(', ') }}
                                                     @else

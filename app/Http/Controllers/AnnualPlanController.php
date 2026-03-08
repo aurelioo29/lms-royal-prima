@@ -6,7 +6,7 @@ use App\Http\Requests\AnnualPlan\AnnualPlanDecisionRequest;
 use App\Http\Requests\AnnualPlan\AnnualPlanStoreRequest;
 use App\Http\Requests\AnnualPlan\AnnualPlanUpdateRequest;
 use App\Models\AnnualPlan;
-use Illuminate\Container\Attributes\DB;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 

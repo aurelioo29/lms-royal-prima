@@ -235,8 +235,8 @@
                         @enderror
                     </div>
 
-                    {{-- Narasumber --}}
-                    @include('components.field-select-narasumber', [
+                    {{-- Trainer --}}
+                    @include('components.field-select-trainer', [
                         'eligibleInstructors' => $eligibleInstructors,
                         'selectedInstructors' => [],
                     ])

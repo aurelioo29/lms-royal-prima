@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Role;
 use App\Models\Course;
 use Illuminate\View\View;
 use App\Models\CourseType;
@@ -70,17 +71,19 @@ class CourseController extends Controller
             ->orderBy('name')
             ->get();
 
-        // 🔹 TAMBAHAN: narasumber eligible
-        $eligibleInstructors = User::query()
-            ->where('is_active', true)
-            ->whereHas('instructorDocuments', function ($q) {
-                $q->where('type', 'mot')
-                    ->where('status', 'approved');
-            })
+        //Trainer yang eligible
+        $eligibleInstructors = User::eligibleTrainer()
+            ->select('id','name','role_id')
+            ->with('role:id,name,slug')
             ->orderBy('name')
             ->get();
 
-        return view('courses.create', compact('torOptions', 'courseTypes', 'prefillTorId', 'eligibleInstructors'))->with(['selectedInstructors' => []]);
+        $trainerRoles = \App\Models\Role::where('can_be_trainer', true)
+            ->select('id','name','slug')
+            ->orderBy('name')
+            ->get();
+
+        return view('courses.create', compact('torOptions', 'courseTypes', 'prefillTorId', 'eligibleInstructors', 'trainerRoles'))->with(['selectedInstructors' => []]);
     }
 
     public function store(CourseStoreRequest $request): RedirectResponse
@@ -117,7 +120,6 @@ class CourseController extends Controller
                     'user_id' => $userId,
                     'role' => 'mentor',
                     'status' => 'active',
-                    'can_manage_modules' => true,
                 ]);
             }
         }
@@ -135,7 +137,7 @@ class CourseController extends Controller
             'type',
             'creator',
             'torSubmission.planEvent.annualPlan',
-            'instructors',
+            'instructors.role',
         ]);
 
         $courseTypes = CourseType::query()
@@ -143,12 +145,15 @@ class CourseController extends Controller
             ->orderBy('name')
             ->get();
 
-        $eligibleInstructors = User::query()
-            ->where('is_active', true)
-            ->whereHas('instructorDocuments', function ($q) {
-                $q->where('type', 'mot')
-                    ->where('status', 'approved');
-            })
+        //Trainer yang eligible
+        $eligibleInstructors = User::eligibleTrainer()
+            ->select('id','name','role_id')
+            ->with('role:id,name,slug')
+            ->orderBy('name')
+            ->get();
+        
+        $trainerRoles = \App\Models\Role::where('can_be_trainer', true)
+            ->select('id','name','slug')
             ->orderBy('name')
             ->get();
 
@@ -158,7 +163,7 @@ class CourseController extends Controller
             ->toArray();
 
 
-        return view('courses.edit', compact('course', 'courseTypes', 'eligibleInstructors', 'selectedInstructors'));
+        return view('courses.edit', compact('course', 'courseTypes', 'eligibleInstructors', 'selectedInstructors', 'trainerRoles'));
     }
 
     public function update(CourseUpdateRequest $request, Course $course): RedirectResponse
@@ -188,9 +193,8 @@ class CourseController extends Controller
                 [
                     'role' => 'mentor',
                     'status' => 'active',
-                    'can_manage_modules' => true,
                 ]
-            );
+                );
         }
 
         return back()->with('success', 'Course diupdate.');

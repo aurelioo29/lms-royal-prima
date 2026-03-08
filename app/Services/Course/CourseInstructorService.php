@@ -19,7 +19,6 @@ class CourseInstructorService
         return $course->instructors()
             ->where('user_id', $userId)
             ->where('status', 'active')
-            ->where('can_manage_modules', true)
             ->exists();
     }
 

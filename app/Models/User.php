@@ -76,6 +76,11 @@ class User extends Authenticatable
         return (bool) ($this->role?->can_approve_courses);
     }
 
+    public function canBeTrainer(): bool
+    {
+        return (bool) ($this->role?->can_be_trainer);
+    }
+
     public function jobCategory(): BelongsTo
     {
         return $this->belongsTo(JobCategory::class, 'job_category_id');
@@ -173,7 +178,7 @@ class User extends Authenticatable
     public function instructedCourses()
     {
         return $this->belongsToMany(Course::class, 'course_instructors')
-            ->withPivot(['role', 'status', 'can_manage_modules'])
+            ->withPivot(['role', 'status'])
             ->withTimestamps();
     }
 
@@ -187,5 +192,30 @@ class User extends Authenticatable
         return $this->hasOne(\App\Models\InstructorDocument::class)
             ->where('type', 'mot')
             ->latestOfMany(); // ambil MOT terbaru
+    }
+
+    public function scopeEligibleTrainer($query)
+    {
+        return $query->where('is_active', true)
+            ->whereHas('role', function ($q) {
+                $q->where('can_be_trainer', true);
+            })
+            ->where(function ($query) {
+
+                $query->whereHas('role', function ($q) {
+                    $q->where('slug', '!=', 'instructor');
+                })
+
+                ->orWhere(function ($q) {
+                    $q->whereHas('role', function ($r) {
+                        $r->where('slug', 'instructor');
+                    })
+                    ->whereHas('instructorDocuments', function ($doc) {
+                        $doc->where('type', 'mot')
+                            ->where('status', 'approved');
+                    });
+                });
+
+            });
     }
 }

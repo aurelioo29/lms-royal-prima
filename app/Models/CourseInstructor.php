@@ -13,7 +13,6 @@ class CourseInstructor extends Pivot
         'user_id',
         'role',
         'status',
-        'can_manage_modules',
     ];
 
 
