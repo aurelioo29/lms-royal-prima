@@ -87,8 +87,7 @@ class Course extends Model
     public function instructors()
     {
         return $this->belongsToMany(User::class, 'course_instructors')
-            ->using(CourseInstructor::class)
-            ->withPivot(['role', 'status', 'can_manage_modules'])
+            ->withPivot(['role','status'])
             ->withTimestamps();
     }
 }

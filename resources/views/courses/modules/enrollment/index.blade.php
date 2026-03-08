@@ -107,21 +107,64 @@
 
                                             {{-- STATUS AKTIF --}}
                                         @else
-                                            <form
-                                                action="{{ route($routePrefix . '.enrollments.destroy', [$course->id, $enrollment->id]) }}"
-                                                method="POST" class="inline">
-                                                @csrf
-                                                @method('DELETE')
+                                            <div x-data="{ open: false }" class="inline">
 
-                                                <button type="submit"
+                                                <!-- Tombol -->
+                                                <button type="button"
+                                                    @click="open = true"
                                                     class="inline-flex items-center rounded-full
-                                                           bg-red-50 text-red-700
-                                                           border border-red-200
-                                                           px-3 py-1 text-xs font-semibold
-                                                           hover:bg-red-100 transition">
+                                                        bg-red-50 text-red-700
+                                                        border border-red-200
+                                                        px-3 py-1 text-xs font-semibold
+                                                        hover:bg-red-100 transition">
                                                     Keluarkan
                                                 </button>
-                                            </form>
+
+                                                <!-- Modal Konfirmasi -->
+                                                <div x-show="open" x-cloak
+                                                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+                                                    <div @click.outside="open = false"
+                                                        class="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg text-left">
+
+                                                        <h2 class="text-lg font-semibold text-slate-900">
+                                                            Konfirmasi
+                                                        </h2>
+
+                                                        <p class="mt-3 text-sm text-slate-600">
+                                                            Apakah Anda yakin ingin mengeluarkan
+                                                            <strong>{{ $enrollment->user->name }}</strong>
+                                                            dari course ini?
+                                                        </p>
+
+                                                        <div class="mt-6 flex justify-end gap-3">
+
+                                                            <!-- Batal -->
+                                                            <button @click="open = false"
+                                                                class="rounded-lg border border-slate-200 px-4 py-2
+                                                                    text-sm font-semibold text-slate-600 hover:bg-slate-50">
+                                                                Batal
+                                                            </button>
+
+                                                            <!-- Konfirmasi -->
+                                                            <form
+                                                                action="{{ route($routePrefix . '.enrollments.destroy', [$course->id, $enrollment->id]) }}"
+                                                                method="POST">
+                                                                @csrf
+                                                                @method('DELETE')
+
+                                                                <button type="submit"
+                                                                    class="rounded-lg bg-red-600 px-4 py-2
+                                                                        text-sm font-semibold text-white hover:bg-red-700">
+                                                                    Ya, Keluarkan
+                                                                </button>
+                                                            </form>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
                                         @endif
 
                                     </td>

@@ -46,6 +46,7 @@
                             <th class="text-left px-4 py-3">Approve Plans</th>
                             <th class="text-left px-4 py-3">Create Courses</th>
                             <th class="text-left px-4 py-3">Approve Courses</th>
+                            <th class="text-left px-4 py-3">Can Be Trainer</th>
                             <th class="text-right px-4 py-3">Aksi</th>
                         </tr>
                     </thead>
@@ -89,6 +90,12 @@
                                 <td class="px-4 py-3">
                                     <span class="{{ $role->can_approve_courses ? $badgeYes : $badgeNo }}">
                                         {{ $role->can_approve_courses ? 'Yes' : 'No' }}
+                                    </span>
+                                </td>
+
+                                <td class="px-4 py-3">
+                                    <span class="{{ $role->can_be_trainer ? $badgeYes : $badgeNo }}">
+                                        {{ $role->can_be_trainer ? 'Yes' : 'No' }}
                                     </span>
                                 </td>
 

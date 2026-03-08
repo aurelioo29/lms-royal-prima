@@ -118,6 +118,11 @@
                             'title' => 'Approve Courses',
                             'desc' => 'Publish course setelah dicek/ACC.',
                         ],
+                        [
+                            'name' => 'can_be_trainer',
+                            'title' => 'Can Be Trainer',
+                            'desc' => 'Boleh ditunjuk sebagai trainer di course.',
+                        ],
                     ];
                 @endphp
 

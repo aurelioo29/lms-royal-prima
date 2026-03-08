@@ -15,8 +15,15 @@ class CourseEnrollmentController extends Controller
     // List semua course
     public function index(Request $request)
     {
+        $userId = auth()->id();
         $courses = Course::query()
             ->where('status', 'published')
+
+            //exclude course dimana user adalah instructor
+            ->whereDoesntHave('instructors', function ($q) use ($userId) {
+                    $q->where('users.id', $userId)
+                    ->where('course_instructors.status', 'active');
+                })
 
             ->when($request->filled('q'), function ($query) use ($request) {
                 $search = $request->q;
@@ -152,6 +159,14 @@ class CourseEnrollmentController extends Controller
     // Form enroll course
     public function create(Course $course)
     {
+        $isInstructor = $course->instructors()
+            ->where('user_id', auth()->id())
+            ->where('course_instructors.status', 'active')
+            ->exists();
+
+        abort_if($isInstructor, 403);
+
+
         abort_unless(auth()->user()->can('enroll', $course), 403);
 
         return view('course-enrollment._form', compact('course'));
@@ -161,6 +176,15 @@ class CourseEnrollmentController extends Controller
     // Enroll course
     public function store(EnrollCourseRequest $request, CourseEnrollmentService $service)
     {
+        $course = Course::where('enrollment_key', $request->enrollment_key)->firstOrFail();
+
+        $isInstructor = $course->instructors()
+            ->where('user_id', auth()->id())
+            ->where('course_instructors.status', 'active')
+            ->exists();
+
+        abort_if($isInstructor, 403);
+
         $course = $service->enroll(
             $request->enrollment_key,
             auth()->user()

@@ -4,24 +4,17 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use App\Services\Course\CourseInstructorService;
 
 class EnsureInstructorCanManageCourse
 {
     public function handle(Request $request, Closure $next)
-    {
-        $course = $request->route('course');
-        $userId = auth()->id();
+{
+    $course = $request->route('course');
 
-        // pastikan course ada
-        abort_if(!$course, 404);
+    app(CourseInstructorService::class)
+        ->authorizeModuleManagement($course, auth()->id());
 
-        $isInstructor = $course->instructors()
-            ->where('user_id', $userId)
-            ->where('can_manage_modules', true)
-            ->exists();
-
-        abort_unless($isInstructor, 403);
-
-        return $next($request);
-    }
+    return $next($request);
+}
 }
