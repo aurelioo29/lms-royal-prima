@@ -86,6 +86,7 @@ class UpdateCourseModuleRequest extends FormRequest
 
             'quiz.title' => [
                 'required_if:has_quiz,true',
+                'nullable',
                 'string',
                 'max:255',
             ],
@@ -95,6 +96,7 @@ class UpdateCourseModuleRequest extends FormRequest
 
             'quiz.passing_score' => [
                 'required_if:has_quiz,true',
+                'nullable',
                 'integer',
                 'min:0',
                 'max:100',
@@ -120,18 +122,20 @@ class UpdateCourseModuleRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $hasQuiz = $this->boolean('has_quiz');
-        $this->merge([
-            'has_quiz' => $hasQuiz,
+        $mergeData = [
+            'has_quiz'    => $hasQuiz,
             'is_required' => $this->boolean('is_required'),
-            'is_active'   => $hasQuiz
-                ? false
-                : $this->boolean('is_active'),
+            'is_active'   => $hasQuiz ? false : $this->boolean('is_active'),
+        ];
 
-            // quiz normalization
-            'quiz' => array_merge($this->input('quiz', []), [
-                'is_mandatory' => data_get($this->quiz, 'is_mandatory', false),
+
+        if ($hasQuiz) {
+            $mergeData['quiz'] = array_merge($this->input('quiz', []), [
+                'is_mandatory' => $this->boolean('quiz.is_mandatory'),
                 'status'       => data_get($this->quiz, 'status', 'draft'),
-            ]),
-        ]);
+            ]);
+        }
+
+        $this->merge($mergeData);
     }
 }

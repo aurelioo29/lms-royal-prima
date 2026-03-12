@@ -122,6 +122,7 @@ class CourseModuleController extends Controller
     {
         $service->authorizeModuleManagement($course, auth()->id());
 
+
         $data = $request->validated();
         $data['course_id'] = $course->id;
 
@@ -163,19 +164,23 @@ class CourseModuleController extends Controller
 
         $module = CourseModule::create($data);
 
+
+
         // Cek apakah quiz harus dibuat
-        $shouldCreateQuiz =
-            $request->boolean('has_quiz') &&
-            filled(data_get($data, 'quiz.title'));
+        if ($request->boolean('has_quiz')) {
+            $quizData = $data['quiz'] ?? [];
 
-        //JIKA MODUL BERTIPE QUIZ
-        if ($shouldCreateQuiz) {
-
-            if (empty($data['quiz']['max_attempts'])) {
-                $data['quiz']['max_attempts'] = null;
+            if (!empty($quizData['title'])) {
+                $module->quiz()->create([
+                    'title'         => $quizData['title'],
+                    'description'   => $quizData['description'] ?? null,
+                    'passing_score' => $quizData['passing_score'],
+                    'time_limit'    => $quizData['time_limit'] ?? null,
+                    'max_attempts'  => $quizData['max_attempts'] ?? null,
+                    'is_mandatory'  => $quizData['is_mandatory'] ?? false,
+                    'status'        => $quizData['status'] ?? 'draft',
+                ]);
             }
-
-            $module->quiz()->create($data['quiz']);
         }
 
 
@@ -212,13 +217,29 @@ class CourseModuleController extends Controller
         unset($data['quiz']);
 
         // handle upload baru
+        if ($data['type'] === 'link' || ($data['type'] === 'video' && $request->video_mode === 'link')) {
+            // Jika pindah ke LINK, hapus file lama jika ada
+            if ($module->file_path) {
+                Storage::disk('public')->delete($module->file_path);
+                $data['file_path'] = null; // Set null di database
+            }
+        }
+
+        if ($data['type'] === 'pdf' || ($data['type'] === 'video' && $request->video_mode === 'upload')) {
+            // Jika pindah ke FILE (PDF/Upload), kosongkan kolom content (URL/Embed)
+            $data['content'] = null;
+        }
+
+        // --- HANDLE UPLOAD FILE BARU ---
         if ($request->hasFile('file')) {
+            // Hapus file lama sebelum ganti baru
             if ($module->file_path) {
                 Storage::disk('public')->delete($module->file_path);
             }
 
-            $data['file_path'] = $request->file('file')
-                ->store('course-modules', 'public');
+            // Tentukan folder berdasarkan tipe
+            $folder = $data['type'] === 'pdf' ? 'course-modules/pdf' : 'course-modules/videos';
+            $data['file_path'] = $request->file('file')->store($folder, 'public');
         }
 
         $module->update($data);
@@ -261,7 +282,7 @@ class CourseModuleController extends Controller
             Storage::disk('public')->delete($module->file_path);
         }
 
-        // hapus quiz (jika ada)    
+        // hapus quiz (jika ada)
         if ($module->quiz) {
             $module->quiz()->delete();
         }
