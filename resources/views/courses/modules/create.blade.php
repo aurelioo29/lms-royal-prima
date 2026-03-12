@@ -192,7 +192,7 @@
                             </div>
                         </div>
 
-                        @include('courses.modules.quizz.form-quiz')
+                        <div x-show="has_quiz" x-transition> @include('courses.modules.quizz.form-quiz') </div>
                     </div>
 
                 </div>

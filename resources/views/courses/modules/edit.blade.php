@@ -34,7 +34,7 @@
                 enctype="multipart/form-data" x-data="{
                     type: '{{ old('type', $module->type) }}',
                     video_mode: '{{ old('video_mode', $module->type === 'video' && $module->file_path ? 'upload' : 'link') }}',
-                    has_quiz: {{ old('has_quiz', $module->quiz ? 1 : 0) ? 'true' : 'false' }},
+                    has_quiz: {{ old('has_quiz', $module->quiz ? 'true' : 'false') }},
                     quill: null,
                     initQuill() {
                         this.quill = new Quill('#editor', {
@@ -48,11 +48,11 @@
                                 ]
                             }
                         });
-                
+
                         this.quill.on('text-change', () => {
                             $refs.description.value = this.quill.root.innerHTML;
                         });
-                
+
                         // Set initial content from module or old input
                         const initialContent = `{!! old('description', $module->description) !!}`;
                         this.quill.root.innerHTML = initialContent;
