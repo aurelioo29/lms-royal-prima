@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
+use App\Notifications\CustomResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Models\InstructorDocument;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Notifiable;
 
     protected $fillable = [
         'name',
@@ -174,7 +174,6 @@ class User extends Authenticatable
         return $this->hasMany(CourseEnrollment::class);
     }
 
-
     public function instructedCourses()
     {
         return $this->belongsToMany(Course::class, 'course_instructors')
@@ -205,17 +204,21 @@ class User extends Authenticatable
                 $query->whereHas('role', function ($q) {
                     $q->where('slug', '!=', 'instructor');
                 })
-
-                ->orWhere(function ($q) {
-                    $q->whereHas('role', function ($r) {
-                        $r->where('slug', 'instructor');
-                    })
-                    ->whereHas('instructorDocuments', function ($doc) {
-                        $doc->where('type', 'mot')
-                            ->where('status', 'approved');
+                    ->orWhere(function ($q) {
+                        $q->whereHas('role', function ($r) {
+                            $r->where('slug', 'instructor');
+                        })
+                            ->whereHas('instructorDocuments', function ($doc) {
+                                $doc->where('type', 'mot')
+                                    ->where('status', 'approved');
+                            });
                     });
-                });
 
             });
+    }
+
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new CustomResetPasswordNotification($token));
     }
 }
