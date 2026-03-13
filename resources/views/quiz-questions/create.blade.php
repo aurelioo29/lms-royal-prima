@@ -61,11 +61,11 @@
                                     placeholder="Tulis pertanyaan..."
                                 ></textarea>
 
-                                <!-- SCORE -->
+                                {{-- <!-- SCORE -->
                                 <input type="number"
                                        class="w-24 rounded-xl border mb-4"
                                        :name="`questions[${qIndex}][score]`"
-                                       value="10">
+                                       value="10"> --}}
 
                                 <!-- TYPE -->
                                 <select x-model="q.type"
