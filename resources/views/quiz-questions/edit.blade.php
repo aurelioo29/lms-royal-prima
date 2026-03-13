@@ -74,14 +74,14 @@
                                 placeholder="Tulis pertanyaan..."
                             ></textarea>
 
-                            <!-- SCORE -->
+                            {{-- <!-- SCORE -->
                             <div class="flex flex-col mb-4">
                                 <label class="text-xs text-slate-500 mb-1">Skor</label>
                                 <input type="number"
                                        class="w-24 rounded-xl border"
                                        x-model="q.score"
                                        :name="`questions[${qIndex}][score]`">
-                            </div>
+                            </div> --}}
 
                             <!-- TYPE -->
                             <select x-model="q.type"
