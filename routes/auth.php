@@ -1,35 +1,35 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\CourseController;
-use App\Http\Controllers\QuizAttemptController;
+use App\Http\Controllers\AdminMotReviewController;
+use App\Http\Controllers\AnnualPlanController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\ConfirmablePasswordController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\CourseEnrollmentController;
+use App\Http\Controllers\CourseModuleController;
+use App\Http\Controllers\CourseTypeController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeeCourseModuleController;
+use App\Http\Controllers\InstructorCourseController;
+use App\Http\Controllers\InstructorMotController;
+use App\Http\Controllers\JobCategoryController;
 use App\Http\Controllers\JobTitleController;
 use App\Http\Controllers\PlanEventController;
-use App\Http\Controllers\AnnualPlanController;
-use App\Http\Controllers\CourseTypeController;
-use App\Http\Controllers\ModuleQuizController;
-use App\Http\Controllers\JobCategoryController;
-use App\Http\Controllers\CourseModuleController;
-use App\Http\Controllers\QuizQuestionController;
-use App\Http\Controllers\Auth\PasswordController;
-use App\Http\Controllers\InstructorMotController;
-use App\Http\Controllers\TorSubmissionController;
-use App\Http\Controllers\AdminMotReviewController;
-use App\Http\Controllers\Auth\NewPasswordController;
-use App\Http\Controllers\Auth\VerifyEmailController;
-use App\Http\Controllers\CourseEnrollmentController;
-use App\Http\Controllers\InstructorCourseController;
-use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\EmployeeCourseModuleController;
-use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\ConfirmablePasswordController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\EmailVerificationPromptController;
-use App\Http\Controllers\Auth\EmailVerificationNotificationController;
+use App\Http\Controllers\QuizAttemptController;
 use App\Http\Controllers\QuizEssayReviewController;
+use App\Http\Controllers\QuizQuestionController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TorSubmissionController;
+use App\Http\Controllers\VideoController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -253,7 +253,7 @@ Route::middleware('auth')->group(function () {
                             ->name('questions.destroy');
                     });
 
-                // QUIZ ESSAY REVIEW 
+                // QUIZ ESSAY REVIEW
                 Route::prefix('/modules/{module}/quiz/review')
                     ->name('modules.quiz.review.')
                     ->group(function () {
@@ -270,7 +270,6 @@ Route::middleware('auth')->group(function () {
                         Route::post('/answers/{answer}', [QuizEssayReviewController::class, 'store'])
                             ->name('store');
                     });
-
 
                 Route::get('/modules', [CourseModuleController::class, 'index'])
                     ->name('modules.index');
@@ -363,7 +362,7 @@ Route::middleware('auth')->group(function () {
                                 ->name('questions.destroy');
                         });
 
-                    // QUIZ ESSAY REVIEW 
+                    // QUIZ ESSAY REVIEW
                     Route::prefix('/modules/{module}/quiz/review')
                         ->name('modules.quiz.review.')
                         ->group(function () {
@@ -380,7 +379,6 @@ Route::middleware('auth')->group(function () {
                             Route::post('/answers/{answer}', [QuizEssayReviewController::class, 'store'])
                                 ->name('store');
                         });
-
 
                     Route::get('/modules', [CourseModuleController::class, 'index'])
                         ->name('modules.index');
@@ -417,7 +415,6 @@ Route::middleware('auth')->group(function () {
                 });
         });
 
-
     /*
     |--------------------------------------------------------------------------
     | INSTRUCTOR MOT
@@ -450,6 +447,9 @@ Route::middleware('auth')->group(function () {
 
     Route::put('password', [PasswordController::class, 'update'])
         ->name('password.update');
+
+    // Videos Module
+    Route::resource('videos', VideoController::class);
 
     /*
     |--------------------------------------------------------------------------

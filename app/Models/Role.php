@@ -17,6 +17,7 @@ class Role extends Model
         'can_create_courses',
         'can_approve_courses',
         'can_be_trainer',
+        'can_see_module',
     ];
 
     protected $casts = [
@@ -26,7 +27,9 @@ class Role extends Model
         'can_create_courses' => 'boolean',
         'can_approve_courses' => 'boolean',
         'can_be_trainer' => 'boolean',
+        'can_see_module' => 'boolean',
     ];
+
     public function users(): HasMany
     {
         return $this->hasMany(User::class);

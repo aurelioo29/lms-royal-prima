@@ -18,7 +18,7 @@ class RoleController extends Controller
         $roles = Role::query()
             ->when(
                 $q,
-                fn($query) => $query
+                fn ($query) => $query
                     ->where('name', 'like', "%{$q}%")
                     ->orWhere('slug', 'like', "%{$q}%")
             )
@@ -47,6 +47,7 @@ class RoleController extends Controller
             'can_create_courses' => $request->boolean('can_create_courses'),
             'can_approve_courses' => $request->boolean('can_approve_courses'),
             'can_be_trainer' => $request->boolean('can_be_trainer'),
+            'can_see_module' => $request->boolean('can_see_module'),
 
         ]);
 
@@ -71,6 +72,7 @@ class RoleController extends Controller
             'can_create_courses' => $request->boolean('can_create_courses'),
             'can_approve_courses' => $request->boolean('can_approve_courses'),
             'can_be_trainer' => $request->boolean('can_be_trainer'),
+            'can_see_module' => $request->boolean('can_see_module'),
         ]);
 
         return redirect()->route('roles.index')->with('success', 'Role berhasil diupdate.');
@@ -84,6 +86,7 @@ class RoleController extends Controller
         }
 
         $role->delete();
+
         return redirect()->route('roles.index')->with('success', 'Role berhasil dihapus.');
     }
 

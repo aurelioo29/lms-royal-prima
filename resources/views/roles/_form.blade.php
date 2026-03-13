@@ -123,6 +123,11 @@
                             'title' => 'Can Be Trainer',
                             'desc' => 'Boleh ditunjuk sebagai trainer di course.',
                         ],
+                        [
+                            'name' => 'can_see_module',
+                            'title' => 'View Video Module',
+                            'desc' => 'Melihat video module pemakaian aplikasi.',
+                        ],
                     ];
                 @endphp
 

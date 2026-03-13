@@ -12,6 +12,8 @@
 
     $canManageUsers = (bool) $user->role?->can_manage_users;
 
+    $canSeeModule = (bool) $user->role?->can_see_module;
+
     // role checks
     $isEmployee = $user->role?->name === 'Karyawan';
 
@@ -24,6 +26,8 @@
 
     $showCourseMgmtMenu = $canCourseCreate;
     $showUsersMenu = $canManageUsers;
+
+    $showVideoModule = $canSeeModule;
 
     // active flags
     $dashboardActive = request()->routeIs('dashboard') || request()->routeIs('dashboard.*');
@@ -273,6 +277,43 @@
                     <a href="{{ route('roles.index') }}"
                         class="{{ $navChildBase }} {{ request()->routeIs('roles.*') ? $navChildActive : $navChildInactive }}">
                         Tambah Roles
+                    </a>
+                @endif
+            </div>
+        </div>
+    @endif
+
+    {{-- Video Module --}}
+    @if ($showVideoModule || $isDeveloper)
+        <div x-data="{ open: {{ request()->routeIs('videos.*') ? 'true' : 'false' }} }" class="pt-1">
+            <button type="button" @click="open = !open"
+                class="{{ $groupBtnBase }} {{ request()->routeIs('videos.*') ? $navItemActive : $navItemInactive }}">
+                <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="currentColor" d="M8 5v14l11-7zM4 5h2v14H4z" />
+                    </svg>
+                    <span x-show="!collapsed" x-transition.opacity>Video Module</span>
+                </div>
+
+                <svg x-show="!collapsed" x-transition.opacity class="w-4 h-4 transition-transform duration-300"
+                    :class="open ? 'rotate-180' : 'rotate-0'" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="currentColor"
+                        d="m12 15l-4.243-4.242l1.415-1.414L12 12.172l2.828-2.828l1.415 1.414L12 15.001Z" />
+                </svg>
+            </button>
+
+            <div x-show="open && !collapsed" x-collapse.duration.250ms class="mt-2 space-y-1 pl-11 relative">
+                <div class="absolute left-5 top-0 bottom-0 w-px bg-slate-200/70"></div>
+
+                <a href="{{ route('videos.index') }}"
+                    class="{{ $navChildBase }} {{ request()->routeIs('videos.index') ? $navChildActive : $navChildInactive }}">
+                    List Video
+                </a>
+
+                @if ($isDeveloper)
+                    <a href="{{ route('videos.create') }}"
+                        class="{{ $navChildBase }} {{ request()->routeIs('videos.create') ? $navChildActive : $navChildInactive }}">
+                        Tambah Video
                     </a>
                 @endif
             </div>
