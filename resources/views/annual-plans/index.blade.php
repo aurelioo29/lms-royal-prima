@@ -184,6 +184,26 @@
                                                     Edit
                                                 </a>
                                             @endif
+
+                                            @php
+                                                $user = auth()->user();
+                                                $canDeletePlan =
+                                                    ($user->canCreatePlans() || $user->canApprovePlans()) &&
+                                                    in_array($p->status, ['draft', 'rejected'], true) &&
+                                                    !$p->events()->exists();
+                                            @endphp
+
+                                            @if ($canDeletePlan)
+                                                <form method="POST" action="{{ route('annual-plans.destroy', $p) }}"
+                                                    onsubmit="return confirm('Hapus Annual Plan ini? Tindakan ini tidak bisa dibatalkan.')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button
+                                                        class="inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100">
+                                                        Hapus
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

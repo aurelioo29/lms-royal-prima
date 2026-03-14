@@ -6,17 +6,17 @@ use App\Http\Requests\AnnualPlan\AnnualPlanDecisionRequest;
 use App\Http\Requests\AnnualPlan\AnnualPlanStoreRequest;
 use App\Http\Requests\AnnualPlan\AnnualPlanUpdateRequest;
 use App\Models\AnnualPlan;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AnnualPlanController extends Controller
 {
     public function index()
     {
-        $q      = request('q');
+        $q = request('q');
         $status = request('status');
-        $sort   = request('sort', 'newest');
+        $sort = request('sort', 'newest');
 
         $plans = \App\Models\AnnualPlan::query()
             ->with(['creator', 'approver'])
@@ -24,30 +24,28 @@ class AnnualPlanController extends Controller
                 $query->where(function ($sub) use ($q) {
                     $sub->where('title', 'like', "%{$q}%")
                         ->orWhere('year', 'like', "%{$q}%")
-                        ->orWhereHas('creator', fn($u) => $u->where('name', 'like', "%{$q}%"));
+                        ->orWhereHas('creator', fn ($u) => $u->where('name', 'like', "%{$q}%"));
                 });
             })
-            ->when($status, fn($query) => $query->where('status', $status))
-            ->when($sort === 'newest', fn($query) => $query->orderByDesc('created_at'))
-            ->when($sort === 'oldest', fn($query) => $query->orderBy('created_at'))
-            ->when($sort === 'year',   fn($query) => $query->orderByDesc('year')->orderByDesc('created_at'))
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($sort === 'newest', fn ($query) => $query->orderByDesc('created_at'))
+            ->when($sort === 'oldest', fn ($query) => $query->orderBy('created_at'))
+            ->when($sort === 'year', fn ($query) => $query->orderByDesc('year')->orderByDesc('created_at'))
             ->paginate(10)
             ->withQueryString();
 
         return view('annual-plans.index', compact('plans', 'q', 'status', 'sort'));
     }
 
-
     public function show(AnnualPlan $annualPlan): View
     {
         $user = auth()->user();
-        if (!$annualPlan->isApproved() && !($user->canCreatePlans() || $user->canApprovePlans())) {
+        if (! $annualPlan->isApproved() && ! ($user->canCreatePlans() || $user->canApprovePlans())) {
             abort(403);
         }
 
         $annualPlan->load([
-            'events' => fn($q) =>
-            $q->orderBy('start_date')
+            'events' => fn ($q) => $q->orderBy('start_date')
                 ->orderBy('start_time')
                 ->with('torSubmission'),
         ]);
@@ -58,6 +56,7 @@ class AnnualPlanController extends Controller
     public function create(): View
     {
         abort_unless(auth()->user()->canCreatePlans(), 403);
+
         return view('annual-plans.create');
     }
 
@@ -96,6 +95,7 @@ class AnnualPlanController extends Controller
 
         if ($user->canApprovePlans()) {
             $annualPlan->update($request->validated());
+
             return redirect()->route('annual-plans.show', $annualPlan)->with('success', 'Annual Plan diupdate oleh Direktur.');
         }
 
@@ -121,7 +121,8 @@ class AnnualPlanController extends Controller
         $missing = $annualPlan->missingTorEvents();
         if ($missing->count() > 0) {
             $names = $missing->pluck('title')->take(5)->implode(', ');
-            return back()->with('error', 'Tidak bisa diajukan: ada event belum punya TOR (submitted). Contoh: ' . $names);
+
+            return back()->with('error', 'Tidak bisa diajukan: ada event belum punya TOR (submitted). Contoh: '.$names);
         }
 
         DB::transaction(function () use ($annualPlan) {
@@ -166,7 +167,8 @@ class AnnualPlanController extends Controller
         $missing = $annualPlan->missingTorEvents();
         if ($missing->count() > 0) {
             $names = $missing->pluck('title')->take(5)->implode(', ');
-            return back()->with('error', 'Gagal approve: ada event belum punya TOR (submitted). Contoh: ' . $names);
+
+            return back()->with('error', 'Gagal approve: ada event belum punya TOR (submitted). Contoh: '.$names);
         }
 
         DB::transaction(function () use ($annualPlan) {
@@ -251,5 +253,29 @@ class AnnualPlanController extends Controller
 
         return redirect()->route('annual-plans.show', $annualPlan)
             ->with('success', 'Annual Plan dibuka kembali untuk revisi (Draft).');
+    }
+
+    public function destroy(AnnualPlan $annualPlan): RedirectResponse
+    {
+        $user = auth()->user();
+
+        // Direktur atau pembuat plan yang punya hak create plan
+        abort_unless($user->canCreatePlans() || $user->canApprovePlans(), 403);
+
+        // Kalau bukan direktur, hanya boleh hapus draft / rejected
+        if (! $user->canApprovePlans()) {
+            abort_unless($annualPlan->isDraft() || $annualPlan->isRejected(), 403);
+        }
+
+        // Jangan hapus kalau masih punya event
+        if ($annualPlan->events()->exists()) {
+            return back()->with('error', 'Annual Plan tidak bisa dihapus karena masih memiliki event.');
+        }
+
+        $annualPlan->delete();
+
+        return redirect()
+            ->route('annual-plans.index')
+            ->with('success', 'Annual Plan berhasil dihapus.');
     }
 }

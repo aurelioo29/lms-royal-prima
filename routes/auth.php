@@ -112,7 +112,7 @@ Route::middleware('auth')->group(function () {
             ->name('annual-plans.reject');
     });
 
-    // create/edit/update/submit (harus sebelum /{annualPlan})
+    // create/edit/update/submit/delete (harus sebelum /{annualPlan})
     Route::middleware('cap:can_create_plans')->group(function () {
         Route::get('/annual-plans/create', [AnnualPlanController::class, 'create'])
             ->name('annual-plans.create');
@@ -125,6 +125,9 @@ Route::middleware('auth')->group(function () {
 
         Route::put('/annual-plans/{annualPlan}', [AnnualPlanController::class, 'update'])
             ->name('annual-plans.update');
+
+        Route::delete('/annual-plans/{annualPlan}', [AnnualPlanController::class, 'destroy'])
+            ->name('annual-plans.destroy');
 
         Route::post('/annual-plans/{annualPlan}/submit', [AnnualPlanController::class, 'submit'])
             ->name('annual-plans.submit');
