@@ -2,32 +2,40 @@
     <div class="py-6">
         <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
 
-            {{-- Alerts --}}
+            {{-- SweetAlert Flash Message --}}
             @if (session('success'))
-                <div class="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-green-800">
-                    <div class="flex items-start gap-3">
-                        <svg class="mt-0.5 h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-                            <path fill="currentColor"
-                                d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20Zm-1 14l-4-4l1.4-1.4L11 13.2l5.6-5.6L18 9l-7 7Z" />
-                        </svg>
-                        <div class="text-sm font-medium leading-relaxed">{{ session('success') }}</div>
-                    </div>
-                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: @json(session('success')),
+                            showConfirmButton: false,
+                            timer: 2500,
+                            timerProgressBar: true
+                        });
+                    });
+                </script>
             @endif
 
             @if (session('error'))
-                <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-800">
-                    <div class="flex items-start gap-3">
-                        <svg class="mt-0.5 h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-                            <path fill="currentColor"
-                                d="M12 2a10 10 0 1 0 0 20a10 10 0 0 0 0-20Zm1 13h-2v-2h2v2Zm0-4h-2V7h2v4Z" />
-                        </svg>
-                        <div class="text-sm font-medium leading-relaxed">{{ session('error') }}</div>
-                    </div>
-                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'error',
+                            title: @json(session('error')),
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                    });
+                </script>
             @endif
 
-            {{-- Page Header (Flat / Professional) --}}
+            {{-- Page Header --}}
             <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
                 <div class="p-5 sm:p-6">
                     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
@@ -146,6 +154,12 @@
 
                         <tbody class="divide-y divide-slate-200">
                             @forelse($plans as $p)
+                                @php
+                                    $user = auth()->user();
+                                    $canDeleteByRole = $user->canCreatePlans() || $user->canApprovePlans();
+                                    $canDeleteByStatus = in_array($p->status, ['draft', 'rejected', 'approved'], true);
+                                @endphp
+
                                 <tr class="hover:bg-slate-50">
                                     <td class="px-5 py-4 font-semibold text-slate-900">{{ $p->year }}</td>
 
@@ -178,27 +192,22 @@
                                                 Detail
                                             </a>
 
-                                            @if (auth()->user()->canCreatePlans() && in_array($p->status, ['draft', 'rejected'], true))
+                                            @if (auth()->user()->canCreatePlans() && in_array($p->status, ['draft', 'rejected', 'approved'], true))
                                                 <a href="{{ route('annual-plans.edit', $p) }}"
                                                     class="inline-flex items-center justify-center rounded-lg bg-[#121293] px-3 py-2 text-sm font-semibold text-white hover:opacity-90">
                                                     Edit
                                                 </a>
                                             @endif
 
-                                            @php
-                                                $user = auth()->user();
-                                                $canDeletePlan =
-                                                    ($user->canCreatePlans() || $user->canApprovePlans()) &&
-                                                    in_array($p->status, ['draft', 'rejected'], true) &&
-                                                    !$p->events()->exists();
-                                            @endphp
-
-                                            @if ($canDeletePlan)
+                                            @if ($canDeleteByRole && $canDeleteByStatus)
                                                 <form method="POST" action="{{ route('annual-plans.destroy', $p) }}"
-                                                    onsubmit="return confirm('Hapus Annual Plan ini? Tindakan ini tidak bisa dibatalkan.')">
+                                                    class="js-delete-form inline-block"
+                                                    data-delete-title="Hapus Annual Plan?"
+                                                    data-delete-text="Annual Plan '{{ $p->title }}' akan dihapus. Tindakan ini tidak bisa dibatalkan."
+                                                    data-confirm-text="Ya, hapus">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button
+                                                    <button type="submit"
                                                         class="inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100">
                                                         Hapus
                                                     </button>
@@ -239,4 +248,35 @@
 
         </div>
     </div>
+
+    {{-- SweetAlert Delete Confirm --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.js-delete-form').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    const title = form.dataset.deleteTitle || 'Hapus data?';
+                    const text = form.dataset.deleteText || 'Tindakan ini tidak bisa dibatalkan.';
+                    const confirmText = form.dataset.confirmText || 'Ya, hapus';
+
+                    Swal.fire({
+                        title: title,
+                        text: text,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc2626',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: confirmText,
+                        cancelButtonText: 'Batal',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 </x-app-layout>

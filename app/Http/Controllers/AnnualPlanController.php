@@ -259,23 +259,28 @@ class AnnualPlanController extends Controller
     {
         $user = auth()->user();
 
-        // Direktur atau pembuat plan yang punya hak create plan
         abort_unless($user->canCreatePlans() || $user->canApprovePlans(), 403);
+        abort_unless(in_array($annualPlan->status, ['draft', 'rejected', 'approved'], true), 403);
 
-        // Kalau bukan direktur, hanya boleh hapus draft / rejected
-        if (! $user->canApprovePlans()) {
-            abort_unless($annualPlan->isDraft() || $annualPlan->isRejected(), 403);
-        }
+        DB::transaction(function () use ($annualPlan) {
+            $annualPlan->load(['events.torSubmission']);
 
-        // Jangan hapus kalau masih punya event
-        if ($annualPlan->events()->exists()) {
-            return back()->with('error', 'Annual Plan tidak bisa dihapus karena masih memiliki event.');
-        }
+            foreach ($annualPlan->events as $event) {
+                // Kalau event punya TOR, hapus dulu TOR-nya
+                if ($event->torSubmission) {
+                    $event->torSubmission->delete();
+                }
 
-        $annualPlan->delete();
+                // Hapus event
+                $event->delete();
+            }
+
+            // Terakhir hapus annual plan
+            $annualPlan->delete();
+        });
 
         return redirect()
             ->route('annual-plans.index')
-            ->with('success', 'Annual Plan berhasil dihapus.');
+            ->with('success', 'Annual Plan beserta event dan TOR terkait berhasil dihapus.');
     }
 }
