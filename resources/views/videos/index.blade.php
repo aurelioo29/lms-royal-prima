@@ -52,30 +52,32 @@
                     <div
                         class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition">
 
-                        {{-- Preview --}}
-                        <div class="aspect-video bg-slate-100 border-b border-slate-200">
+                        {{-- Preview clickable --}}
+                        <a href="{{ route('videos.show', $video) }}"
+                            class="block aspect-video bg-slate-100 border-b border-slate-200">
                             @if ($video->embed_url)
-                                <iframe src="{{ $video->embed_url }}" class="w-full h-full" frameborder="0"
+                                <iframe src="{{ $video->embed_url }}" class="w-full h-full pointer-events-none"
+                                    frameborder="0"
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowfullscreen>
                                 </iframe>
                             @else
                                 <div class="w-full h-full flex items-center justify-center px-4 text-center">
-                                    <a href="{{ $video->video_url }}" target="_blank"
-                                        class="text-sm font-medium text-[#121293] hover:underline break-all">
-                                        Buka Video
-                                    </a>
+                                    <span class="text-sm font-medium text-[#121293]">
+                                        Lihat Detail Video
+                                    </span>
                                 </div>
                             @endif
-                        </div>
+                        </a>
 
-                        {{-- Content --}}
                         <div class="p-5">
                             <div class="flex items-start justify-between gap-3 mb-3">
-                                <div>
-                                    <h2 class="text-base font-semibold text-slate-800 line-clamp-2">
+                                <div class="min-w-0">
+                                    <a href="{{ route('videos.show', $video) }}"
+                                        class="block text-base font-semibold text-slate-800 line-clamp-2 hover:text-[#121293] transition">
                                         {{ $video->title }}
-                                    </h2>
+                                    </a>
+
                                     <p class="text-xs text-slate-500 mt-1">
                                         {{ ucfirst($video->platform ?? 'unknown') }} •
                                         {{ $video->created_at?->format('d M Y') }}
@@ -84,9 +86,9 @@
 
                                 <span
                                     class="shrink-0 px-2 py-1 rounded-full text-xs border
-                                    {{ $video->is_active
-                                        ? 'bg-green-50 text-green-700 border-green-100'
-                                        : 'bg-slate-50 text-slate-600 border-slate-200' }}">
+                    {{ $video->is_active
+                        ? 'bg-green-50 text-green-700 border-green-100'
+                        : 'bg-slate-50 text-slate-600 border-slate-200' }}">
                                     {{ $video->is_active ? 'Active' : 'Inactive' }}
                                 </span>
                             </div>
@@ -103,13 +105,18 @@
 
                             {{-- Actions --}}
                             <div class="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
-                                <a href="{{ $video->video_url }}" target="_blank"
-                                    class="text-sm font-medium text-slate-600 hover:text-slate-900 hover:underline">
-                                    Open Link
+                                <a href="{{ route('videos.show', $video) }}"
+                                    class="text-sm font-medium text-[#121293] hover:underline">
+                                    Lihat Detail
                                 </a>
 
-                                @if (auth()->user()?->role?->name === 'Developer')
-                                    <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-3">
+                                    <a href="{{ $video->video_url }}" target="_blank"
+                                        class="text-sm font-medium text-slate-600 hover:text-slate-900 hover:underline">
+                                        Open Link
+                                    </a>
+
+                                    @if (auth()->user()?->role?->name === 'Developer')
                                         <a href="{{ route('videos.edit', $video) }}"
                                             class="text-sm font-medium text-[#121293] hover:underline">
                                             Edit
@@ -124,8 +131,8 @@
                                                 Hapus
                                             </button>
                                         </form>
-                                    </div>
-                                @endif
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
