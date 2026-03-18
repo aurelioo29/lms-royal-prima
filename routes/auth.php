@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AdminMotReviewController;
 use App\Http\Controllers\AnnualPlanController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -73,6 +74,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('job-categories', JobCategoryController::class);
         Route::resource('job-titles', JobTitleController::class);
         Route::resource('employees', EmployeeController::class)->except(['show']);
+        Route::resource('accounts', AccountController::class)->except(['show']);
 
         // =======================
         // ADMIN/KABID - MOT

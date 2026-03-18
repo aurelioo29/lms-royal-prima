@@ -44,7 +44,8 @@
         request()->routeIs('employees.*') ||
         request()->routeIs('job-titles.*') ||
         request()->routeIs('job-categories.*') ||
-        request()->routeIs('admin.mot.*');
+        request()->routeIs('admin.mot.*') ||
+        request()->routeIs('accounts.*');
 
     // dropdown open state
     $openPlans = $plansActive;
@@ -277,6 +278,11 @@
                     <a href="{{ route('roles.index') }}"
                         class="{{ $navChildBase }} {{ request()->routeIs('roles.*') ? $navChildActive : $navChildInactive }}">
                         Tambah Roles
+                    </a>
+
+                    <a href="{{ route('accounts.index') }}"
+                        class="{{ $navChildBase }} {{ request()->routeIs('accounts.*') ? $navChildActive : $navChildInactive }}">
+                        All Accounts
                     </a>
                 @endif
             </div>
