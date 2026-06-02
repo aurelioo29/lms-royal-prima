@@ -14,9 +14,9 @@ use Illuminate\View\View;
 class PlanEventController extends Controller
 {
     /**
-     * Kabid boleh manage event selama Annual Plan bukan "pending".
+     * Kabid boleh manage event kapan pun, tanpa menunggu approval Annual Plan.
      * Sesuai flow:
-     * - Event boleh dibuat saat plan draft/rejected (sebelum plan ACC)
+     * - Event boleh dibuat saat plan draft/pending/rejected
      * - Setelah plan approved, event masih boleh ditambah/diubah (selama event masih draft/rejected)
      */
     private function assertCanManageEvents(AnnualPlan $plan): void
@@ -30,9 +30,6 @@ class PlanEventController extends Controller
 
         // Kabid
         abort_unless($user->canCreatePlans(), 403);
-
-        // Plan pending = lagi diajukan, jangan diutak-atik dulu
-        abort_unless($plan->status !== 'pending', 403);
     }
 
     /**
