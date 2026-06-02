@@ -142,12 +142,10 @@
                         </p>
                     </div>
 
-                    @if ($user->canCreateEvents())
-                        <a href="{{ route('annual-plans.events.create', $annualPlan) }}"
-                            class="inline-flex items-center rounded-lg bg-[#121293] px-4 py-2 text-sm font-semibold text-white hover:opacity-90">
-                            Tambah Event
-                        </a>
-                    @endif
+                    <a href="{{ route('annual-plans.events.create', $annualPlan) }}"
+                        class="inline-flex items-center rounded-lg bg-[#121293] px-4 py-2 text-sm font-semibold text-white hover:opacity-90">
+                        + Tambah Event
+                    </a>
                 </div>
 
                 <div class="p-5 space-y-3">

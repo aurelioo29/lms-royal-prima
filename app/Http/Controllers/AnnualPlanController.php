@@ -50,7 +50,9 @@ class AnnualPlanController extends Controller
                 ->with('torSubmission'),
         ]);
 
-        return view('annual-plans.show', compact('annualPlan'));
+        $canCreateEvent = $user->canCreatePlans() && !$user->canApprovePlans();
+
+        return view('annual-plans.show', compact('annualPlan', 'canCreateEvent'));
     }
 
     public function create(): View
